@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Data, caches and model files
+data/*
+!data/.gitkeep
+*.safetensors
+*.gguf
+*.ckpt
+*.pt
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
