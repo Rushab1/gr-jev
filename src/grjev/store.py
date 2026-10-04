@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,8 @@ def load_or_compute(path: Path, compute: Callable[[], dict[str, Any]]) -> dict[s
     if not path.exists():
         record = compute()
         path.parent.mkdir(parents=True, exist_ok=True)
-        partial = path.with_suffix(".part")
-        partial.write_text(json.dumps(record, ensure_ascii=False, indent=1))
-        partial.replace(path)
+        # Each writer gets its own temporary file, so two writers of the same record cannot collide.
+        with tempfile.NamedTemporaryFile("w", dir=path.parent, suffix=".part", delete=False) as partial:
+            partial.write(json.dumps(record, ensure_ascii=False, indent=1))
+        Path(partial.name).replace(path)
     return json.loads(path.read_text())
