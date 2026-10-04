@@ -10,9 +10,9 @@ This file is the code standard for everyone who works here: Rushab, Gyanesh, and
 scripts/        runnable commands: download a dataset, run an experiment
 src/grjev/      importable code: loaders, the Jev client, metrics
 tests/          tests for src/grjev/
-data/raw/       files exactly as downloaded, never edited
-data/processed/ files built by our code
-data/cache/     saved Jev responses
+data/<dataset>/raw/        files exactly as downloaded, never edited
+data/<dataset>/processed/  files built by our code
+data/cache/                saved Jev responses, shared by all datasets
 results/        experiment outputs
 notebooks/      Colab notebooks, which only call scripts
 docs/           project notes
@@ -24,11 +24,14 @@ docs/           project notes
 
 ```
 uv venv
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt -r requirements-dev.txt
 source .venv/bin/activate
+python scripts/download_data.py metatool stabletoolbench bfcl
 ```
 
-Python 3.13. The tooling files (`pyproject.toml`, `requirements-dev.txt`, the pre-commit config and the CI workflow) are not added yet. Once they are, run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit.
+Python 3.13. `requirements.txt` installs the `grjev` package in editable mode. `scripts/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`.
+
+Run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit. The pre-commit config and the CI workflow are not added yet.
 
 ## Code style
 
@@ -54,9 +57,9 @@ Use `pytest`. Test the code that can change a number in the paper: parsers, data
 ## Reproducibility
 
 - Pin every download to a commit or revision and check it against a SHA-256 hash stored in `constants.py`.
-- Never edit files in `data/raw/`. Build everything in `data/processed/` with code.
+- Never edit files in a `raw/` folder. Build everything in `processed/` with code.
 - Every function that makes a random choice takes a seed or a generator as an argument. Do not call `random.seed` globally.
-- Cache every Jev response under a hash of the exact request, and store the model version with it.
+- Save every Jev response under a hash of the exact request and a run number, and store the request and the model version with it. A deliberate repeat of a request gets a new run number, so repeats are separate calls that can be compared. The hash covers only what is sent to Jev, never the version of our code.
 - Pin the Jev model version. The current one is `jev-1.13.0`.
 
 ## Results
@@ -108,3 +111,7 @@ This covers `docs/dashboard.html` and any other page with an interface. The page
 Keep text that states a fact the block cannot show: a tool that is absent from a list, the source and date of a number, the label on a commit hash.
 
 `docs/dashboard.html` records Rushab's understanding of the datasets and the decisions. Each dataset tab opens with a plain explanation of the dataset, followed by sections named by topic, with two examples from each test file. It is light mode only. Check every number and quote on it against the raw files.
+
+## Effort
+
+Do not spend 90% of the time on 5% of the detail. If a detail seems to need that much work, confirm with Rushab first, in one short question.
