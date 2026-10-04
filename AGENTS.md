@@ -12,7 +12,7 @@ src/grjev/      importable code: loaders, the Jev client, metrics
 tests/          tests for src/grjev/
 data/<dataset>/raw/        files exactly as downloaded, never edited
 data/<dataset>/processed/  files built by our code
-data/cache/                saved Jev responses, shared by all datasets
+data/cache/                saved model responses, shared by all datasets
 results/        experiment outputs
 notebooks/      Colab notebooks, which only call scripts
 docs/           project notes
@@ -33,6 +33,8 @@ Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv
 `scripts/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`.
 
 Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_jev.py` makes one call to confirm the key works.
+
+The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off. `python scripts/check_frontier.py` makes one call per model.
 
 Run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit. The pre-commit config and the CI workflow are not added yet.
 
@@ -62,7 +64,7 @@ Use `pytest`. Test the code that can change a number in the paper: parsers, data
 - Pin every download to a commit or revision and check it against a SHA-256 hash stored in `constants.py`.
 - Never edit files in a `raw/` folder. Build everything in `processed/` with code.
 - Every function that makes a random choice takes a seed or a generator as an argument. Do not call `random.seed` globally.
-- Save every Jev response under a hash of the exact request and a run number, and store the request and the model version with it. A deliberate repeat of a request gets a new run number, so repeats are separate calls that can be compared. The hash covers only what is sent to Jev, never the version of our code.
+- Save every response from Jev and from the frontier models under a hash of the exact request and a run number, and store the request and the model version with it. A rerun reads the saved files and calls nothing. A deliberate repeat of a request gets a new run number, so repeats are separate calls that can be compared. The hash covers only what is sent to Jev, never the version of our code.
 - Pin the Jev model version. The current one is `jev-1.13.0`.
 
 ## Results

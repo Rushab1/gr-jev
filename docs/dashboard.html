@@ -1055,6 +1055,7 @@
         <li><span class="txt">ToolBench queries come from StableToolBench's six test files. ToolBench and StableToolBench are both cited.</span></li>
         <li><span class="txt">BFCL is a test-only set. No model is trained on it.</span></li>
         <li><span class="txt">Prompt format is measured as a fourth factor, next to list length, position and order.</span></li>
+        <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
         <li><span class="txt">Every Jev response is saved under a hash of the exact request and a run number. A repeat of the same request is a new run, so the variance between runs can be measured.</span></li>
         <li><span class="txt">255 options is the limit of one Jev request. A longer list is split, the model selects within each part, then selects among the winners.</span></li>
@@ -1079,7 +1080,7 @@
         <li><span class="txt">Which open-weight models are compared, and which one is fine-tuned</span></li>
         <li><span class="txt">How a ToolBench example is posed to the model, and its metric</span></li>
         <li><span class="txt">Which BFCL test files are used, and how a BFCL example is posed to the model</span></li>
-        <li><span class="txt">Co-pilot design: which frontier LLM, which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end</span></li>
+        <li><span class="txt">Co-pilot design: which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end</span></li>
         <li><span class="txt">Which fine-tuned model teaches the on-device student</span></li>
         <li><span class="txt">Whether to test lists longer than 199 tools</span></li>
         <li><span class="txt">Mind2Web and AndroidControl</span><span class="tag gray">Proposed, not confirmed</span></li>
