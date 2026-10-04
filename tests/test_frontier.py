@@ -1,9 +1,6 @@
-"""Tests for grjev.frontier. subprocess.run is replaced, so the Claude Code CLI is never started."""
+"""Tests for the parts of grjev.frontier that run without the CLI. test_frontier_live.py has the tests that call it."""
 
 import json
-import subprocess
-from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -18,76 +15,42 @@ USAGE = {
     "output_tokens": 6,
     "output_tokens_details": {"thinking_tokens": 0},
 }
-STDOUT = json.dumps({"type": "result", "is_error": False, "result": "get_weather", "usage": USAGE})
 
 
-class FakeCli:
-    """Stands in for subprocess.run: answers the version check and records every model call."""
-
-    def __init__(self) -> None:
-        self.calls: list[dict[str, Any]] = []
-        self.version = f"{frontier.CLAUDE_CLI_VERSION} (Claude Code)"
-        self.exit_code = 0
-
-    def run(self, argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
-        if argv[1] == "--version":
-            return subprocess.CompletedProcess(argv, 0, stdout=self.version, stderr="")
-        self.calls.append({"argv": argv, **kwargs})
-        return subprocess.CompletedProcess(argv, self.exit_code, stdout=STDOUT, stderr="refused")
+def result_line(**changed: object) -> str:
+    """Return one line of CLI output: a result object, with the given fields changed."""
+    return json.dumps({"type": "result", "is_error": False, "result": "get_weather", "usage": USAGE, **changed})
 
 
-@pytest.fixture
-def cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeCli:
-    """Replace the CLI and point the cache and the working folder at temporary folders."""
-    fake = FakeCli()
-    frontier.installed_version.cache_clear()
-    monkeypatch.setattr(frontier.subprocess, "run", fake.run)
-    monkeypatch.setattr(frontier, "CLAUDE_CACHE_DIR", tmp_path / "cache")
-    monkeypatch.setattr(frontier, "CLAUDE_WORK_DIR", tmp_path / "work")
-    monkeypatch.setenv("CLAUDECODE", "1")
-    return fake
-
-
-def test_ask_claude_returns_the_answer_and_counts_all_input_tokens(cli: FakeCli) -> None:
-    response = frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    assert response.answer == "get_weather"
+def test_parse_response_returns_the_answer_and_counts_all_input_tokens() -> None:
+    response = frontier.parse_response(result_line(), 2.5)
+    assert (response.answer, response.seconds) == ("get_weather", 2.5)
     assert (response.input_tokens, response.output_tokens, response.thinking_tokens) == (532, 6, 0)
 
 
-def test_claude_is_called_with_no_tools_no_thinking_and_no_saved_session(cli: FakeCli) -> None:
-    frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    call = cli.calls[0]
-    assert call["argv"][-4:] == ["--model", "claude-sonnet-5", "--system-prompt", SYSTEM]
-    assert "--no-session-persistence" in call["argv"] and call["argv"][call["argv"].index("--tools") + 1] == ""
-    assert call["input"] == PROMPT and call["timeout"] == frontier.CLAUDE_TIMEOUT_SECONDS
-    assert call["env"]["MAX_THINKING_TOKENS"] == "0" and "CLAUDECODE" not in call["env"]
+@pytest.mark.parametrize("stdout", [result_line(is_error=True), "Not logged in", ""])
+def test_parse_response_refuses_an_error_and_output_without_a_result(stdout: str) -> None:
+    with pytest.raises(RuntimeError, match="no usable result"):
+        frontier.parse_response(stdout, 1.0)
 
 
-def test_a_saved_run_is_read_back_and_a_new_run_number_calls_again(cli: FakeCli) -> None:
-    first = frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    assert frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT) == first
-    assert len(cli.calls) == 1
-    frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT, run=2)
-    assert len(cli.calls) == 2
+def test_the_cli_gets_only_the_listed_variables(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("CLAUDECODE", "CLAUDE_CODE_EFFORT_LEVEL", "ANTHROPIC_BASE_URL"):
+        monkeypatch.setenv(name, "1")
+    monkeypatch.setenv("MAX_THINKING_TOKENS", "31999")
+    monkeypatch.setenv("HOME", "/home/tester")
+    env = frontier.child_environment()
+    assert set(env) <= {*frontier.CLAUDE_INHERITED_VARS, *frontier.CLAUDE_ENV}
+    assert (env["HOME"], env["MAX_THINKING_TOKENS"]) == ("/home/tester", "0")
 
 
-def test_the_hash_covers_the_model_the_system_prompt_and_the_prompt(cli: FakeCli) -> None:
-    frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    frontier.ask_claude("claude-opus-5", SYSTEM, PROMPT)
-    frontier.ask_claude("claude-sonnet-5", SYSTEM + " Be brief.", PROMPT)
-    frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT + "\n3. search_flights")
-    assert len(cli.calls) == 4
-
-
-def test_a_failed_call_raises_and_saves_nothing(cli: FakeCli, tmp_path: Path) -> None:
-    cli.exit_code = 1
-    with pytest.raises(RuntimeError, match="claude exited with 1"):
-        frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    assert list(tmp_path.rglob("run-*.json")) == []
-
-
-def test_a_different_cli_version_is_refused(cli: FakeCli) -> None:
-    cli.version = "2.2.0 (Claude Code)"
-    with pytest.raises(RuntimeError, match="pinned to"):
-        frontier.ask_claude("claude-sonnet-5", SYSTEM, PROMPT)
-    assert cli.calls == []
+def test_the_hashed_request_holds_everything_we_control() -> None:
+    assert json.loads(frontier.request_bytes("claude-sonnet-5", SYSTEM, PROMPT)) == {
+        "cli_version": frontier.CLAUDE_CLI_VERSION,
+        "args": list(frontier.CLAUDE_ARGS),
+        "env": frontier.CLAUDE_ENV,
+        "work_dir": str(frontier.CLAUDE_WORK_DIR),
+        "model": "claude-sonnet-5",
+        "system": SYSTEM,
+        "prompt": PROMPT,
+    }
