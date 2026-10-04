@@ -9,6 +9,16 @@ DATA_DIR = REPO_ROOT / "data"
 HTTP_TIMEOUT_SECONDS = 60.0
 GITHUB_RAW_URL = "https://raw.githubusercontent.com"
 
+JEV_URL = "https://api.typesafe.ai/v1/systemone"
+JEV_MODEL = "jev-1.13.0"
+JEV_KEY_ENV = "TYPESAFE_API_KEY"
+JEV_MAX_OPTIONS = 255
+# Rate limited, unavailable and overloaded. TypeSafe asks for a retry with backoff on these.
+JEV_RETRY_STATUSES = (429, 503, 529)
+JEV_MAX_ATTEMPTS = 5
+JEV_BACKOFF_SECONDS = 2.0
+JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
+
 METATOOL_COMMIT = "35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb"
 METATOOL_BASE_URL = f"{GITHUB_RAW_URL}/HowieHwong/MetaTool/{METATOOL_COMMIT}/"
 METATOOL_RAW_DIR = DATA_DIR / "metatool" / "raw"

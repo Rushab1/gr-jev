@@ -12,7 +12,7 @@ Typed decision models return a probability for each option in a list supplied by
 - Current plan: one paper. After stage 3 we decide whether stage 5 becomes a second paper.
 - Datasets: MetaTool and ToolBench come first. Mind2Web and AndroidControl are proposed and not confirmed. WebArena and OSWorld are backups for them.
 - GPU work runs on Google Colab.
-- The Jev key is read from `TYPESAFE_AI_KEY`. It is not set on this machine.
+- The Jev key is read from `TYPESAFE_API_KEY`.
 - The code standard is in `AGENTS.md`. `docs/dashboard.html` records the datasets, the experiments and the decisions.
 - Venue not chosen.
 
@@ -273,7 +273,6 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 
 ## Open items
 
-- Set `TYPESAFE_AI_KEY` on this machine.
 - Confirm Mind2Web and AndroidControl.
 - Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, which distractors are added, and which prompt formats are compared.
 - Decide how a ToolBench example is posed to the model, and its metric.
