@@ -1,0 +1,110 @@
+# gr-jev
+
+Research code for a study of Jev, TypeSafe AI's decision model, as a tool and action selector. Background, prior work, datasets and the plan are in `docs/starter.md`.
+
+This file is the code standard for everyone who works here: Rushab, Gyanesh, and AI workers such as Claude Code and Codex.
+
+## Layout
+
+```
+scripts/        runnable commands: download a dataset, run an experiment
+src/grjev/      importable code: loaders, the Jev client, metrics
+tests/          tests for src/grjev/
+data/raw/       files exactly as downloaded, never edited
+data/processed/ files built by our code
+data/cache/     saved Jev responses
+results/        experiment outputs
+notebooks/      Colab notebooks, which only call scripts
+docs/           project notes
+```
+
+`data/` holds data only. Scripts parse arguments and call functions in `src/grjev/`. Notebooks contain no logic.
+
+## Setup
+
+```
+uv venv
+uv pip install -r requirements.txt
+source .venv/bin/activate
+```
+
+Python 3.13. The tooling files (`pyproject.toml`, `requirements-dev.txt`, the pre-commit config and the CI workflow) are not added yet. Once they are, run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit.
+
+## Code style
+
+Readability comes first. This is research code: production-like, not production-ready.
+
+- Write small helper functions that each do one thing. As a guide, keep a function under about 40 statements and 6 arguments.
+- Prefer plain functions and modules over classes. Use classes only to hold data or state.
+- Write few lines. Do not add abstractions, options or error handling for cases that cannot happen.
+- Format with `ruff`. Lines may be up to 120 characters, and should use that width before wrapping.
+- Put type hints on every function signature. `mypy` runs in normal mode.
+- Give each public function a one-line docstring. Add a comment only where the reason is not clear from the code.
+- Keep every constant in `src/grjev/constants.py` with an `UPPER_CASE` name. No literal paths, model names, seeds or thresholds elsewhere.
+- Use `pydantic` models for data that enters or leaves the code: experiment configs, Jev requests and responses, and rows parsed from dataset files. Use frozen dataclasses for records that stay inside the code.
+- Use `pathlib` for paths and `argparse` for script arguments.
+- Use `logging` in `src/grjev/`. A script may print its final summary.
+- Fail loudly. No bare `except` and no silent fallbacks.
+- Leave no dead or commented-out code.
+
+## Tests
+
+Use `pytest`. Test the code that can change a number in the paper: parsers, dataset builders, shuffling and position logic, metrics, and the response cache. Thin scripts need no tests. Tests never use the network or the Jev API.
+
+## Reproducibility
+
+- Pin every download to a commit or revision and check it against a SHA-256 hash stored in `constants.py`.
+- Never edit files in `data/raw/`. Build everything in `data/processed/` with code.
+- Every function that makes a random choice takes a seed or a generator as an argument. Do not call `random.seed` globally.
+- Cache every Jev response under a hash of the exact request, and store the model version with it.
+- Pin the Jev model version. The current one is `jev-1.13.0`.
+
+## Results
+
+Each run writes to `results/<name>/<date>_<incr>/`, for example `results/metatool_position/2026-10-04_01/`. The folder holds `config.json`, `meta.json` with the git commit and model version, and `rows.jsonl` with one row per item.
+
+## Secrets and terms
+
+- The Jev key is read from the environment variable `TYPESAFE_AI_KEY`. Do not commit keys or `.env` files.
+- Do not train any model on Jev output. TypeSafe's customer agreement prohibits it.
+
+## Git
+
+- Never commit to `main`. Work on a branch named `<worker>/<topic>`, such as `rushab/metatool-download`, `gyanesh/toolbench-loader`, `claude/jev-client` or `codex/metrics`.
+- Merge through a pull request with CI passing.
+- A branch written by an AI worker needs approval from Rushab or Gyanesh before it is merged. A person may merge their own branch once CI passes.
+- AI workers do not merge pull requests and do not push to `main`.
+- Write commit subjects in the imperative, such as "Add MetaTool download script". Add a body only when the reason needs explaining. Commits by an AI worker carry a `Co-Authored-By` line.
+- Keep commits small. Do not commit data, results or model files.
+
+## Writing
+
+Documents, paper text and dashboard text are plain and neutral. State the claim and stop.
+
+- No em dashes.
+- Do not say the same thing twice.
+- No sales or authority phrasing, such as "worth it", "it is important to note" or "anyone who wants X will want to know Y".
+- No hype and no evaluative adjectives.
+- Say plainly when a figure has not been verified.
+
+Every sentence states a claim about a named thing that can be checked against a source. Leave out these four patterns:
+
+- Filler reason: a clause after "because", "so", "since" or "which means" that adds no fact. Bad: "The same test requests exist in three places, because two other groups repackaged the original." End the sentence at the claim. If the reason is a fact, give it its own sentence with names and numbers.
+- Unnamed thing: a noun that stands in for a name. Bad: "two other groups", "the original", "another dataset", "the authors". Write "StableToolBench (Guo et al., 2024)", "ToolBench", "the MetaTool authors".
+- Amount or comparison without a number and a unit. Bad: "larger", "most", "usually", "several", "a different style". Write "16,464 APIs" or "199 tools", and say what is counted.
+- Word the field does not use. Bad: "repackaged", "request", "right tool", "wrong tool", "search format". Use the terms in the papers: query, tool list, correct tool, label, distractor, tool retrieval. One row of a dataset is an example, not an item.
+
+## Interface text
+
+This covers `docs/dashboard.html` and any other page with an interface. The page content explains the subject. Leave out text that describes the page:
+
+- Lead-in: a line that announces the block under it. "One example from each test file." "The table below lists the files."
+- Reading instruction: text that says how to read or use something. "Each bar counts the examples at that position." "Click a tab to switch." An axis label or legend that repeats the paragraph above the chart.
+- Echo caption: a caption that repeats what the block shows. "The query needs two tools." under a list with two tools marked. "995 examples" under a bar labelled 995.
+- Label or heading on a part that explains itself. "Query" over a query, "Tools" over a tool list, "Overview" over the opening paragraphs, "Decided" inside a Decisions tab.
+- Description of a control: a subtitle, helper text, tooltip or option description on a tab, button or menu. A control has a label of one or two words.
+- Note about the page. "Some descriptions are shortened." "This page shows the datasets we use." Show it in the content instead, such as an ellipsis on a shortened quote.
+
+Keep text that states a fact the block cannot show: a tool that is absent from a list, the source and date of a number, the label on a commit hash.
+
+`docs/dashboard.html` records Rushab's understanding of the datasets and the decisions. Each dataset tab opens with a plain explanation of the dataset, followed by sections named by topic, with two examples from each test file. It is light mode only. Check every number and quote on it against the raw files.
