@@ -4,16 +4,19 @@ Last updated 2026-10-04. No experiments have been run.
 
 ## Draft abstract
 
-Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the number of options, the position of the correct option, and the order of the list. The tasks are tool selection (MetaTool, ToolBench), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with two fine-tuned open models, one trained on MetaTool and one on ToolBench, and we test each fine-tuned model on the other benchmark. We report a flaw in MetaTool. The correct tool is the first candidate in all 995 examples of its similar-tools file, and the two correct tools are candidates 7 and 8 in all 497 examples of its multi-tool file. A rule that ignores the query scores 100% on both. We release a version with balanced positions. We also train a small student model from a fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
+Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the number of options, the position of the correct option, the order of the list, and the prompt format. The tasks are tool selection (MetaTool, ToolBench, and BFCL as a test-only set), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with two fine-tuned open models, one trained on MetaTool and one on ToolBench, and we test each fine-tuned model on the other benchmark. We compare Jev's errors with those of two frontier LLMs, Claude Sonnet 5 and Claude Opus 5, on the same examples. We report three properties of MetaTool's test files. The correct tool is at position 1 in all 995 examples of the similar-tools file, and the two correct tools are at positions 7 and 8 in all 497 examples of the multi-tool file. A rule that ignores the query scores 100% on both. The four files with tool lists hold 2,287 different queries in 4,287 examples. In 1,432 of the 3,292 examples with a correct tool (43.5%), the correct tool is one of 15 tools. We release a version with balanced positions. We also train a small student model from a fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
 
 ## Status
 
 - Goal set on 2026-10-02: two workshop papers by the end of October 2026.
 - Current plan: one paper. After stage 3 we decide whether stage 5 becomes a second paper.
-- Datasets: MetaTool and ToolBench come first. Mind2Web and AndroidControl are proposed and not confirmed. WebArena and OSWorld are backups for them.
+- Datasets: MetaTool and ToolBench come first. BFCL is a test-only set. Mind2Web and AndroidControl are proposed and not confirmed. WebArena and OSWorld are backups for them.
 - GPU work runs on Google Colab.
 - The Jev key is read from `TYPESAFE_API_KEY`.
 - The code standard is in `AGENTS.md`. `docs/dashboard.html` records the datasets, the experiments and the decisions.
+- Built: downloads of MetaTool, StableToolBench and BFCL pinned to a commit, the Jev client, the Claude bridge, saved responses with run numbers, the common example format, the MetaTool converter, and dataset statistics drawn as charts on the dashboard.
+- Not built: the converters for StableToolBench and BFCL, the runner for open-weight models, and the experiment runner.
+- Calls made: one Jev call to check the key, and short Claude calls to check the bridge.
 - Venue not chosen.
 
 ## Jev
@@ -92,11 +95,35 @@ Source: `HowieHwong/MetaTool`, commit `35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb`
 | Reliability | `Task2-Subtask3.json` | 995 | 10 | Correct tool removed by design | Not applicable |
 | Multi-tool | `Task2-Subtask4.json` | 497 | 10 | 7 and 8 in all 497 examples | 100% |
 
-The cause is in `src/prompt/prompt_construction.py`. The similar-tools candidates are the 10 nearest neighbours of the correct tool's own embedding, kept in similarity order, so the correct tool comes first. The multi-tool list is shuffled, but `random.seed(48)` is called before each example's shuffle, and the two correct tools land at positions 7 and 8 every time.
+The cause is in `src/prompt/prompt_construction.py`. The similar-tools candidates are the 10 nearest neighbours of the correct tool's own embedding, kept in similarity order, so the correct tool comes first. For the multi-tool list, `select_10_tools_with_exclusion` calls `random.seed(48)` for every example and samples the 8 distractors. The two correct tools are appended last, and `random.shuffle` moves them to positions 7 and 8 every time.
 
 The scenario subtask uses 9 distinct candidate lists. Each tool keeps the same position in its list for every query.
 
 `baibizhe/jev-decision-benchmarks` noted the fixed positions in a Chinese-language report dated 2026-09-19 and stated that it ran no order-randomisation test. Its Jev scores on the original order were 77.79% on similar tools, 87.04% on reliability, and 81.29% and 88.33% on the two multi-tool conditions. We found no MetaTool GitHub issue and no arXiv paper that reports the fixed positions.
+
+## MetaTool: repeated queries and uneven tool counts
+
+Measured on the four test files with tool lists. Tool awareness has no tool list.
+
+| Measurement | Value |
+|---|---|
+| Different queries | 2,287 in 4,287 examples |
+| Scenario file | 1,060 different queries in 1,800 examples. A tool in more than one of the 9 lists has the same 20 queries in each. 265 of the 1,060 are similar-tools queries. |
+| Reliability file | The 995 queries of the similar-tools file, with other tool lists |
+| Examples with a correct tool | 3,292. The reliability file has none. |
+| Examples whose correct tool is one of the 15 tools of the scenario list `TopTool_top15` | 1,432 of 3,292 (43.5%) |
+| Examples in which a tool is a correct tool | 89 to 168 for each of those 15 tools. 5 to 65 for each of the other 184, and 5 for 146 of them. |
+| Lists that hold a tool | 5 to 1,168 of 4,287, median 120. FinanceTool is in 1,168 (27.2%). CranePumpsManuals, dev and reflect_notes are in 5. |
+| Tools in the reliability lists | 89 of 199 |
+| Tools used as distractors in the multi-tool lists | 67 of 199 |
+
+The cause is in `src/prompt/prompt_construction.py`. `get_query_by_tool` calls `np.random.seed(48)` before every sample of a tool's queries. `select_10_tools_with_exclusion` calls `random.seed(48)` before every sample of tools for a reliability or multi-tool list. Both correct tools of every multi-tool query are among the 15 tools of `TopTool_top15`.
+
+Other measurements:
+
+- Each prompt in the similar-tools, scenario and reliability files ends with 5 example queries and their tools, different in every row. In 488 of the 995 similar-tools prompts and 920 of the 1,800 scenario prompts, one example has the correct tool as its answer.
+- A rule that selects the tool whose name and description share the most words with the query scores 47.9% on the similar-tools file and 43.2% on the scenario file. Stop words are ignored and ties are split evenly.
+- In the multi-tool file the descriptions of the correct tools have a mean of 21.1 words, and those of the distractors 13.8.
 
 ## Prior work
 
@@ -191,6 +218,7 @@ Citations are Semantic Scholar counts on 2026-10-03.
 |---|---|---|---|---|---|---|---|
 | MetaTool | 2023-10 | 240 | 199 tools. 20,614 query and tool pairs. Five test files of 995, 1,800, 995, 497 and 1,040 examples. | JSON prompts with a numbered tool list. CSV of query and tool pairs. | 1. The multi-tool subtask has 2 and the reliability subtask has 0. Lists hold 5, 10 or 15 candidates. | MIT | Main grid and fine-tuning data |
 | ToolBench | 2023-07 | 2,360 | 1,100 official test queries. 16,464 APIs in the paper, 13,862 in the ToolRet copy. | Parquet in the ToolRet copy: query and labelled tools with name, description and parameters | Mean 2.39. 40 queries have exactly 1. | Not checked | Second tool set and fine-tuning data |
+| BFCL v4 | 2024-02 to 2025-07 | 573 on 2026-10-04 | 13 single-turn files with 3,641 examples, 4 multi-turn files with 800 and 2 agentic files with 255 | JSON lines: a query or 1 to 8 turns, and a list of function definitions with parameter schemas | Function calls with parameter values, or no call. `live_multiple` has 1,053 examples with one call and 2 to 37 functions in the list. | Apache-2.0 | Test only |
 | Mind2Web | 2023-06 | 1,501 | Train: 7,775 actions from 1,009 tasks. Test: 1,339, 1,019 and 4,060 actions for new tasks, new websites and new domains. | Parquet: task, cleaned HTML, positive and negative candidate elements, operation | Usually 1 element. One training shard has a median of 404 candidates per page. | CC-BY-4.0 for the original, OpenRAIL for the multimodal copy | Browsing |
 | AndroidControl | 2024-06 | 210 | 15,283 demonstrations of 14,548 tasks in 833 apps | TFRecords: goal, step instructions, accessibility trees, screenshots, actions | 1 action per step. Candidates per screen not measured. | Apache-2.0 repository | Computer use on mobile |
 | WebArena | 2023-07 | 2,162 | 812 tasks | Live self-hosted websites | No step labels. One pass or fail per task. | Not checked | Backup |
@@ -201,6 +229,8 @@ Citations are Semantic Scholar counts on 2026-10-03.
 MetaTool. The tools are ChatGPT plugins from 2023. The MetaTool authors merged plugins with overlapping functions: the paper reports 390 plugins merged into 195 tools. The repository has 199 tools.
 
 ToolBench. Measured on the 1,100 test queries in ToolRet's copy: 96.4% have two or more relevant APIs. StableToolBench keeps 765 of the 1,100 as solvable, in six test files. 6.9% of the 13,862 ToolBench tools in ToolRet's copy have a blank description. StableToolBench reports that 44.4% of its calls to ToolBench APIs succeeded. This study does not call the APIs. The test set is the 765 solvable queries. How a ToolBench example is posed to the model is not decided.
+
+BFCL. Jev's `choice` question returns one of up to 255 options and no parameter values. For Jev, only the choice of function can be scored. Which test files are used is not decided.
 
 Mind2Web. Jev cannot produce the text for typing actions.
 
@@ -237,7 +267,7 @@ OSWorld. Jev needs a planner model and a text view of the screen to act in it.
 | Fine-tuned | Two open decision models, one fine-tuned on MetaTool's 20,614 queries and one on ToolBench's training set | Colab |
 | Released fine-tuned Mind2Web baselines | `osunlp/MindAct_ActionPrediction_flan-t5-base`, `-large`, `-xl`, and `osunlp/MindAct_CandidateGeneration_deberta-v3-base` | Local machine |
 | Student | A smaller model trained from a fine-tuned model | Colab for training, local machine for latency |
-| Reference | One frontier LLM, with and without reasoning | API |
+| Frontier LLMs | Claude Sonnet 5 and Claude Opus 5, with thinking and tools switched off | Claude Code CLI with the machine's sign-in |
 
 Licences of the open models have not been checked. Each open model has its own input format.
 
@@ -277,6 +307,8 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 - Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, which distractors are added, and which prompt formats are compared.
 - Decide how a ToolBench example is posed to the model, and its metric.
 - Decide which BFCL test files are used, and how a BFCL example is posed to the model.
+- Decide whether accuracy is also reported per tool, and whether a repeated query counts once.
+- Decide last whether fine-tuning stays in the paper.
 - Decide which fine-tuned model trains the student.
 - Decide whether the MetaTool fine-tuning holds out some tools.
 - Choose the open models and check their licences.
@@ -292,6 +324,7 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 - ToolBench: arXiv 2307.16789
 - StableToolBench: arXiv 2403.07714 and https://github.com/THUNLP-MT/StableToolBench
 - ToolRet: arXiv 2503.01763 and https://huggingface.co/datasets/mangopy/ToolRet-Queries
+- BFCL: Patil et al., ICML 2025, and https://github.com/ShishirPatil/gorilla
 - Mind2Web: arXiv 2306.06070 and https://huggingface.co/datasets/osunlp/Multimodal-Mind2Web
 - AndroidControl: arXiv 2406.03679
 - WebArena: arXiv 2307.13854
