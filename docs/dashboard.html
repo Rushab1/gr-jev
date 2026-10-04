@@ -28,7 +28,7 @@
   [hidden] { display: none !important; }
   html { -webkit-text-size-adjust: 100%; background: var(--bg); }
   body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
-  .page { max-width: 900px; margin: 0 auto; padding: 0 28px 120px; }
+  .page { max-width: 1360px; margin: 0 auto; padding: 0 40px 120px; }
 
   header { padding: 64px 0 14px; }
   h1 { margin: 0; font-size: 40px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
@@ -43,10 +43,10 @@
   h2 { margin: 48px 0 10px; font-size: 24px; line-height: 1.3; font-weight: 600; }
   section[role="tabpanel"] > h2:first-child { margin-top: 4px; }
   h3 { margin: 22px 0 6px; font-size: 16px; font-weight: 600; }
-  p { margin: 0 0 10px; max-width: 70ch; }
+  p { margin: 0 0 10px; max-width: 110ch; }
   a { color: inherit; text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px; }
   a:hover { text-decoration-color: currentColor; }
-  ul.plain { margin: 0 0 10px; padding-left: 1.3em; max-width: 70ch; }
+  ul.plain { margin: 0 0 10px; padding-left: 1.3em; max-width: 110ch; }
   ul.plain li { margin: 3px 0; }
   code { font-family: var(--mono); font-size: 85%; color: #EB5757; background: rgba(135, 131, 120, 0.15); padding: 0.15em 0.4em; border-radius: 4px; overflow-wrap: anywhere; }
   .muted { color: var(--text-2); }
@@ -60,7 +60,7 @@
 
   .tablewrap { overflow-x: auto; margin: 12px 0; }
   .tablewrap table { min-width: 640px; }
-  .tablewrap.narrow { max-width: 620px; }
+  .tablewrap.narrow { max-width: 760px; }
   .tablewrap.narrow table { min-width: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
@@ -88,6 +88,7 @@
   ol.tools { list-style: none; margin: 0; padding: 8px 6px; border-top: 1px solid var(--border); }
   ol.tools li { display: grid; grid-template-columns: 1.6em 12.5em minmax(0, 1fr) auto; column-gap: 10px; align-items: baseline; padding: 5px 10px; border-radius: 4px; font-size: 14px; }
   ol.tools.api li { grid-template-columns: 1.6em 9.5em 12.5em minmax(0, 1fr) auto; }
+  ol.tools.fn li { grid-template-columns: 1.6em 18em minmax(0, 1fr) auto; }
   ol.tools .n { color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums; }
   ol.tools .nm { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
   ol.tools .tl { color: var(--text-2); font-size: 13px; overflow-wrap: anywhere; }
@@ -133,7 +134,7 @@
     h1 { font-size: 30px; }
     .flow { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
     .arrow svg { transform: rotate(90deg); }
-    ol.tools li, ol.tools.api li { grid-template-columns: 1.6em minmax(0, 1fr) auto; row-gap: 1px; }
+    ol.tools li, ol.tools.api li, ol.tools.fn li { grid-template-columns: 1.6em minmax(0, 1fr) auto; row-gap: 1px; }
     ol.tools .ds, ol.tools .tl { grid-column: 2 / 4; }
     .charts { grid-template-columns: minmax(0, 1fr); }
     ul.marks li { flex-wrap: wrap; }
@@ -150,6 +151,7 @@
   <nav class="tabs" role="tablist" id="tabs">
     <button type="button" role="tab" data-tab="metatool">MetaTool</button>
     <button type="button" role="tab" data-tab="toolbench">ToolBench</button>
+    <button type="button" role="tab" data-tab="bfcl">BFCL</button>
     <button type="button" role="tab" data-tab="experiments">Experiments</button>
     <button type="button" role="tab" data-tab="decisions">Decisions</button>
     <button type="button" role="tab" data-tab="open">Open</button>
@@ -644,21 +646,361 @@
       </dl>
     </section>
 
-    <!-- ============================== Experiments ============================== -->
-    <section role="tabpanel" data-panel="experiments" hidden>
-      <h2>List length, position and order</h2>
-      <p>For each MetaTool test query the tool list is varied in three ways: its length, the position of the correct tool, and the order of the tools. Jev is compared with open-weight decision models on these lists.</p>
+    <!-- ============================== BFCL ============================== -->
+    <section role="tabpanel" data-panel="bfcl" hidden>
+      <p>BFCL, the Berkeley Function Calling Leaderboard, is a benchmark for function calling. An example gives the model a user query and a list of function definitions, each with a name, a description and a parameter schema. The model answers with function calls, each a function name with parameter values, or with no call. The label is the list of correct calls, which BFCL calls the ground truth.</p>
+      <p>BFCL v4 has 13 single-turn test files with 3,641 examples, 4 multi-turn files with 800 examples and 2 agentic files with 255 examples. A single-turn example has one query. A multi-turn example has 1 to 8 turns, and its ground truth has a median of 5 to 6 function calls and at most 35. An agentic example is one question that the model answers by calling web search or memory functions.</p>
+      <div class="tablewrap narrow">
+        <table>
+          <thead><tr><th>Version</th><th>Released</th><th>Files added</th></tr></thead>
+          <tbody>
+            <tr><th>v1</th><td class="nw">2024-02-26</td><td>The 7 non-live single-turn files</td></tr>
+            <tr><th>v2</th><td class="nw">2024-08-19</td><td>The 6 live single-turn files. Their queries and function definitions are user-contributed.</td></tr>
+            <tr><th>v3</th><td class="nw">2024-09-19</td><td>The 4 multi-turn files</td></tr>
+            <tr><th>v4</th><td class="nw">2025-07-17</td><td>The 2 agentic files, web search and memory, and the format sensitivity file</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>BFCL marks each example correct or incorrect and reports accuracy for each test file. <code>bfcl_eval/data/README.md</code> calls the check for single-turn files AST evaluation, short for abstract syntax tree. The check compares the model's calls with the ground truth. In <code>irrelevance</code> and <code>live_irrelevance</code> the correct output has no call. In <code>live_relevance</code> the correct output has at least one call, and BFCL does not check whether the call is correct. In v4 the leaderboard's overall accuracy weights the agentic files at 40%, the multi-turn files at 30%, and the non-live, live and irrelevance files at 10% each.</p>
+      <p>This study uses BFCL as a test-only set. No model is trained on it. Jev's <code>choice</code> question returns one of up to 255 options and no parameter values. For Jev, only the choice of function can be scored.</p>
 
-      <h2>Fine-tuning and transfer</h2>
-      <p>Two open models are fine-tuned, one on MetaTool's 20,614 queries and one on ToolBench's training set. Each is tested on both benchmarks, next to Jev and the same open model without fine-tuning. No model is trained on both sets.</p>
+      <h2>Test files</h2>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Model</th><th>MetaTool test files</th><th>ToolBench test files</th></tr></thead>
+          <thead><tr><th>Test file</th><th>Version</th><th>Turns<br>median [min, max]</th><th>Functions per turn<br>median (min, max)</th><th>Label</th><th class="num">Examples</th></tr></thead>
           <tbody>
-            <tr><th>Jev</th><td>No training</td><td>No training</td></tr>
-            <tr><th>Open model, not fine-tuned</th><td>No training</td><td>No training</td></tr>
-            <tr><th>Open model fine-tuned on MetaTool</th><td><span class="tag green">In-domain</span></td><td><span class="tag blue">Transfer</span></td></tr>
-            <tr><th>Open model fine-tuned on ToolBench</th><td><span class="tag blue">Transfer</span></td><td><span class="tag green">In-domain</span></td></tr>
+            <tr><th><code>simple_python</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>One call</td><td class="num">400</td></tr>
+            <tr><th><code>simple_java</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>One call</td><td class="num">100</td></tr>
+            <tr><th><code>simple_javascript</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>One call</td><td class="num">50</td></tr>
+            <tr><th><code>multiple</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>3 (2, 4)</td><td>One call</td><td class="num">200</td></tr>
+            <tr><th><code>parallel</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>2 to 8 calls to one function</td><td class="num">200</td></tr>
+            <tr><th><code>parallel_multiple</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>2.5 (2, 4)</td><td>2 to 5 calls to 1 to 4 functions</td><td class="num">200</td></tr>
+            <tr><th><code>irrelevance</code></th><td>v1</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>No call</td><td class="num">240</td></tr>
+            <tr><th><code>live_simple</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>1 (1, 1)</td><td>One call</td><td class="num">258</td></tr>
+            <tr><th><code>live_multiple</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>4 (2, 37)</td><td>One call</td><td class="num">1,053</td></tr>
+            <tr><th><code>live_parallel</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>1 (1, 2)</td><td>2 to 6 calls to one function</td><td class="num">16</td></tr>
+            <tr><th><code>live_parallel_multiple</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>4 (2, 9)</td><td>2 to 5 calls to 1 to 5 functions</td><td class="num">24</td></tr>
+            <tr><th><code>live_irrelevance</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>1 (0, 37)</td><td>No call</td><td class="num">884</td></tr>
+            <tr><th><code>live_relevance</code></th><td>v2</td><td class="nw">1 [1, 1]</td><td>3 (1, 5)</td><td>At least one call</td><td class="num">16</td></tr>
+            <tr><th><code>multi_turn_base</code></th><td>v3</td><td class="nw">4 [1, 7]</td><td>28 (17, 39)</td><td>Calls for each turn. Calls per example: 5.5 [2, 10]</td><td class="num">200</td></tr>
+            <tr><th><code>multi_turn_miss_func</code></th><td>v3</td><td class="nw">5 [2, 8]</td><td>28 (15, 39)</td><td>Calls for each turn. Calls per example: 5 [2, 10]</td><td class="num">200</td></tr>
+            <tr><th><code>multi_turn_miss_param</code></th><td>v3</td><td class="nw">5 [2, 8]</td><td>28 (17, 39)</td><td>Calls for each turn. Calls per example: 5 [2, 10]</td><td class="num">200</td></tr>
+            <tr><th><code>multi_turn_long_context</code></th><td>v3</td><td class="nw">4 [1, 7]</td><td>28 (17, 39)</td><td>Calls for each turn. Calls per example: 6 [2, 35]</td><td class="num">200</td></tr>
+            <tr><th><code>web_search</code></th><td>v4</td><td class="nw">1 [1, 1]</td><td>2 (2, 2)</td><td>1 to 5 accepted answers</td><td class="num">100</td></tr>
+            <tr><th><code>memory</code></th><td>v4</td><td class="nw">1 [1, 1]</td><td>5, 12 or 15, by memory backend</td><td>1 to 4 accepted answers</td><td class="num">155</td></tr>
+            <tr><th><code>format_sensitivity</code></th><td>v4</td><td colspan="3">No examples. The file lists 200 example ids from 8 single-turn files.</td><td class="num">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>The 13 single-turn files have 1,853 distinct function names and 3,258 distinct function definitions.</li>
+        <li>In <code>live_multiple</code>, 702 of the 1,053 function lists (66.7%) have 2 to 4 functions. The two longest lists have 26 and 37 functions. The file has 457 distinct function names.</li>
+        <li>4 examples in <code>live_irrelevance</code> have an empty function list.</li>
+        <li>92 examples in the live files have a system message before the query. 9 examples in <code>live_irrelevance</code> have user or assistant messages before the query.</li>
+        <li>A multi-turn example uses 1 or 2 of 8 API classes. The functions a turn can select are the ones defined for those classes in <code>multi_turn_func_doc/</code>, minus the example's <code>excluded_function</code> list. In <code>multi_turn_miss_func</code>, the functions in <code>missed_function</code> are withheld until the turn it names.</li>
+        <li><code>bfcl_eval/data/README.md</code> counts 200 web search examples, 465 memory examples and 5,200 format sensitivity examples. The 100 web search examples are run with and without search-engine snippets, the 155 memory examples on three memory backends with 15, 12 and 5 functions, and the 200 format sensitivity ids under 26 prompt configurations. <code>TEST_CATEGORIES.md</code> lists format sensitivity as non-scoring.</li>
+      </ul>
+
+      <h2>Examples</h2>
+      <div class="seg" role="tablist" data-seg="bf">
+        <button type="button" role="tab" data-ex="simple">simple</button>
+        <button type="button" role="tab" data-ex="multiple">multiple</button>
+        <button type="button" role="tab" data-ex="parallel">parallel</button>
+        <button type="button" role="tab" data-ex="parallel_multiple">parallel_multiple</button>
+        <button type="button" role="tab" data-ex="irrelevance">irrelevance</button>
+        <button type="button" role="tab" data-ex="live_simple">live_simple</button>
+        <button type="button" role="tab" data-ex="live_multiple">live_multiple</button>
+        <button type="button" role="tab" data-ex="live_parallel">live_parallel</button>
+        <button type="button" role="tab" data-ex="live_parallel_multiple">live_parallel_multiple</button>
+        <button type="button" role="tab" data-ex="live_irrelevance">live_irrelevance</button>
+        <button type="button" role="tab" data-ex="live_relevance">live_relevance</button>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="simple">
+        <div class="card">
+          <div class="card-head"><p>Find the area of a triangle with a base of 10 units and height of 5 units.</p><span class="tag gray">simple_python</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">calculate_triangle_area</span><span class="ds">Calculate the area of a triangle given its base and height.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Calculate the factorial of 5 using math functions.</p><span class="tag gray">simple_python</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">math.<wbr>factorial</span><span class="ds">Calculate the factorial of a given number.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Help me initialize the GIS geometry presentation in a user interface, providing a specific result set controller `mapController` and a composite UI element `mapArea` to display the GIS data?</p><span class="tag gray">simple_java</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">GeometryPresentation.<wbr>createPresentation</span><span class="ds">Initializes the GIS geometry presentation within the provided UI composite, using the given result set controller.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Help me generate SQL completion proposals for a table named 'Customers' in a database, considering that I prefer using short names and the additional parameters include a limit of '50' and a schema filter set to 'public'?</p><span class="tag gray">simple_java</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">SQLCompletionAnalyzer.<wbr>makeProposalsFromObject</span><span class="ds">Generates SQL completion proposals based on the given database object, name preference, and additional parameters.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Help me validate user input in a form field with the ID 'userInputField' after the user has finished typing?</p><span class="tag gray">simple_javascript</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">validateUserInput</span><span class="ds">This function is called after a user has finished typing in a form field, to validate the input provided.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Help me extract all data entries with the attribute 'data-active' set to true from a list element stored in a variable named 'listElement'?</p><span class="tag gray">simple_javascript</span></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">getActiveDataEntries</span><span class="ds">This function extracts data entries from a list element based on a specified attribute and its value. It checks for the presence of the 'data-active'…</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="multiple" hidden>
+        <div class="card">
+          <div class="card-head"><p>Can I find the dimensions and properties of a triangle, if I know its three sides are 5 units, 4 units and 3 units long?</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">triangle_properties.<wbr>get</span><span class="ds">Retrieve the dimensions, such as area and perimeter, of a triangle if lengths of three sides are given.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">circle_properties.<wbr>get</span><span class="ds">Retrieve the dimensions, such as area and circumference, of a circle if radius is given.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Calculate the area of a triangle, given the lengths of its three sides: 3, 4, and 5.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">math.<wbr>triangle_area_heron</span><span class="ds">Calculates the area of a triangle using Heron's formula, given the lengths of its three sides.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">math.<wbr>circle_area</span><span class="ds">Calculates the area of a circle given its radius.</span></li>
+            <li><span class="n">3</span><span class="nm">math.<wbr>triangle_area_base_height</span><span class="ds">Calculates the area of a triangle using the formula (1/2)base*height.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="parallel" hidden>
+        <div class="card">
+          <div class="card-head"><p>Play songs from the artists Taylor Swift and Maroon 5, with a play time of 20 minutes and 15 minutes respectively, on Spotify.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">spotify.<wbr>play</span><span class="ds">Play specific tracks from a given artist for a specific time duration.</span><span class="tag green">Correct: 2 calls</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Calculate the induced electromagnetic force for a magnetic field of 5 Tesla, area of 2 square meters and change in time of 4 seconds, then repeat with a change in time of 10 seconds.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">calculate_em_force</span><span class="ds">Calculate the induced electromagnetic force based on Faraday's Law of Electromagnetic Induction, given the magnetic field (in Tesla), change in…</span><span class="tag green">Correct: 2 calls</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="parallel_multiple" hidden>
+        <div class="card">
+          <div class="card-head"><p>Find the sum of all the multiples of 3 and 5 between 1 and 1000. Also find the product of the first five prime numbers.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">math_toolkit.<wbr>sum_of_multiples</span><span class="ds">Find the sum of all multiples of specified numbers within a specified range.</span><span class="tag green">Correct</span></li>
+            <li class="hit"><span class="n">2</span><span class="nm">math_toolkit.<wbr>product_of_primes</span><span class="ds">Find the product of the first n prime numbers.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Find the area of a rectangle with length 7 and breadth 3. Also, calculate the area of a circle with radius 5.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">volume_cylinder.<wbr>calculate</span><span class="ds">Calculate the volume of a cylinder given the radius and the height.</span></li>
+            <li class="hit"><span class="n">2</span><span class="nm">area_rectangle.<wbr>calculate</span><span class="ds">Calculate the area of a rectangle given the length and breadth.</span><span class="tag green">Correct</span></li>
+            <li class="hit"><span class="n">3</span><span class="nm">area_circle.<wbr>calculate</span><span class="ds">Calculate the area of a circle given the radius.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="irrelevance" hidden>
+        <div class="card">
+          <div class="card-head"><p>Calculate the area of a triangle given the base is 10 meters and height is 5 meters.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">determine_body_mass_index</span><span class="ds">Calculate body mass index given weight and height.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: no call</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Solve the quadratic equation with coefficients a = 1, b = 2, and c = 3.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">math.<wbr>sum</span><span class="ds">Compute the sum of all numbers in a list.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: no call</span></div>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_simple" hidden>
+        <div class="card">
+          <div class="card-head"><p>Can you retrieve the details for the user with the ID 7890, who has black as their special request?</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">get_user_info</span><span class="ds">Retrieve details for a specific user by their unique identifier.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I want to see the star history of ShishirPatil/gorilla and gorilla-llm/gorilla-cli, with the timelines aligned, so that I can more clearly observe the rate of change from their initial releases.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">github_star</span><span class="ds">Generates a URL for tracking the star history of specified GitHub repositories, with the option to align them on the same timeline.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_multiple" hidden>
+        <div class="card">
+          <div class="card-head"><p>update my latte to a large size with coconut milk and make it extra sweet? make it served 'boiling hot' as the special request. The drink id is 'latte'</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">ChaFod</span><span class="ds">Changes the food item based on the customer's request, allowing for modifications to the ingredients or preparation method.</span></li>
+            <li class="hit"><span class="n">2</span><span class="nm">ChaDri.<wbr>change_drink</span><span class="ds">Modifies the existing drink order to accommodate the customer's new request, ensuring the drink is updated according to the specified preferences.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Tôi cần một chuyến xe Uber loại 'Plus' từ địa chỉ '2150 Shattuck Ave, Berkeley, CA' và tôi có thể chờ tối đa 10 phút.</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">uber.<wbr>ride</span><span class="ds">Tìm chuyến đi phù hợp cho khách hàng dựa trên vị trí, loại chuyến đi và khoảng thời gian khách hàng sẵn sàng chờ đợi làm thông số</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">uber.<wbr>ride2</span><span class="ds">Tìm thời tiết ở địa điểm</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_parallel" hidden>
+        <div class="card">
+          <div class="card-head"><p>请问北京的当前天气状况如何？还有，上海的天气情况是怎样的？</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">get_current_weather</span><span class="ds">Retrieves the current weather conditions for a specified city and state.</span><span class="tag green">Correct: 2 calls</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>What's the snow like in the two cities of Paris and Bordeaux?</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">get_current_weather</span><span class="ds">Retrieves the current weather conditions for a specified location.</span></li>
+            <li class="hit"><span class="n">2</span><span class="nm">get_snow_report</span><span class="ds">Retrieves the latest snow report for a specified location, providing details about the snow conditions and weather.</span><span class="tag green">Correct: 2 calls</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_parallel_multiple" hidden>
+        <div class="card">
+          <div class="card-head"><p>I'd like to change my food order to a Caesar salad without anchovies, and for the drink, can you update my order 123 to a large hot coffee with regular sweetness and almond milk, please?</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">ChaFod</span><span class="ds">Changes the food item based on the customer's request, allowing for modifications to the ingredients or preparation method.</span><span class="tag green">Correct</span></li>
+            <li class="hit"><span class="n">2</span><span class="nm">ChaDri.<wbr>change_drink</span><span class="ds">Modifies the existing drink order to accommodate the customer's new request, ensuring the drink is updated according to the specified preferences.</span><span class="tag green">Correct</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>能帮我查一下中国广州市和北京市现在的天气状况吗？请使用公制单位。</p></div>
+          <ol class="tools fn">
+            <li class="hit"><span class="n">1</span><span class="nm">get_current_weather</span><span class="ds">Retrieves the current weather conditions for a specified location, such as 'City, State' or 'City, Country'.</span><span class="tag green">Correct: 2 calls</span></li>
+            <li><span class="n">2</span><span class="nm">start_oncall</span><span class="ds">Initiate an on-call support session when a user explicitly requests assistance. The user's question, which should be clear and devoid of irrelevant…</span></li>
+            <li><span class="n">3</span><span class="nm">create_workspace</span><span class="ds">Creates a new workspace in the mbox system, based on a specified branch of the aweme git repository.</span></li>
+            <li><span class="n">4</span><span class="nm">generate_password</span><span class="ds">Generate a secure, random password based on specified criteria including length, numerical, and special character inclusion.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_irrelevance" hidden>
+        <div class="card">
+          <div class="card-head"><p>Can you provide the address for latitude 37.4224764 and longitude -122.0842499 using the Geocoding API?</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">requests.<wbr>get</span><span class="ds">Sends a GET request to the specified URL to retrieve data. This function is commonly used for API calls and web scraping.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: no call</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I want to order five 'burgers' and six 'chicken wings' from uber eat McDonald's.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">uber.<wbr>ride</span><span class="ds">Finds a suitable Uber ride for customers based on their location, desired ride type, and maximum wait time.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: no call</span></div>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="bf" data-ex="live_relevance" hidden>
+        <div class="card">
+          <div class="card-head"><p>I'd like to have a digital painting created. The image should be a detailed portrait of a masked woman, including bright peacock feathers, with an elegant and highly detailed style. It should have a fluid illustration quality, with green highlighted lines and complex patterns, reminiscent of cyberpunk and Alphonse Mucha's art.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">search_engine.<wbr>query</span><span class="ds">Conducts a search based on the provided prompt and returns relevant real-time information, specific details, or general facts from various sources…</span></li>
+            <li><span class="n">2</span><span class="nm">generate_image</span><span class="ds">Generate an image based on a given text prompt. The function is versatile and can be used for various general purposes without specializing in any…</span></li>
+            <li><span class="n">3</span><span class="nm">generate_human_image</span><span class="ds">Generates a realistic image of a human based on the provided prompt, with options for creating images representing different age groups and genders.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: at least one call</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Can you generate a digital image of a woman wearing a mask with bright peacock feathers around her? The style should be reminiscent of Alphonse Mucha's art nouveau works, with a cyberpunk twist. I'd like it to be a highly detailed digital painting, featuring fluid illustrations and complex patterns, and please use green highlighted lines.</p></div>
+          <ol class="tools fn">
+            <li><span class="n">1</span><span class="nm">search_engine.<wbr>query</span><span class="ds">Executes a search query and retrieves relevant real-time information, specific details, or general facts from the internet, with an option to filter…</span></li>
+            <li><span class="n">2</span><span class="nm">generate_image</span><span class="ds">Generate a digital image based on a text-based prompt, suitable for various general applications.</span></li>
+            <li><span class="n">3</span><span class="nm">generate_human_image</span><span class="ds">Generates a digital image of a human subject based on the provided text prompt. This function is tailored to create images representing different…</span></li>
+            <li><span class="n">4</span><span class="nm">multilingual_llm</span><span class="ds">Interact with a multilingual large language model (LLM) to generate text-based answers in various languages, excluding real-time data and information…</span></li>
+            <li><span class="n">5</span><span class="nm">english_llm</span><span class="ds">This function provides interaction with an English large language model (LLM) to generate text-based answers. It operates exclusively on English…</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: at least one call</span></div>
+        </div>
+      </div>
+
+      <h2>Label</h2>
+      <p>The ground truth is in <code>possible_answer/</code>, a folder next to the test files, in a file with the test file's name. For a single-turn file, a row has the example's <code>id</code> and a <code>ground_truth</code> list with one entry for each call. An entry gives the function name and, for each parameter, a list of accepted values.</p>
+      <p><code>{"id": "parallel_0", "ground_truth": [{"spotify.play": {"artist": ["Taylor Swift"], "duration": [20]}}, {"spotify.play": {"artist": ["Maroon 5"], "duration": [15]}}]}</code></p>
+      <p><code>irrelevance</code>, <code>live_irrelevance</code> and <code>live_relevance</code> have no file in <code>possible_answer/</code>.</p>
+      <p>With the parameter values removed, the label is the function name of each call.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Files</th><th>Functions in the list</th><th>Distinct functions in the label</th><th class="num">Examples</th></tr></thead>
+          <tbody>
+            <tr><td><code>simple_python</code>, <code>simple_java</code>, <code>simple_javascript</code>, <code>parallel</code>, <code>live_simple</code>, 14 of the 16 examples in <code>live_parallel</code></td><td>1</td><td>1</td><td class="num">1,022</td></tr>
+            <tr><td><code>multiple</code>, <code>live_multiple</code>, 2 of the 16 examples in <code>live_parallel</code></td><td>2 to 37</td><td>1</td><td class="num">1,255</td></tr>
+            <tr><td><code>parallel_multiple</code>, <code>live_parallel_multiple</code></td><td>2 to 9</td><td>1 to 5</td><td class="num">224</td></tr>
+            <tr><td><code>irrelevance</code>, <code>live_irrelevance</code></td><td>0 to 37</td><td>0</td><td class="num">1,124</td></tr>
+            <tr><td><code>live_relevance</code></td><td>1 to 5</td><td>Not stored</td><td class="num">16</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>In 185 of the 224 examples in <code>parallel_multiple</code> and <code>live_parallel_multiple</code>, the label names every function in the list.</li>
+      </ul>
+
+      <h2>Paper and files</h2>
+      <dl class="src">
+        <dt>Paper</dt><dd>Patil et al., The Berkeley Function Calling Leaderboard (BFCL): From Tool Use to Agentic Evaluation of Large Language Models. ICML 2025.</dd>
+        <dt>Citations</dt><dd>573 on Semantic Scholar, 2026-10-04</dd>
+        <dt>Repository</dt><dd><a href="https://github.com/ShishirPatil/gorilla">github.com/ShishirPatil/gorilla</a></dd>
+        <dt>Commit</dt><dd><code>6ea57973c7a6097fd7c5915698c54c17c5b1b6c8</code></dd>
+        <dt>Test files</dt><dd><code>berkeley-function-call-leaderboard/bfcl_eval/data/</code>, named <code>BFCL_v4_</code> plus the test file name plus <code>.json</code></dd>
+        <dt>Ground truth</dt><dd><code>berkeley-function-call-leaderboard/bfcl_eval/data/possible_answer/</code></dd>
+        <dt>Licence</dt><dd>Apache 2.0</dd>
+      </dl>
+      <h3>README and files differ</h3>
+      <div class="tablewrap narrow">
+        <table>
+          <thead><tr><th>Examples in</th><th class="num"><code>bfcl_eval/data/README.md</code></th><th class="num">File</th></tr></thead>
+          <tbody>
+            <tr><th><code>live_multiple</code></th><td class="num">1,037</td><td class="num">1,053</td></tr>
+            <tr><th><code>live_irrelevance</code></th><td class="num">875</td><td class="num">884</td></tr>
+            <tr><th><code>live_relevance</code></th><td class="num">41</td><td class="num">16</td></tr>
+            <tr class="total"><th>Total</th><td class="num">1,953</td><td class="num">1,953</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================== Experiments ============================== -->
+    <section role="tabpanel" data-panel="experiments" hidden>
+      <h2>List length, position, order and format</h2>
+      <p>Each MetaTool test query is run with four kinds of change to the request. Jev is compared with open-weight decision models on each.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Factor</th><th>What changes</th><th>What is measured</th></tr></thead>
+          <tbody>
+            <tr><th>List length</th><td>The number of tools in the list</td><td>Accuracy at each length</td></tr>
+            <tr><th>Position</th><td>Where the correct tool sits: start, center or end of the list</td><td>Accuracy at each position, and how often the model selects each position whether or not the correct tool is there</td></tr>
+            <tr><th>Order</th><td>The same tools in several shuffled orders</td><td>The share of queries whose answer changes between orders</td></tr>
+            <tr><th>Prompt format</th><td>How the same query and tools are written in the request, such as separators, casing and spacing</td><td>The spread of accuracy across formats, and the share of queries whose answer changes between formats</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Fine-tuning and transfer</h2>
+      <p>Two open models are fine-tuned, one on MetaTool's 20,614 queries and one on ToolBench's training set. Each is tested on both benchmarks, next to Jev and the same open model without fine-tuning. No model is trained on both sets. BFCL is a test-only set. The four models are tested on it and no model is trained on it.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Model</th><th>MetaTool test files</th><th>ToolBench test files</th><th>BFCL test files</th></tr></thead>
+          <tbody>
+            <tr><th>Jev</th><td>No training</td><td>No training</td><td>No training</td></tr>
+            <tr><th>Open model, not fine-tuned</th><td>No training</td><td>No training</td><td>No training</td></tr>
+            <tr><th>Open model fine-tuned on MetaTool</th><td><span class="tag green">In-domain</span></td><td><span class="tag blue">Transfer</span></td><td><span class="tag blue">Transfer</span></td></tr>
+            <tr><th>Open model fine-tuned on ToolBench</th><td><span class="tag blue">Transfer</span></td><td><span class="tag green">In-domain</span></td><td><span class="tag blue">Transfer</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -666,6 +1008,22 @@
         <li>The MetaTool model trains on the 20,614 queries with the test queries removed.</li>
         <li>The ToolBench model trains on ToolBench's training set. ToolBench's six test files hold out queries, tools or RapidAPI categories from that set.</li>
       </ul>
+
+      <h2>Jev as a co-pilot</h2>
+      <p>Question: can Jev reduce the token cost of a frontier LLM on difficult tasks? The frontier LLM proposes each function call, and Jev checks the choice of function before the call runs. A wrong call caught at that point does not cost the tokens of the steps that recover from it. The trajectory corrects itself.</p>
+      <p>Jev and the frontier LLM select the function on the same examples. Each example falls into one of four outcomes.</p>
+      <div class="tablewrap narrow">
+        <table>
+          <thead><tr><th>Outcome</th><th>For a co-pilot</th></tr></thead>
+          <tbody>
+            <tr><th>Both correct</th><td>Nothing to correct</td></tr>
+            <tr><th>Only the LLM wrong</th><td>An error Jev can catch</td></tr>
+            <tr><th>Only Jev wrong</th><td>A false alarm</td></tr>
+            <tr><th>Both wrong</th><td>An error Jev cannot catch. Recorded with whether both select the same wrong function.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>This is a parallel study to REFLEX (arXiv 2609.26532). In REFLEX, Jev decides first and a strong LLM is called when Jev's confidence is low or text has to be generated. It reports 72.7% fewer strong-model calls on a 100-task benchmark and limited advantage on BFCL.</p>
 
       <h2>Metrics</h2>
       <div class="tablewrap">
@@ -675,6 +1033,7 @@
             <tr><th>MetaTool, four tool-selection files</th><td>One tool, two tools, or None</td><td>Accuracy. The MetaTool paper calls it the Correct Selection Rate (CSR).</td></tr>
             <tr><th>MetaTool, tool awareness</th><td class="nw">yes or no</td><td>Accuracy, precision, recall and F1</td></tr>
             <tr><th>ToolBench, six files</th><td>1 to 6 relevant APIs</td><td>Not decided. Precision, recall and F1 if the model selects a set, or accuracy if each list is built with one relevant API.</td></tr>
+            <tr><th>BFCL</th><td>Function calls with parameter values, or no call</td><td>Not decided. BFCL reports accuracy. Its AST evaluation checks the model's calls against the ground-truth function names and accepted parameter values.</td></tr>
           </tbody>
         </table>
       </div>
@@ -694,6 +1053,11 @@
         <li><span class="txt">Two fine-tuned models, one on MetaTool and one on ToolBench, each tested on both benchmarks. No model is trained on both.</span></li>
         <li><span class="txt">No claim about current tools is made from the fine-tuned models or the on-device student.</span></li>
         <li><span class="txt">ToolBench queries come from StableToolBench's six test files. ToolBench and StableToolBench are both cited.</span></li>
+        <li><span class="txt">BFCL is a test-only set. No model is trained on it.</span></li>
+        <li><span class="txt">Prompt format is measured as a fourth factor, next to list length, position and order.</span></li>
+        <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
+        <li><span class="txt">Every Jev response is saved under a hash of the exact request and a run number. A repeat of the same request is a new run, so the variance between runs can be measured.</span></li>
+        <li><span class="txt">255 options is the limit of one Jev request. A longer list is split, the model selects within each part, then selects among the winners.</span></li>
         <li><span class="txt">No model is trained on Jev output. TypeSafe's Master Customer Agreement, section 2.3(b), prohibits it.</span></li>
         <li><span class="txt">Training runs on Google Colab.</span></li>
         <li><span class="txt">The Jev key is read from <code>TYPESAFE_AI_KEY</code>.</span></li>
@@ -710,10 +1074,12 @@
         <li><span class="txt">Which distractors are added to a longer list</span><span class="tag gray">Leaning toward random and most similar</span></li>
         <li><span class="txt">How positions are grouped</span><span class="tag gray">Leaning toward 5 bins</span></li>
         <li><span class="txt">Number of shuffled orders per query</span></li>
+        <li><span class="txt">Which prompt formats are compared</span></li>
         <li><span class="txt">Which queries each model runs</span></li>
         <li><span class="txt">Which open-weight models are compared, and which one is fine-tuned</span></li>
         <li><span class="txt">How a ToolBench example is posed to the model, and its metric</span></li>
-        <li><span class="txt">Whether a tool set from 2025 or 2026 is added as test-only, and which one</span><span class="tag gray">Search running</span></li>
+        <li><span class="txt">Which BFCL test files are used, and how a BFCL example is posed to the model</span></li>
+        <li><span class="txt">Co-pilot design: which frontier LLM, which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end</span></li>
         <li><span class="txt">Which fine-tuned model teaches the on-device student</span></li>
         <li><span class="txt">Whether to test lists longer than 199 tools</span></li>
         <li><span class="txt">Mind2Web and AndroidControl</span><span class="tag gray">Proposed, not confirmed</span></li>

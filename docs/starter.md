@@ -42,11 +42,11 @@ The Master Customer Agreement, last updated 2026-09-23, section 2.3(b), says the
 
 ## Plan
 
-Question: how do the number of options, the position of the correct option, and the order of the list change what a decision model picks?
+Question: how do the number of options, the position of the correct option, the order of the list, and the prompt format change what a decision model picks?
 
 | Stage | Work | Needs |
 |---|---|---|
-| 1 | MetaTool. Document the fixed positions, build a test set with balanced positions, and run Jev across number of options (2 to 199), position of the correct option, and shuffled order. | Jev API key |
+| 1 | MetaTool. Document the fixed positions, build a test set with balanced positions, and run Jev across number of options (2 to 199), position of the correct option, shuffled order, and prompt format. | Jev API key |
 | 2 | Open-weight decision models on the stage 1 grid | Local machine |
 | 3 | Two fine-tuned open decision models, one trained on MetaTool's 20,614 queries and one on ToolBench's training set. Each is tested on both benchmarks. | Colab |
 | 4 | A smaller grid on ToolBench, Mind2Web and AndroidControl | Jev API key |
@@ -73,9 +73,13 @@ Metrics. The four MetaTool tool-selection files are scored with accuracy, which 
 
 Training data. The MetaTool model trains on `dataset/data/all_clean_data.csv` with the test queries removed. 993 of the 995 similar-tools queries and 1,797 of the 1,800 scenario queries are rows of that file. The ToolBench model trains on ToolBench's training set. ToolBench's six test files hold out queries, tools or RapidAPI categories from that training set.
 
-Limit. MetaTool's tools are ChatGPT plugins from 2023. ToolBench's APIs were collected from RapidAPI in 2023, and StableToolBench reports that 44.4% of its calls to them succeeded. The fine-tuned models and the student are baselines on these two benchmarks. The paper makes no claim from them about current tools. A search for a tool set from 2025 or 2026, to be used as test-only, started on 2026-10-04.
+Limit. MetaTool's tools are ChatGPT plugins from 2023. ToolBench's APIs were collected from RapidAPI in 2023, and StableToolBench reports that 44.4% of its calls to them succeeded. The fine-tuned models and the student are baselines on these two benchmarks. The paper makes no claim from them about current tools. BFCL (ICML 2025, 573 citations on Semantic Scholar on 2026-10-04) was chosen on 2026-10-04 as a test-only set. No model is trained on it.
 
 An audit of the first 28 Jev papers (arXiv 2609.32160) gives a 14-item evaluation checklist. The items that apply here are a baseline that reads label probabilities from an ordinary open model, a model trained on the task, confidence intervals, repeated runs, a pinned model version, and thresholds fixed before evaluation. The audit found that 21 of 27 papers had no label-probability baseline and 12 of 27 reported no confidence intervals or significance tests.
+
+### Jev as a co-pilot
+
+Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM on difficult tasks? The frontier LLM proposes each function call and Jev checks the choice of function before the call runs. The first measurement is a four-way count on the same examples: both correct, only the LLM wrong, only Jev wrong, both wrong, with whether both select the same wrong function. This is a parallel study to REFLEX (arXiv 2609.26532), in which Jev decides first and a strong LLM is the fallback. Not decided: the frontier LLM, which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end.
 
 ## MetaTool: fixed positions of the correct tool
 
@@ -271,9 +275,9 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 
 - Set `TYPESAFE_AI_KEY` on this machine.
 - Confirm Mind2Web and AndroidControl.
-- Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, and which distractors are added.
+- Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, which distractors are added, and which prompt formats are compared.
 - Decide how a ToolBench example is posed to the model, and its metric.
-- Decide whether a tool set from 2025 or 2026 is added as test-only, and which one.
+- Decide which BFCL test files are used, and how a BFCL example is posed to the model.
 - Decide which fine-tuned model trains the student.
 - Decide whether the MetaTool fine-tuning holds out some tools.
 - Choose the open models and check their licences.
