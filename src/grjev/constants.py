@@ -19,6 +19,36 @@ JEV_MAX_ATTEMPTS = 5
 JEV_BACKOFF_SECONDS = 2.0
 JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 
+CLAUDE_CACHE_DIR = DATA_DIR / "cache" / "claude"
+CLAUDE_TIMEOUT_SECONDS = 300
+CLAUDE_CLI_VERSION = "2.1.289"
+# Sonnet 5 and Opus 5 can run with thinking switched off completely.
+CLAUDE_MODELS = ("claude-sonnet-5", "claude-opus-5")
+# Print mode with no tools, MCP servers, skills, settings files or saved session.
+CLAUDE_ARGS = (
+    "-p",
+    "--output-format",
+    "json",
+    "--effort",
+    "low",
+    "--safe-mode",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--setting-sources",
+    "",
+    "--no-session-persistence",
+)
+# Switches thinking off.
+CLAUDE_ENV = {"MAX_THINKING_TOKENS": "0"}
+# The CLI runs from an empty folder outside the repo, so it finds no project files. Claude Code shows this path to
+# the model, so the name says nothing about the study and is the same on every machine.
+CLAUDE_WORK_DIR = Path("/tmp/workdir")
+# The only variables of our environment that the CLI receives: enough to find the program and its sign-in. Anything
+# else, such as CLAUDE_CODE_EFFORT_LEVEL or ANTHROPIC_BASE_URL, could change a call without changing its hash.
+CLAUDE_INHERITED_VARS = ("PATH", "HOME", "USER", "TMPDIR", "LANG")
+
 METATOOL_COMMIT = "35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb"
 METATOOL_BASE_URL = f"{GITHUB_RAW_URL}/HowieHwong/MetaTool/{METATOOL_COMMIT}/"
 METATOOL_RAW_DIR = DATA_DIR / "metatool" / "raw"
@@ -129,9 +159,52 @@ BFCL_SHA256 = (
     | {f"multi_turn_func_doc/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
 )
 
+METATOOL_PROCESSED_DIR = DATA_DIR / "metatool" / "processed"
+METATOOL_TOOLS_FILE = "dataset/plugin_des.json"
+# Name of each MetaTool test file in the processed data, and its path in the raw download.
+METATOOL_TEST_FILES = {
+    "similar_tools": "dataset/tmp_dataset/Task2-Subtask1.json",
+    "scenario": "dataset/tmp_dataset/Task2-Subtask2.json",
+    "reliability": "dataset/tmp_dataset/Task2-Subtask3.json",
+    "multi_tool": "dataset/tmp_dataset/Task2-Subtask4.json",
+    "tool_awareness": "dataset/tmp_dataset/Task1.json",
+}
+# One line of the numbered tool list in a MetaTool prompt: the number and the tool name.
+METATOOL_TOOL_LINE = r"^(\d+)\. tool name: (.*?), tool description: "
+
+# The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
+TOOLS_FILE_NAME = "tools.jsonl"
+WORD_PATTERN = r"[a-z][a-z'-]*"
+# English stop words, separated by spaces.
+STOP_WORDS_TEXT = """
+a about above after again against all am an and any are aren't as at be because been before being below between both
+but by can can't cannot could couldn't did didn't do does doesn't doing don't down during each few for from further
+had hadn't has hasn't have haven't having he he'd he'll he's her here here's hers herself him himself his how how's i
+i'd i'll i'm i've if in into is isn't it it's its itself let's me more most mustn't my myself no nor not of off on
+once only or other ought our ours ourselves out over own same shan't she she'd she'll she's should shouldn't so some
+such than that that's the their theirs them themselves then there there's these they they'd they'll they're they've
+this those through to too under until up very was wasn't we we'd we'll we're we've were weren't what what's when
+when's where where's which while who who's whom why why's with won't would wouldn't you you'd you'll you're you've
+your yours yourself yourselves
+"""
+
+# The number of tools named at each end of a count over the tools.
+EXTREMES_SHOWN = 5
+# A histogram has at most this many bins.
+HISTOGRAM_BINS = 40
+# A histogram gets logarithmic bins when its largest value is this many times its median.
+LOG_BINS_RATIO = 8
+# The dashboard loads one file of statistics per dataset from this folder.
+DASHBOARD_STATS_DIR = REPO_ROOT / "docs" / "stats"
+
 # Dataset name -> the arguments of grjev.download.download_files: base URL, SHA-256 by path, destination folder.
 DOWNLOADS = {
     "metatool": (METATOOL_BASE_URL, METATOOL_SHA256, METATOOL_RAW_DIR),
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
 }
+
+# Dataset name -> where its files in the common format are written.
+PROCESSED_DIRS = {"metatool": METATOOL_PROCESSED_DIR}
+# Dataset name -> its test files, in the order they are shown.
+TEST_FILES = {"metatool": tuple(METATOOL_TEST_FILES)}

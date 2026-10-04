@@ -14,8 +14,9 @@ dist/
 .env.*
 !.env.example
 
-# Data, caches and model files
+# Data, results, caches and model files
 data/*
+results/
 !data/.gitkeep
 *.safetensors
 *.gguf

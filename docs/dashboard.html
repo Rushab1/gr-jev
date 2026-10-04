@@ -139,6 +139,20 @@
     .charts { grid-template-columns: minmax(0, 1fr); }
     ul.marks li { flex-wrap: wrap; }
   }
+
+  /* Distributions, drawn from stats/<dataset>.js */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin: 14px 0; }
+  .stat-grid .chart figcaption { margin-bottom: 14px; }
+  .hist { display: flex; align-items: flex-end; gap: 1px; height: 124px; border-bottom: 1px solid var(--border-strong); }
+  .hist.few { gap: 4px; }
+  .hist .col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; border-radius: 3px 3px 0 0; }
+  .hist .col:hover { background: var(--soft); }
+  .hist .bar { width: 100%; background: var(--blue); border-radius: 2px 2px 0 0; }
+  .hist.few .bar { width: min(30px, 72%); }
+  .hist .col:hover .bar { background: var(--text); }
+  .hist .v { margin-bottom: 3px; font-size: 12px; line-height: 1; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .axis { display: flex; justify-content: space-between; padding-top: 5px; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .tip { position: fixed; z-index: 20; pointer-events: none; padding: 4px 9px; border-radius: 6px; background: var(--text); color: var(--bg); font-size: 13px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -195,6 +209,7 @@
         <li>Both correct tools in a multi-tool example are among the 15 most popular tools.</li>
         <li>The prompts in the similar-tools, scenario and reliability files tell the model to answer None if no tool in the list applies. The multi-tool prompt tells it to return two tools.</li>
         <li>Tool awareness has 520 queries labelled yes (a tool is needed) and 520 labelled no.</li>
+        <li>Each prompt in the similar-tools, scenario and reliability files ends with 5 example queries and their tools, different in every row. Every example tool is in the prompt's tool list. In 488 of the 995 similar-tools prompts and 920 of the 1,800 scenario prompts, one example has the correct tool as its answer. The multi-tool prompts have no examples.</li>
       </ul>
 
       <h2>Examples</h2>
@@ -346,9 +361,19 @@
         </div>
       </div>
 
+      <h2>Distributions</h2>
+      <div data-stats="metatool" data-skip="position">
+        <ul class="plain" data-after="tools">
+          <li>Similar tools: the 5 queries of a tool get the same list. PolishTool is in its own list and in the lists of 48 other tools, 245 examples. 5 tools are only in their own list. 72 tools are in no scenario, reliability or multi-tool list.</li>
+          <li>Scenario: the 1,800 examples use 9 different lists, each for 100 to 300 examples. 53 of the 199 tools are in at least one of the 9. FinanceTool, PDF&amp;URLTool, ProductSearch and TripTool are in 4 of the 9. Each of the four is in the list of 800 scenario examples and is the correct tool in 80.</li>
+          <li>Multi-tool: both correct tools of all 497 queries are among the 15 tools of the scenario list <code>TopTool_top15</code>. Each of the 15 is a correct tool in 24 to 100 multi-tool examples. In the similar-tools, scenario and multi-tool files together, the correct tool is one of the 15 in 1,432 of the 3,292 examples (43.5%). Each of the 15 is a correct tool in 89 to 168 examples, and each of the other 184 tools in 5 to 65.</li>
+          <li>Distractors: the reliability lists use 89 of the 199 tools, and hacktrack is in 335 of the 995. In the multi-tool lists 67 tools are distractors, and LawTool is one in 171 of the 497. <code>select_10_tools_with_exclusion</code> samples the tools of both files and calls <code>random.seed(48)</code> before every sample.</li>
+        </ul>
+      </div>
+
       <h2>The 20,614 queries</h2>
       <p><code>dataset/data/all_clean_data.csv</code> holds all 20,614 queries in two columns, <code>Query</code> and <code>Tool</code>.</p>
-      <p>The test files sample from it. The similar-tools file has five queries for each of the 199 tools, 995 in total. The reliability file has the same 995 queries with different tool lists.</p>
+      <p>The test files sample from it. The similar-tools file has five queries for each of the 199 tools, 995 in total. The reliability file has the same 995 queries with different tool lists. The scenario file has 20 queries for each tool in a list, and a tool in more than one list has the same 20 in each. Its 1,800 examples have 1,060 different queries, and 265 of them are similar-tools queries. <code>get_query_by_tool</code> in <code>src/prompt/prompt_construction.py</code> calls <code>np.random.seed(48)</code> before every sample. The four files with tool lists have 2,287 different queries in 4,287 examples.</p>
       <p>In this study the file is the training data for the fine-tuned model. The test queries are rows of the file. Training on it without removing them puts test queries in the training data.</p>
       <ul class="plain">
         <li>Rows of this file: 993 of the 995 similar-tools queries, 1,797 of the 1,800 scenario queries, and 519 of the 520 tool-awareness queries labelled yes.</li>
@@ -380,30 +405,30 @@
       </ul>
 
       <h2>Fixed positions</h2>
-      <p>In the similar-tools file the correct tool is at position 1 in all 995 examples. In the multi-tool file the two correct tools are at positions 7 and 8 in all 497 examples. A model that always answers with those positions scores 100% on both files.</p>
+      <p>In the similar-tools file the correct tool is at position 1 in all 995 examples. In the multi-tool file the two correct tools are at positions 7 and 8 in all 497 examples.</p>
       <div class="charts">
         <figure class="chart">
-          <figcaption>Similar tools <span class="tag red">Always position 1: 100%</span></figcaption>
+          <figcaption>Similar tools <span class="tag red">Answering position 1 every time scores 100%</span></figcaption>
           <div data-chart="995,0,0,0,0,0,0,0,0,0"></div>
         </figure>
         <figure class="chart">
-          <figcaption>Multi-tool <span class="tag red">Always positions 7 and 8: 100%</span></figcaption>
+          <figcaption>Multi-tool <span class="tag red">Answering positions 7 and 8 every time scores 100%</span></figcaption>
           <div data-chart="0,0,0,0,0,0,497,497,0,0"></div>
         </figure>
         <figure class="chart wide">
-          <figcaption>Scenario <span class="tag gray">Always position 1: 10%</span></figcaption>
+          <figcaption>Scenario <span class="tag gray">Answering position 1 every time scores 10%</span></figcaption>
           <div data-chart="180,180,180,180,180,160,160,160,160,160,20,20,20,20,20"></div>
         </figure>
       </div>
       <h3>Cause</h3>
       <ul class="plain">
         <li>Similar tools: <code>get_10_most_sim</code> searches for the 10 tools nearest to the correct tool's embedding. The correct tool is its own nearest neighbour, and the result is not shuffled.</li>
-        <li>Multi-tool: <code>select_10_tools_with_exclusion</code> calls <code>random.seed(48)</code> for every example, immediately before the list is shuffled. The two correct tools are appended last, and the shuffle moves them to positions 7 and 8 every time.</li>
+        <li>Multi-tool: <code>select_10_tools_with_exclusion</code> calls <code>random.seed(48)</code> for every example and samples the 8 distractors. The two correct tools are appended last, and <code>random.shuffle</code> moves them to positions 7 and 8 every time.</li>
         <li>Both functions are in <code>src/prompt/prompt_construction.py</code>.</li>
       </ul>
       <h3>Other files</h3>
       <ul class="plain">
-        <li>Scenario: each tool in a list is the label for 20 queries, so each position in a list has 20 examples. All queries in a scenario get the same list in the same order. The counts drop after positions 5 and 10 because 8 of the 9 lists have more than 5 tools and 1 has more than 10.</li>
+        <li>Scenario: each position in a list has 20 examples. All queries in a scenario get the same list in the same order. The counts drop after positions 5 and 10 because 8 of the 9 lists have more than 5 tools and 1 has more than 10.</li>
         <li>Reliability: the correct tool is in none of the 995 lists.</li>
       </ul>
 
@@ -1055,15 +1080,18 @@
         <li><span class="txt">ToolBench queries come from StableToolBench's six test files. ToolBench and StableToolBench are both cited.</span></li>
         <li><span class="txt">BFCL is a test-only set. No model is trained on it.</span></li>
         <li><span class="txt">Prompt format is measured as a fourth factor, next to list length, position and order.</span></li>
+        <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
-        <li><span class="txt">Every Jev response is saved under a hash of the exact request and a run number. A repeat of the same request is a new run, so the variance between runs can be measured.</span></li>
+        <li><span class="txt">Processed data has one row per example with the same fields for every dataset: id, query, options, labels, and the raw row unchanged.</span></li>
+        <li><span class="txt">Every Jev and Claude response is saved under a hash of the exact request and a run number. A repeat of the same request is a new run, so the variance between runs can be measured.</span></li>
         <li><span class="txt">255 options is the limit of one Jev request. A longer list is split, the model selects within each part, then selects among the winners.</span></li>
         <li><span class="txt">No model is trained on Jev output. TypeSafe's Master Customer Agreement, section 2.3(b), prohibits it.</span></li>
         <li><span class="txt">Training runs on Google Colab.</span></li>
         <li><span class="txt">The Jev key is read from <code>TYPESAFE_API_KEY</code>.</span></li>
         <li><span class="txt">The code standard is in <code>AGENTS.md</code>.</span></li>
         <li><span class="txt">WebArena and OSWorld are backups for Mind2Web and AndroidControl.</span></li>
-        <li><span class="txt">Distribution charts for each dataset are added once the download and processing scripts exist.</span></li>
+        <li><span class="txt">Tests of the Claude bridge call the live CLI. They are marked <code>integration</code> and are left out of a plain <code>pytest</code> run.</span></li>
+        <li><span class="txt">Distribution charts on each dataset tab are drawn from the processed data. MetaTool has them. ToolBench and BFCL get them once their converters are written.</span></li>
       </ul>
     </section>
 
@@ -1076,10 +1104,12 @@
         <li><span class="txt">Number of shuffled orders per query</span></li>
         <li><span class="txt">Which prompt formats are compared</span></li>
         <li><span class="txt">Which queries each model runs</span></li>
+        <li><span class="txt">Whether accuracy is also reported per tool, and whether a repeated query counts once</span></li>
         <li><span class="txt">Which open-weight models are compared, and which one is fine-tuned</span></li>
         <li><span class="txt">How a ToolBench example is posed to the model, and its metric</span></li>
         <li><span class="txt">Which BFCL test files are used, and how a BFCL example is posed to the model</span></li>
-        <li><span class="txt">Co-pilot design: which frontier LLM, which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end</span></li>
+        <li><span class="txt">Co-pilot design: which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end</span></li>
+        <li><span class="txt">Whether fine-tuning stays in the paper</span><span class="tag gray">To be decided last</span></li>
         <li><span class="txt">Which fine-tuned model teaches the on-device student</span></li>
         <li><span class="txt">Whether to test lists longer than 199 tools</span></li>
         <li><span class="txt">Mind2Web and AndroidControl</span><span class="tag gray">Proposed, not confirmed</span></li>
@@ -1088,6 +1118,7 @@
   </main>
 </div>
 
+<script src="stats/metatool.js"></script>
 <script>
 (() => {
   "use strict";
@@ -1139,6 +1170,8 @@
         bar.style.height = Math.max(2, Math.round((count / max) * 100)) + "px";
         col.append(value, bar);
       }
+      col.addEventListener("mousemove", (event) => showTip(event, "Correct tool at position " + (i + 1) + ": " + count.toLocaleString("en-US") + " examples"));
+      col.addEventListener("mouseleave", hideTip);
       bars.append(col);
       const tick = document.createElement("span");
       tick.textContent = String(i + 1);
@@ -1156,6 +1189,154 @@
   };
   document.querySelectorAll("[data-marks]").forEach((list) => {
     list.querySelectorAll("li").forEach((li) => li.insertAdjacentHTML("afterbegin", ICON[list.dataset.marks]));
+  });
+  // Distributions, drawn from the statistics that scripts/dataset_stats.py writes to stats/<dataset>.js.
+  const tip = document.createElement("div");
+  tip.className = "tip";
+  tip.hidden = true;
+  document.body.append(tip);
+  function showTip(event, text) {
+    tip.textContent = text;
+    tip.hidden = false;
+    tip.style.left = Math.min(event.clientX + 12, window.innerWidth - tip.offsetWidth - 8) + "px";
+    tip.style.top = event.clientY - 36 + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+  function make(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  const number = (value) => value.toLocaleString("en-US");
+  const rangeOf = (bin) => (bin.from === bin.to ? String(bin.from) : bin.from + " to " + bin.to);
+
+  // One bar per bin. `phrase` turns a bin's range into words for the tooltip.
+  function histogram(title, measure, phrase, counted) {
+    const figure = make("figure", "chart");
+    const caption = make("figcaption", "", title);
+    caption.append(make("span", "tag gray", "median " + number(measure.median) + ", " + number(measure.min) + " to " + number(measure.max)));
+    const few = measure.bins.length <= 16;
+    const bars = make("div", few ? "hist few" : "hist");
+    const max = Math.max(...measure.bins.map((bin) => bin.count));
+    measure.bins.forEach((bin) => {
+      const column = make("div", "col");
+      if (few && bin.count > 0) column.append(make("span", "v", number(bin.count)));
+      const bar = make("span", "bar");
+      bar.style.height = bin.count === 0 ? "0" : Math.max(2, Math.round((bin.count / max) * 100)) + "px";
+      column.append(bar);
+      column.addEventListener("mousemove", (event) => showTip(event, phrase(rangeOf(bin)) + ": " + number(bin.count) + " " + counted));
+      column.addEventListener("mouseleave", hideTip);
+      bars.append(column);
+    });
+    const axis = make("div", few ? "xs" : "axis");
+    if (few) {
+      axis.style.setProperty("--n", measure.bins.length);
+      measure.bins.forEach((bin) => axis.append(make("span", "", rangeOf(bin))));
+    } else {
+      axis.append(make("span", "", number(measure.min)), make("span", "", number(measure.max)));
+    }
+    figure.append(caption, bars, axis);
+    return figure;
+  }
+
+  function fileName(name) {
+    const text = name.replace(/_/g, " ");
+    return text[0].toUpperCase() + text.slice(1);
+  }
+
+  // `thing` is what the dataset calls one entry of the list: a tool, an API or a function.
+  function overlapTable(files, thing) {
+    const cell = (value, suffix) => (value === null ? "" : value + suffix);
+    const rows = Object.entries(files).filter(([, file]) => file.overlap_accuracy !== null || file.correct_description_words !== null);
+    const wrap = make("div", "tablewrap");
+    const table = make("table");
+    const head = make("tr");
+    ["Test file", "Word-overlap accuracy", "Words in the correct " + thing + "'s description", "Words in another " + thing + "'s description"].forEach((text, index) => head.append(make("th", index ? "num" : "", text)));
+    const body = make("tbody");
+    rows.forEach(([name, file]) => {
+      const row = make("tr");
+      row.append(make("th", "", fileName(name)), make("td", "num", cell(file.overlap_accuracy, "%")), make("td", "num", cell(file.correct_description_words, "")), make("td", "num", cell(file.other_description_words, "")));
+      body.append(row);
+    });
+    const thead = make("thead");
+    thead.append(head);
+    table.append(thead, body);
+    wrap.append(table);
+    return wrap;
+  }
+
+  // The tools with the highest counts, one column per test file, then the lowest count and the tools at it.
+  function extremes(usage, title, unit, tools) {
+    const files = Object.keys(usage.highest[0].by_file);
+    const wrap = make("div", "tablewrap");
+    const table = make("table");
+    const head = make("tr");
+    [title, "Of " + number(usage.examples) + " " + unit, "Different queries", ...files.map(fileName)].forEach((text, index) => head.append(make("th", index ? "num" : "", text)));
+    const body = make("tbody");
+    usage.highest.forEach((tool) => {
+      const row = make("tr");
+      const share = ((100 * tool.examples) / usage.examples).toFixed(1) + "%";
+      row.append(make("th", "", tool.name), make("td", "num", number(tool.examples) + " (" + share + ")"), make("td", "num", number(tool.queries)), ...files.map((file) => make("td", "num", number(tool.by_file[file]))));
+      body.append(row);
+    });
+    const thead = make("thead");
+    thead.append(head);
+    table.append(thead, body);
+    wrap.append(table);
+    const names = usage.lowest_names.length ? ": " + usage.lowest_names.join(", ") : "";
+    return [wrap, make("p", "", "The minimum is " + number(usage.lowest) + " " + unit + ", for " + number(usage.tools_at_lowest) + " of the " + number(tools) + " tools" + names + ".")];
+  }
+
+  document.querySelectorAll("[data-stats]").forEach((host) => {
+    const stats = (window.STATS || {})[host.dataset.stats];
+    if (!stats) return;
+    const thing = host.dataset.thing || "tool";
+    const things = thing + "s";
+    const skip = (host.dataset.skip || "").split(" ");
+    const fileCharts = [
+      ["query_words", "Words in the query", (range) => range + " words"],
+      ["input_words", "Words in the query and its " + thing + " list", (range) => range + " words"],
+      ["options", fileName(things) + " in the list", (range) => range + " " + things],
+      ["correct_options", "Correct " + things + " for the query", (range) => range + " correct " + things],
+      ["position", "Position of the correct " + thing + " in the list", (range) => "Position " + range],
+    ];
+    const picker = make("div", "seg");
+    const fileGrid = make("div", "stat-grid");
+    function show(name) {
+      [...picker.children].forEach((button) => button.setAttribute("aria-selected", String(button.dataset.file === name)));
+      const file = stats.files[name];
+      const charts = fileCharts.filter(([key]) => !skip.includes(key) && file[key]);
+      fileGrid.replaceChildren(...charts.map(([key, title, phrase]) => histogram(title, file[key], phrase, "examples")));
+    }
+    Object.keys(stats.files).forEach((name) => {
+      const button = make("button", "", fileName(name));
+      button.type = "button";
+      button.dataset.file = name;
+      button.addEventListener("click", () => show(name));
+      picker.append(button);
+    });
+    const listed = stats.listed;
+    const correct = stats.correct;
+    const toolNote = make("p", "",
+      "Each example is a query and a list of " + things + ". The test files with " + thing + " lists have " + number(listed.examples) + " examples and " + number(listed.queries) + " different queries. "
+      + number(correct.examples) + " of the examples have a correct " + thing + " in the list. "
+      + "A " + thing + " is in " + number(listed.per_tool.min) + " to " + number(listed.per_tool.max) + " lists (median " + number(listed.per_tool.median) + ") "
+      + "and is a correct " + thing + " in " + number(correct.per_tool.min) + " to " + number(correct.per_tool.max) + " examples (median " + number(correct.per_tool.median) + ").");
+    const toolGrid = make("div", "stat-grid");
+    toolGrid.append(
+      histogram("Words in a " + thing + "'s description", stats.tool_description_words, (range) => range + " words", things),
+      histogram("Lists a " + thing + " is in", listed.per_tool, (range) => "In " + range + " lists", things),
+      histogram("Examples a " + thing + " is correct in", correct.per_tool, (range) => "A correct " + thing + " in " + range + " examples", things),
+    );
+    const ends = [
+      ...extremes(listed, fileName(things) + " in the most lists", "lists", stats.tools),
+      ...extremes(correct, fileName(things) + " that are a correct " + thing + " most often", "examples", stats.tools),
+    ];
+    const causes = host.querySelectorAll('[data-after="tools"]');
+    const rule = make("p", "", "The word-overlap rule selects the " + thing + " whose name and description share the most words with the query, ignoring stop words. Ties are split evenly. The last two columns are mean numbers of words.");
+    host.append(picker, fileGrid, make("h3", "", fileName(things)), toolNote, toolGrid, ...ends, ...causes, make("h3", "", "Word overlap and description length"), rule, overlapTable(stats.files, thing));
+    show(Object.keys(stats.files)[0]);
   });
 })();
 </script>

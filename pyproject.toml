@@ -41,3 +41,6 @@ files = ["src", "scripts", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Integration tests call the live Claude Code CLI. A plain `pytest` leaves them out; `pytest -m integration` runs them.
+addopts = "-m 'not integration'"
+markers = ["integration: calls the live Claude Code CLI with this machine's sign-in"]
