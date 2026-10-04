@@ -1,0 +1,30 @@
+"""Write the statistics of processed datasets to docs/stats/, where the dashboard loads them."""
+
+import argparse
+import json
+
+from grjev.constants import DASHBOARD_STATS_DIR, PROCESSED_DIRS, TEST_FILES
+from grjev.examples import read_dataset
+from grjev.stats import dataset_stats
+
+
+def parse_args() -> argparse.Namespace:
+    """Read the dataset names from the command line."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("datasets", nargs="+", choices=sorted(PROCESSED_DIRS), help="datasets to describe")
+    return parser.parse_args()
+
+
+def main() -> None:
+    """Write one JavaScript file per named dataset and print where it is."""
+    DASHBOARD_STATS_DIR.mkdir(parents=True, exist_ok=True)
+    for name in parse_args().datasets:
+        examples, tools = read_dataset(PROCESSED_DIRS[name], TEST_FILES[name])
+        stats = json.dumps(dataset_stats(examples, tools), ensure_ascii=False)
+        path = DASHBOARD_STATS_DIR / f"{name}.js"
+        path.write_text(f"window.STATS = window.STATS || {{}};\nwindow.STATS[{json.dumps(name)}] = {stats};\n")
+        print(path)
+
+
+if __name__ == "__main__":
+    main()
