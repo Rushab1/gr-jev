@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Jev study</title>
+<style>
+  :root {
+    color-scheme: light only;
+    --bg: #FFFFFF;
+    --text: #37352F;
+    --text-2: #787774;
+    --border: #E9E9E7;
+    --border-strong: rgba(55, 53, 47, 0.16);
+    --soft: #F7F6F3;
+    --blue-bg: #E7F3F8;
+    --blue: #337EA9;
+    --red-bg: #FDEBEC;
+    --red: #D44C47;
+    --green-bg: #EDF3EC;
+    --green: #448361;
+    --gray-bg: #F1F1EF;
+    --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  .page { max-width: 900px; margin: 0 auto; padding: 0 28px 120px; }
+
+  header { padding: 64px 0 14px; }
+  h1 { margin: 0; font-size: 40px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+  .updated { margin: 6px 0 0; font-size: 14px; color: var(--text-2); }
+
+  .tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 24px; background: var(--bg); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tabs button { appearance: none; border: 0; border-bottom: 2px solid transparent; background: none; padding: 10px 1px 8px; font: 500 14px/1.5 var(--font); color: var(--text-2); cursor: pointer; white-space: nowrap; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); }
+
+  section[role="tabpanel"] { padding-top: 28px; }
+  h2 { margin: 48px 0 10px; font-size: 24px; line-height: 1.3; font-weight: 600; }
+  h3 { margin: 22px 0 6px; font-size: 16px; font-weight: 600; }
+  p { margin: 0 0 10px; max-width: 70ch; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: currentColor; }
+  ul.plain { margin: 0 0 10px; padding-left: 1.3em; max-width: 70ch; }
+  ul.plain li { margin: 3px 0; }
+  code { font-family: var(--mono); font-size: 85%; color: #EB5757; background: rgba(135, 131, 120, 0.15); padding: 0.15em 0.4em; border-radius: 4px; overflow-wrap: anywhere; }
+  .muted { color: var(--text-2); }
+  .small { font-size: 14px; }
+
+  .flow { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); align-items: center; margin: 18px 0 6px; }
+  .flow-col { display: grid; gap: 10px; }
+  .box { padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--soft); font-weight: 600; }
+  .box.out { background: var(--blue-bg); border-color: transparent; }
+  .arrow { display: flex; justify-content: center; color: var(--text-2); }
+
+  .tablewrap { overflow-x: auto; margin: 12px 0; }
+  .tablewrap table { min-width: 640px; }
+  .tablewrap.narrow { max-width: 620px; }
+  .tablewrap.narrow table { min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: var(--soft); color: var(--text-2); font-weight: 500; white-space: nowrap; }
+  tbody th { font-weight: 600; white-space: nowrap; }
+  tbody th code { font-weight: 400; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total th, tr.total td { background: var(--soft); font-weight: 600; }
+  table code, .nw { white-space: nowrap; }
+
+  .tag { display: inline-block; padding: 0 7px; border-radius: 4px; font-size: 13px; font-weight: 500; line-height: 1.6; white-space: nowrap; }
+  .tag.green { background: var(--green-bg); color: var(--green); }
+  .tag.red { background: var(--red-bg); color: var(--red); }
+  .tag.gray { background: var(--gray-bg); color: var(--text-2); }
+
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+  .seg button { appearance: none; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); padding: 4px 11px; font: 400 14px/1.5 var(--font); color: var(--text-2); cursor: pointer; }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-selected="true"] { background: var(--soft); border-color: var(--border-strong); color: var(--text); font-weight: 500; }
+  .card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .card + .card { margin-top: 12px; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--soft); }
+  .card-head p { margin: 0; max-width: none; font-weight: 500; }
+  ol.tools { list-style: none; margin: 0; padding: 8px 6px; border-top: 1px solid var(--border); }
+  ol.tools li { display: grid; grid-template-columns: 1.6em 12.5em minmax(0, 1fr) auto; column-gap: 10px; align-items: baseline; padding: 5px 10px; border-radius: 4px; font-size: 14px; }
+  ol.tools.api li { grid-template-columns: 1.6em 9.5em 12.5em minmax(0, 1fr) auto; }
+  ol.tools .n { color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums; }
+  ol.tools .nm { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+  ol.tools .tl { color: var(--text-2); font-size: 13px; overflow-wrap: anywhere; }
+  ol.tools .ds { color: var(--text-2); }
+  ol.tools li.hit { background: var(--green-bg); }
+  ol.tools li.hit .nm { font-weight: 600; }
+  ol.tools li.hit .ds { color: var(--text); }
+  ol.tools li.hit .tag { background: var(--bg); }
+  .card-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 14px; }
+
+  .meter { margin: 14px 0; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: 8px; }
+  .m-labels { position: relative; height: 20px; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .m-labels span { position: absolute; bottom: 5px; line-height: 1; white-space: nowrap; }
+  .m-bar { position: relative; height: 12px; }
+  .m-fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(78.04% - 1px); background: var(--blue); border-radius: 4px 0 0 4px; }
+  .m-rest { position: absolute; right: 0; top: 0; bottom: 0; left: calc(78.04% + 1px); background: var(--blue-bg); box-shadow: inset 0 0 0 1px var(--border-strong); border-radius: 0 4px 4px 0; }
+  .m-tick { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--bg); }
+
+  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
+  .chart { margin: 0; padding: 14px 16px 12px; border: 1px solid var(--border); border-radius: 8px; min-width: 0; }
+  .chart.wide { grid-column: 1 / -1; }
+  .chart figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 12px; font-weight: 600; font-size: 15px; }
+  .bars { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); column-gap: 4px; align-items: end; height: 124px; border-bottom: 1px solid var(--border-strong); }
+  .bars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bars .v { margin-bottom: 3px; font-size: 12px; line-height: 1; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .bars .b { width: min(30px, 72%); background: var(--blue); border-radius: 3px 3px 0 0; }
+  .xs { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); column-gap: 4px; padding-top: 5px; text-align: center; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+  dl.src { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 18px; margin: 10px 0; font-size: 15px; }
+  dl.src dt { color: var(--text-2); }
+  dl.src dd { margin: 0; }
+
+  ul.marks { list-style: none; margin: 0; padding: 0; }
+  ul.marks li { display: flex; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  ul.marks svg { flex: none; align-self: center; }
+  ul.marks .done { color: var(--green); }
+  ul.marks .todo { color: var(--text-2); }
+  ul.marks .txt { flex: 1; min-width: 0; }
+
+  @media (max-width: 640px) {
+    .page { padding: 0 18px 96px; }
+    header { padding-top: 36px; }
+    h1 { font-size: 30px; }
+    .flow { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+    .arrow svg { transform: rotate(90deg); }
+    ol.tools li, ol.tools.api li { grid-template-columns: 1.6em minmax(0, 1fr) auto; row-gap: 1px; }
+    ol.tools .ds, ol.tools .tl { grid-column: 2 / 4; }
+    .charts { grid-template-columns: minmax(0, 1fr); }
+    ul.marks li { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Jev study</h1>
+    <p class="updated">Updated 2026-10-04</p>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button type="button" role="tab" data-tab="metatool">MetaTool</button>
+    <button type="button" role="tab" data-tab="toolbench">ToolBench</button>
+    <button type="button" role="tab" data-tab="decisions">Decisions</button>
+    <button type="button" role="tab" data-tab="open">Open</button>
+  </nav>
+
+  <main>
+    <!-- ============================== MetaTool ============================== -->
+    <section role="tabpanel" data-panel="metatool">
+      <p>MetaTool is a benchmark for tool selection. An example gives the model a user query and a list of tools, and the model names the tool that should handle the query.</p>
+      <p>It has 199 tools and 20,614 queries. The tools are ChatGPT plugins from OpenAI's 2023 plugin list, each with a name and a description. Each query is labelled with one tool. ChatGPT and GPT-4 generated the queries from the tool descriptions, and the MetaTool authors verified them by hand.</p>
+      <p>The repository has five test files. An example in a test file is a query, a tool list and a label. The files differ in how the tool list is built and in what the label is.</p>
+      <p>The paper scores the four tool-selection files with the Correct Selection Rate (CSR), the percentage of examples where the model selects the labelled tool. It scores tool awareness with accuracy, precision, recall and F1.</p>
+
+      <div class="flow">
+        <div class="flow-col">
+          <div class="box">199 tools</div>
+          <div class="box">20,614 queries</div>
+        </div>
+        <div class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 32 16" width="32" height="16"><path d="M2 8h26M22 3l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="box out">5 test files</div>
+      </div>
+
+      <h2>Test files</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Name</th><th>File</th><th>Tool list</th><th>Label</th><th class="num">Examples</th></tr></thead>
+          <tbody>
+            <tr><th>Similar tools</th><td><code>Task2-Subtask1.json</code></td><td>The correct tool and the 9 tools most similar to it</td><td class="nw">One tool</td><td class="num">995</td></tr>
+            <tr><th>Scenario</th><td><code>Task2-Subtask2.json</code></td><td>One of 9 fixed lists of 5, 10 or 15 tools</td><td class="nw">One tool</td><td class="num">1,800</td></tr>
+            <tr><th>Reliability</th><td><code>Task2-Subtask3.json</code></td><td>10 tools. The correct tool and the tools most similar to it are excluded.</td><td class="nw">None</td><td class="num">995</td></tr>
+            <tr><th>Multi-tool</th><td><code>Task2-Subtask4.json</code></td><td>The two correct tools and 8 other tools</td><td class="nw">Two tools</td><td class="num">497</td></tr>
+            <tr><th>Tool awareness</th><td><code>Task1.json</code></td><td>No tool list</td><td class="nw">yes or no</td><td class="num">1,040</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>Similarity is measured between embeddings of the tool descriptions, computed with OpenAI's <code>text-embedding-ada-002</code>.</li>
+        <li>Six scenario lists have 10 tools that the MetaTool authors chose for an occupation or identity: Software Engineer, Finance Staff, Housewife, Students, artists&amp;designers and elders. The other three lists hold the 5, 10 and 15 most popular tools. The paper ranks a tool's popularity by the number of plugins merged into it.</li>
+        <li>Both correct tools in a multi-tool example are among the 15 most popular tools.</li>
+        <li>The prompts in the similar-tools, scenario and reliability files tell the model to answer None if no tool in the list applies. The multi-tool prompt tells it to return two tools.</li>
+        <li>Tool awareness has 520 queries labelled yes (a tool is needed) and 520 labelled no.</li>
+      </ul>
+
+      <h2>Examples</h2>
+      <div class="seg" role="tablist" data-seg="mt">
+        <button type="button" role="tab" data-ex="similar">Similar tools</button>
+        <button type="button" role="tab" data-ex="scenario">Scenario</button>
+        <button type="button" role="tab" data-ex="reliability">Reliability</button>
+        <button type="button" role="tab" data-ex="multi">Multi-tool</button>
+        <button type="button" role="tab" data-ex="awareness">Tool awareness</button>
+      </div>
+
+      <div class="ex" data-seg-panel="mt" data-ex="similar">
+        <div class="card">
+          <div class="card-head"><p>How can I make this experience as immersive as possible?</p></div>
+          <ol class="tools">
+            <li class="hit"><span class="n">1</span><span class="nm">timeport</span><span class="ds">Begin an exciting journey through time, interact with unique characters, and learn history in this time-travel game!</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">Chess</span><span class="ds">Unleash your inner chess master with this interactive chess experience! You can play against a novice or a grandmaster!</span></li>
+            <li><span class="n">3</span><span class="nm">Algorithma</span><span class="ds">Shape your virtual life with in this immersive life simulator game to begin Type /start to begin.</span></li>
+            <li><span class="n">4</span><span class="nm">storybird_stories</span><span class="ds">Create beautiful, illustrated stories easily.</span></li>
+            <li><span class="n">5</span><span class="nm">ABCmouse</span><span class="ds">Provides fun and educational learning activities for children 2-8 years old.</span></li>
+            <li><span class="n">6</span><span class="nm">GameTool</span><span class="ds">Get game-related information and recommend games.</span></li>
+            <li><span class="n">7</span><span class="nm">crafty_clues</span><span class="ds">Guess the words that the AI craftily clues for you. Add restrictions to make the game more interesting!</span></li>
+            <li><span class="n">8</span><span class="nm">video_highlight</span><span class="ds">Explore, research, and interact with YouTube videos and personal videos.</span></li>
+            <li><span class="n">9</span><span class="nm">champdex</span><span class="ds">Chat with your favorite League of Legends champions!</span></li>
+            <li><span class="n">10</span><span class="nm">Sudoku</span><span class="ds">This is a sudoku game. You use voice or text to play.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Please perform the operation of 4.9319^2.3231.</p></div>
+          <ol class="tools">
+            <li class="hit"><span class="n">1</span><span class="nm">calculator</span><span class="ds">A calculator app that executes a given formula and returns a result. This app can execute basic and advanced operations.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">CreditYelp</span><span class="ds">Access various essential financial calculators for a detailed repayment schedule and payoff term.</span></li>
+            <li><span class="n">3</span><span class="nm">DietTool</span><span class="ds">A tool that simplifies calorie counting, tracks diet, and provides insights from many restaurants and grocery stores. Explore recipe , menus, and…</span></li>
+            <li><span class="n">4</span><span class="nm">diceroller</span><span class="ds">App for rolling dice using the d20 or Fate/Fudge systems.</span></li>
+            <li><span class="n">5</span><span class="nm">AppyPieAIAppBuilder</span><span class="ds">AI-powered Text-to-App Generator turns your app idea into Android and iOS apps- just provide text input.</span></li>
+            <li><span class="n">6</span><span class="nm">MemoryTool</span><span class="ds">A learning application with spaced repetition functionality that allows users to create flashcards and review them.</span></li>
+            <li><span class="n">7</span><span class="nm">Zapier</span><span class="ds">Interact with over 5,000+ apps like Google Sheets, Gmail, HubSpot, Salesforce, and thousands more.</span></li>
+            <li><span class="n">8</span><span class="nm">universal</span><span class="ds">Enables to access web pages, analyze PDFs, generate QR codes, etc.</span></li>
+            <li><span class="n">9</span><span class="nm">Sudoku</span><span class="ds">This is a sudoku game. You use voice or text to play.</span></li>
+            <li><span class="n">10</span><span class="nm">ChartTool</span><span class="ds">A versatile chart and diagram tool that can create and display diagrams or using networkx and matplotlib. It allows you to build, modify, and draw…</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="mt" data-ex="scenario" hidden>
+        <div class="card">
+          <div class="card-head"><p>Can I use natural language to communicate with my server?</p><span class="tag gray">Software Engineer</span></div>
+          <ol class="tools">
+            <li><span class="n">1</span><span class="nm">RepoTool</span><span class="ds">Discover GitHub projects tailored to your needs, explore their structures with insightful summaries, and get quick coding solutions with curated…</span></li>
+            <li><span class="n">2</span><span class="nm">AI2sql</span><span class="ds">Converts a natural language text into an SQL query.</span></li>
+            <li class="hit"><span class="n">3</span><span class="nm">SSH</span><span class="ds">Ability to SSH into your server and turn your natural language into server commands.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">4</span><span class="nm">AutoInfra1</span><span class="ds">Talk to your Servers. Works with AWS, GCP, Azure, and anywhere you can ssh!</span></li>
+            <li><span class="n">5</span><span class="nm">noteable</span><span class="ds">Create notebooks in Python, SQL, and Markdown to explore data, visualize, and share notebooks with everyone.</span></li>
+            <li><span class="n">6</span><span class="nm">dart</span><span class="ds">Project management on autopilot.</span></li>
+            <li><span class="n">7</span><span class="nm">hackit_web_scanner</span><span class="ds">AI Powered Web Scanner by HACKIT.</span></li>
+            <li><span class="n">8</span><span class="nm">LarkBaseImporter</span><span class="ds">Importing data into Lark Base for further analysis and presentation. An easy-to-use data management solution.</span></li>
+            <li><span class="n">9</span><span class="nm">webhooks</span><span class="ds">Allows you to write, deploy, and manage HTTP Webhooks in JavaScript, right from the chat.</span></li>
+            <li><span class="n">10</span><span class="nm">universal</span><span class="ds">Enables to access web pages, analyze PDFs, generate QR codes, etc.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Give me the current price of Cardano and the percentage change in the last hour.</p><span class="tag gray">TopTool_top5</span></div>
+          <ol class="tools">
+            <li class="hit"><span class="n">1</span><span class="nm">FinanceTool</span><span class="ds">Stay informed with the latest financial updates, real-time insights, and analysis on a wide range of options, stocks, cryptocurrencies, and more.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">2</span><span class="nm">ProductSearch</span><span class="ds">Find products tailored to your preferences with personalized recommendations and smart filters for specific needs.</span></li>
+            <li><span class="n">3</span><span class="nm">JobTool</span><span class="ds">Your Global Career Hub! Find diverse job opportunities, expert interview tips, and resume optimization guidance. Empowering job seekers worldwide on…</span></li>
+            <li><span class="n">4</span><span class="nm">TripTool</span><span class="ds">Offer discounted hotel and accommodation bookings, along with personalized hotel and product searches, travel planning, image editing, and more…</span></li>
+            <li><span class="n">5</span><span class="nm">PDF&amp;URLTool</span><span class="ds">Interact with any PDF files, provide page references for fact-checking, support chatting via Google Drive links to AI-driven PDF summaries and…</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="mt" data-ex="reliability" hidden>
+        <div class="card">
+          <div class="card-head"><p>How can I make this experience as immersive as possible?</p></div>
+          <ol class="tools">
+            <li><span class="n">1</span><span class="nm">PolishTool</span><span class="ds">Elevate your content with our AI-powered tool, which utilizes advanced rewriting techniques to create more human-like expressions and foster creative…</span></li>
+            <li><span class="n">2</span><span class="nm">locator</span><span class="ds">Add-on for displaying the current coordinates of the ISS and the names of the current astronauts in space.</span></li>
+            <li><span class="n">3</span><span class="nm">ai_council</span><span class="ds">The AI council assesses queries through various agents, offering insights from many perspectives.</span></li>
+            <li><span class="n">4</span><span class="nm">DataRetrievalTool</span><span class="ds">An tool that expands memory. It stores and retrieves user information to provide personalized assistance and generates real-time chat responses using…</span></li>
+            <li><span class="n">5</span><span class="nm">Zapier</span><span class="ds">Interact with over 5,000+ apps like Google Sheets, Gmail, HubSpot, Salesforce, and thousands more.</span></li>
+            <li><span class="n">6</span><span class="nm">tailor_erp</span><span class="ds">A tool to help creating tailor-made ERP application.</span></li>
+            <li><span class="n">7</span><span class="nm">recipe_retrieval</span><span class="ds">Discover recipe ideas, meal plans and cooking tips from Tasty's millions of users!</span></li>
+            <li><span class="n">8</span><span class="nm">web_scraper</span><span class="ds">Scrape content from webpages by providing a URL.</span></li>
+            <li><span class="n">9</span><span class="nm">SSH</span><span class="ds">Ability to SSH into your server and turn your natural language into server commands.</span></li>
+            <li><span class="n">10</span><span class="nm">WordCloud</span><span class="ds">Create word cloud images from text.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: None</span><span class="muted"><code>timeport</code> is not in the list</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>Please perform the operation of 4.9319^2.3231.</p></div>
+          <ol class="tools">
+            <li><span class="n">1</span><span class="nm">speak</span><span class="ds">Learn how to say anything in another language with Speak, your AI-powered language tutor.</span></li>
+            <li><span class="n">2</span><span class="nm">fundsdbsearch</span><span class="ds">Discover funding opportunities in UK and India on FundsDB. Type in your query in any language or /help for assistance.</span></li>
+            <li><span class="n">3</span><span class="nm">ApexMap</span><span class="ds">Checking the current APEX Legends Ranked Map.</span></li>
+            <li><span class="n">4</span><span class="nm">NewsTool</span><span class="ds">Stay connected to global events with our up-to-date news around the world.</span></li>
+            <li><span class="n">5</span><span class="nm">Magnetis</span><span class="ds">Magnetis is a digital wealth manager. Get updated data on portfolios returns and allocations. Ask me about Magnetis.</span></li>
+            <li><span class="n">6</span><span class="nm">LarkBaseImporter</span><span class="ds">Importing data into Lark Base for further analysis and presentation. An easy-to-use data management solution.</span></li>
+            <li><span class="n">7</span><span class="nm">seoanalysis</span><span class="ds">Use AI to analyze and improve the SEO of a website. Get advice on websites, keywords and competitors.</span></li>
+            <li><span class="n">8</span><span class="nm">smarttsicketsai</span><span class="ds">Get Tickets For All Sports Events, Music Concerts, Theater And More With SmartTicketsAI.com.</span></li>
+            <li><span class="n">9</span><span class="nm">Glowing</span><span class="ds">Schedule and send daily SMS messages - reminders, inspiration, helpers and more.</span></li>
+            <li><span class="n">10</span><span class="nm">rephrase</span><span class="ds">Type 'perfect' to craft the perfect prompt, every time.</span></li>
+          </ol>
+          <div class="card-foot"><span class="tag green">Correct: None</span><span class="muted"><code>calculator</code> is not in the list</span></div>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="mt" data-ex="multi" hidden>
+        <div class="card">
+          <div class="card-head"><p>I want to know the latest news about Tesla and how it has impacted the stock market.</p></div>
+          <ol class="tools">
+            <li><span class="n">1</span><span class="nm">Agones</span><span class="ds">Agones provides soccer (football) results for matches played all over the world in the past 15 years.</span></li>
+            <li><span class="n">2</span><span class="nm">PolishTool</span><span class="ds">Elevate your content with our AI-powered tool, which utilizes advanced rewriting techniques to create more human-like expressions and foster creative…</span></li>
+            <li><span class="n">3</span><span class="nm">MixerBox_WebSearchG_web_search</span><span class="ds">Search and summarize the web with our customized search engine powered by Google Search API!</span></li>
+            <li><span class="n">4</span><span class="nm">LawTool</span><span class="ds">Enables quick search functionality for relevant laws.</span></li>
+            <li><span class="n">5</span><span class="nm">NotesTool</span><span class="ds">A full-featured reminder and to-do list management tool where you can add, delete, list, and mark reminders.</span></li>
+            <li><span class="n">6</span><span class="nm">hacktrack</span><span class="ds">This tool checks if credentials linked to an email have been exposed in data breaches or hacks.</span></li>
+            <li class="hit"><span class="n">7</span><span class="nm">NewsTool</span><span class="ds">Stay connected to global events with our up-to-date news around the world.</span><span class="tag green">Correct</span></li>
+            <li class="hit"><span class="n">8</span><span class="nm">FinanceTool</span><span class="ds">Stay informed with the latest financial updates, real-time insights, and analysis on a wide range of options, stocks, cryptocurrencies, and more.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">9</span><span class="nm">GifApi</span><span class="ds">Search through a wide range of gifs - Powered by Giphy.</span></li>
+            <li><span class="n">10</span><span class="nm">speechki_tts_plugin</span><span class="ds">The easiest way to convert texts to ready-to-use audio…</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>How can I invest my savings wisely and also learn about financial planning?</p></div>
+          <ol class="tools">
+            <li><span class="n">1</span><span class="nm">chatspot</span><span class="ds">Get access to marketing/sales data including domain information, company research and search keyword research.</span></li>
+            <li><span class="n">2</span><span class="nm">StrologyTool</span><span class="ds">Povides strology services for you.</span></li>
+            <li><span class="n">3</span><span class="nm">Substack_IQ</span><span class="ds">Search, analyze, &amp; summarize Substack newsletters, retrieve articles, and discover new Substacks!</span></li>
+            <li><span class="n">4</span><span class="nm">ResumeTool</span><span class="ds">Quickly create resumes and receive feedback on your resume.</span></li>
+            <li><span class="n">5</span><span class="nm">ChartTool</span><span class="ds">A versatile chart and diagram tool that can create and display diagrams or using networkx and matplotlib. It allows you to build, modify, and draw…</span></li>
+            <li><span class="n">6</span><span class="nm">dart</span><span class="ds">Project management on autopilot.</span></li>
+            <li class="hit"><span class="n">7</span><span class="nm">CourseTool</span><span class="ds">Unlock a world of knowledge and growth with our comprehensive learning platform, offering a diverse range of courses from renowned providers like…</span><span class="tag green">Correct</span></li>
+            <li class="hit"><span class="n">8</span><span class="nm">FinanceTool</span><span class="ds">Stay informed with the latest financial updates, real-time insights, and analysis on a wide range of options, stocks, cryptocurrencies, and more.</span><span class="tag green">Correct</span></li>
+            <li><span class="n">9</span><span class="nm">lsongai</span><span class="ds">Lsong's AI provides AI-powered content like news, images, music, movies, weather, stories, memes, and more.</span></li>
+            <li><span class="n">10</span><span class="nm">Tax_Calculator</span><span class="ds">Calculate sales tax given a U.S. address (or just a city) and an amount. Powered by Avalara.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="mt" data-ex="awareness" hidden>
+        <div class="card">
+          <div class="card-head"><p>Can you check if there any trending discussions related to the Sakura festival occurring in Japan on Google Trends or Twitter?</p></div>
+          <div class="card-foot"><span class="tag green">Correct: yes</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>What would a homeless person need if they already have a fire to stand next to?</p></div>
+          <div class="card-foot"><span class="tag green">Correct: no</span></div>
+        </div>
+      </div>
+
+      <h2>The 20,614 queries</h2>
+      <p><code>dataset/data/all_clean_data.csv</code> holds all 20,614 queries in two columns, <code>Query</code> and <code>Tool</code>.</p>
+      <p>The test files sample from it. The similar-tools file has five queries for each of the 199 tools, 995 in total. The reliability file has the same 995 queries with different tool lists.</p>
+      <p>In this study the file is the training data for the fine-tuned model. The test queries are rows of the file. Training on it without removing them puts test queries in the training data.</p>
+      <ul class="plain">
+        <li>Rows of this file: 993 of the 995 similar-tools queries, 1,797 of the 1,800 scenario queries, and 519 of the 520 tool-awareness queries labelled yes.</li>
+        <li>The 520 tool-awareness queries labelled no come from Self-Instruct (Wang et al., 2022), CommonsenseQA (Talmor et al., 2019) and LIMA (Zhou et al., 2023).</li>
+        <li>The 497 multi-tool queries are in <code>dataset/data/multi_tool_query_golden.json</code>. None of them are rows of <code>all_clean_data.csv</code>.</li>
+        <li>Queries per tool: minimum 12, median 68, maximum 1,122.</li>
+      </ul>
+
+      <h2>List length</h2>
+      <p>Tool lists in the test files have 5, 10 or 15 tools. A longer list keeps the correct tool and adds distractors.</p>
+      <p>A list built only from MetaTool's tools has at most 199. Jev's <code>choice</code> accepts up to 255 options, and a 255-tool list needs 56 tools from outside MetaTool.</p>
+      <div class="meter">
+        <div class="m-labels" aria-hidden="true">
+          <span style="left: 0">5, 10, 15</span>
+          <span style="left: 78.04%; transform: translateX(-50%)">199</span>
+          <span style="right: 0">255</span>
+        </div>
+        <div class="m-bar" role="img" aria-label="MetaTool has 199 tools. Jev accepts 255 options.">
+          <div class="m-fill"></div>
+          <div class="m-rest"></div>
+          <i class="m-tick" style="left: 1.96%"></i>
+          <i class="m-tick" style="left: 3.92%"></i>
+          <i class="m-tick" style="left: 5.88%"></i>
+        </div>
+      </div>
+      <ul class="plain">
+        <li>Tool descriptions from other datasets differ in form. ToolBench's are API notes such as "Search by name" and "Enter Artist ID", and 960 of the 13,862 in ToolRet's copy (6.9%) are blank.</li>
+        <li>No label says whether a tool from outside MetaTool is incorrect for a MetaTool query.</li>
+      </ul>
+
+      <h2>Fixed positions</h2>
+      <p>In the similar-tools file the correct tool is at position 1 in all 995 examples. In the multi-tool file the two correct tools are at positions 7 and 8 in all 497 examples. A model that always answers with those positions scores 100% on both files.</p>
+      <div class="charts">
+        <figure class="chart">
+          <figcaption>Similar tools <span class="tag red">Always position 1: 100%</span></figcaption>
+          <div data-chart="995,0,0,0,0,0,0,0,0,0"></div>
+        </figure>
+        <figure class="chart">
+          <figcaption>Multi-tool <span class="tag red">Always positions 7 and 8: 100%</span></figcaption>
+          <div data-chart="0,0,0,0,0,0,497,497,0,0"></div>
+        </figure>
+        <figure class="chart wide">
+          <figcaption>Scenario <span class="tag gray">Always position 1: 10%</span></figcaption>
+          <div data-chart="180,180,180,180,180,160,160,160,160,160,20,20,20,20,20"></div>
+        </figure>
+      </div>
+      <h3>Cause</h3>
+      <ul class="plain">
+        <li>Similar tools: <code>get_10_most_sim</code> searches for the 10 tools nearest to the correct tool's embedding. The correct tool is its own nearest neighbour, and the result is not shuffled.</li>
+        <li>Multi-tool: <code>select_10_tools_with_exclusion</code> calls <code>random.seed(48)</code> for every example, immediately before the list is shuffled. The two correct tools are appended last, and the shuffle moves them to positions 7 and 8 every time.</li>
+        <li>Both functions are in <code>src/prompt/prompt_construction.py</code>.</li>
+      </ul>
+      <h3>Other files</h3>
+      <ul class="plain">
+        <li>Scenario: each tool in a list is the label for 20 queries, so each position in a list has 20 examples. All queries in a scenario get the same list in the same order. The counts drop after positions 5 and 10 because 8 of the 9 lists have more than 5 tools and 1 has more than 10.</li>
+        <li>Reliability: the correct tool is in none of the 995 lists.</li>
+      </ul>
+
+      <h2>Paper and files</h2>
+      <dl class="src">
+        <dt>Paper</dt><dd>Huang et al., MetaTool Benchmark for Large Language Models: Deciding Whether to Use Tools and Which to Use. ICLR 2024. <a href="https://arxiv.org/abs/2310.03128">arXiv:2310.03128</a></dd>
+        <dt>Repository</dt><dd><a href="https://github.com/HowieHwong/MetaTool">github.com/HowieHwong/MetaTool</a></dd>
+        <dt>Commit</dt><dd><code>35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb</code></dd>
+        <dt>Test files</dt><dd><code>dataset/tmp_dataset/</code></dd>
+        <dt>Tool descriptions</dt><dd><code>dataset/plugin_des.json</code></dd>
+        <dt>Licence</dt><dd>MIT</dd>
+      </dl>
+      <h3>Paper and repository differ</h3>
+      <div class="tablewrap narrow">
+        <table>
+          <thead><tr><th></th><th class="num">Paper</th><th class="num">Repository</th></tr></thead>
+          <tbody>
+            <tr><th>Tools</th><td class="num">195</td><td class="num">199</td></tr>
+            <tr><th>Single-tool queries</th><td class="num">20,630</td><td class="num">20,614</td></tr>
+            <tr><th>Examples in the similar-tools file, and in the reliability file</th><td class="num">975</td><td class="num">995</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================== ToolBench ============================== -->
+    <section role="tabpanel" data-panel="toolbench" hidden>
+      <p>ToolBench is a benchmark for tool use with real REST APIs. It has 16,464 APIs from RapidAPI Hub, grouped into 3,451 tools, and 126,486 examples. Each example is a query generated by ChatGPT and a solution path. The test set has 1,100 queries.</p>
+      <div class="tablewrap narrow">
+        <table>
+          <thead><tr><th></th><th>MetaTool</th><th>ToolBench</th></tr></thead>
+          <tbody>
+            <tr><th>Options to select from</th><td>199 tools</td><td>16,464 APIs in 3,451 tools</td></tr>
+            <tr><th>Queries</th><td>20,614, and 497 multi-tool</td><td>126,486</td></tr>
+            <tr><th>Test examples</th><td>5,327 in five files</td><td>1,100 in six files</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>A test example is a query and a list of APIs. The label is the subset of the list that the query needs, which the dataset calls the relevant APIs. A MetaTool example has one correct tool, or two in the multi-tool file.</p>
+      <p>Two later benchmarks contain the same 1,100 test queries. StableToolBench (Guo et al., 2024) keeps the 765 queries that GPT-4 Turbo, Gemini Pro and Claude 2 judged solvable, and adds a virtual API server. ToolRet (Shi et al., 2025) is a tool retrieval benchmark with 35 subsets, and one subset is the 1,100 ToolBench test queries.</p>
+      <p>This study uses StableToolBench's six test files and cites ToolBench and StableToolBench.</p>
+
+      <h2>Test files</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>File</th><th>Tools per example</th><th>Unseen in training</th><th class="num">ToolBench</th><th class="num">StableToolBench</th></tr></thead>
+          <tbody>
+            <tr><th><code>G1_instruction.json</code></th><td>1</td><td>Queries</td><td class="num">200</td><td class="num">163</td></tr>
+            <tr><th><code>G1_tool.json</code></th><td>1</td><td>Tools, in a seen category</td><td class="num">200</td><td class="num">158</td></tr>
+            <tr><th><code>G1_category.json</code></th><td>1</td><td>Tools, in an unseen category</td><td class="num">200</td><td class="num">153</td></tr>
+            <tr><th><code>G2_instruction.json</code></th><td>2 to 5, from one RapidAPI category</td><td>Queries</td><td class="num">200</td><td class="num">106</td></tr>
+            <tr><th><code>G2_category.json</code></th><td>2 to 5, from one RapidAPI category</td><td>Tools, in an unseen category</td><td class="num">200</td><td class="num">124</td></tr>
+            <tr><th><code>G3_instruction.json</code></th><td>2 or 3, from one RapidAPI collection</td><td>Queries</td><td class="num">100</td><td class="num">61</td></tr>
+            <tr class="total"><th>Total</th><td></td><td></td><td class="num">1,100</td><td class="num">765</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>The ToolBench paper names the three groups I1 (single-tool), I2 (intra-category multi-tool) and I3 (intra-collection multi-tool).</li>
+        <li>API lists have 1 to 13 APIs, with a median of 5.</li>
+        <li>Relevant APIs per query in the 765: mean 2.35, maximum 6. 27 queries have exactly one.</li>
+        <li>StableToolBench reports that 44.4% of its calls to ToolBench's APIs succeeded. This study does not call the APIs.</li>
+      </ul>
+
+      <h2>Examples</h2>
+      <div class="seg" role="tablist" data-seg="tb">
+        <button type="button" role="tab" data-ex="G1_instruction">G1_instruction</button>
+        <button type="button" role="tab" data-ex="G1_tool">G1_tool</button>
+        <button type="button" role="tab" data-ex="G1_category">G1_category</button>
+        <button type="button" role="tab" data-ex="G2_instruction">G2_instruction</button>
+        <button type="button" role="tab" data-ex="G2_category">G2_category</button>
+        <button type="button" role="tab" data-ex="G3_instruction">G3_instruction</button>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G1_instruction">
+        <div class="card">
+          <div class="card-head"><p>I'm a football enthusiast and I want to know more about Lionel Messi's career. Can you provide me with information about Messi's clubs, managers, teammates, and referees? I'm also curious about any notable transfers he has made.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">TheClique</span><span class="nm">Songkick concert</span><span class="ds">Concert info</span></li>
+            <li><span class="n">2</span><span class="tl">TheClique</span><span class="nm">Songkick artist</span><span class="ds">Artist info</span></li>
+            <li><span class="n">3</span><span class="tl">TheClique</span><span class="nm">Songkick festivals</span><span class="ds">festivals info</span></li>
+            <li class="hit"><span class="n">4</span><span class="tl">TheClique</span><span class="nm">Transfermarkt search</span><span class="ds">Search by name</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">5</span><span class="tl">TheClique</span><span class="nm">List Artist Concerts</span><span class="ds">Enter Artist ID</span></li>
+            <li><span class="n">6</span><span class="tl">TheClique</span><span class="nm">Get Artist Overview</span><span class="ds">Enter Artist ID</span></li>
+            <li class="hit"><span class="n">7</span><span class="tl">TheClique</span><span class="nm">Transfermarkt details</span><span class="ds">Enter SLUG from Transfermarkt search API. It os working for all types (players, clubs, managers, referees…</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">8</span><span class="tl">TheClique</span><span class="nm">SongKick search Artist</span><span class="ds">Enter the name of the artist. For example, ed sheran</span></li>
+            <li><span class="n">9</span><span class="tl">TheClique</span><span class="nm">TuneFind for Details</span><span class="ds">Please, enter the slug of artist. For example, taylor-swift or acdc. You can get a slug by using the TuneFind…</span></li>
+            <li><span class="n">10</span><span class="tl">TheClique</span><span class="nm">Get info about artist</span><span class="ds">Give info about artist on allmusic.com Response -&gt; json</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I'm a fan of the streamer 'gmhikaru' on Kick.com and I want to explore their channel. Can you provide me with the channel clips and the channel details? I'm eager to learn more about their content.</p></div>
+          <ol class="tools api">
+            <li class="hit"><span class="n">1</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Clips</span><span class="ds">Get Channel Clips</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">2</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Chat User (like user from chat)</span><span class="ds">Get Chat User (like user from chat)</span></li>
+            <li><span class="n">3</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Chatroom Rules</span><span class="ds">Get Chatroom Rules</span></li>
+            <li><span class="n">4</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Links</span><span class="ds">Get Channel Links</span></li>
+            <li><span class="n">5</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Polls</span><span class="ds">Get Channel Polls</span></li>
+            <li><span class="n">6</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Chatroom</span><span class="ds">Get Channel Chatroom</span></li>
+            <li><span class="n">7</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Emotes</span><span class="ds">Get Channel Emotes</span></li>
+            <li><span class="n">8</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Livestream Info</span><span class="ds">Get Channel Livestream Info</span></li>
+            <li class="hit"><span class="n">9</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Channel Details</span><span class="ds">Get Channel Details</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">10</span><span class="tl">Kick.com API | Kick API</span><span class="nm">Get Chat Messages</span><span class="ds">Returns chat messages from livestream ID.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G1_tool" hidden>
+        <div class="card">
+          <div class="card-head"><p>I need to find a tutorial on how to draw landscapes. Please provide me with the details of the most viewed landscape drawing tutorial video. Additionally, I would like to know the details of the channel that uploaded the video.</p></div>
+          <ol class="tools api">
+            <li class="hit"><span class="n">1</span><span class="tl">Simple YouTube Search</span><span class="nm">Search</span><span class="ds">Make youtube search</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">2</span><span class="tl">Simple YouTube Search</span><span class="nm">Playlist</span><span class="ds">YouTube playlist data</span></li>
+            <li class="hit"><span class="n">3</span><span class="tl">Simple YouTube Search</span><span class="nm">Video</span><span class="ds">Get particular video</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I'm planning a road trip across the United States and I need to find addresses for my accommodation. Can you please autocomplete the addresses for 6185 Gar and provide me with a list of options? Additionally, I would like to know the cities that are close to these addresses. Please autocomplete the cities for the addresses as well.</p></div>
+          <ol class="tools api">
+            <li class="hit"><span class="n">1</span><span class="tl">autocomplete usa</span><span class="nm">Autocomplete Addresses</span><span class="ds">Autocomplete USA Addresses</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">2</span><span class="tl">autocomplete usa</span><span class="nm">Autocomplete Zipcodes-Zip4</span><span class="ds">Autocomplete USA Zipcodes-Zip4</span></li>
+            <li><span class="n">3</span><span class="tl">autocomplete usa</span><span class="nm">Autocomplete Zipcodes Lite</span><span class="ds">Autocomplete USA Zipcodes Lite</span></li>
+            <li class="hit"><span class="n">4</span><span class="tl">autocomplete usa</span><span class="nm">Autocomplete Cities</span><span class="ds">Autocomplete USA Cities</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G1_category" hidden>
+        <div class="card">
+          <div class="card-head"><p>I am currently tracking a package with the ID CA107308006SI. Can you provide me with the latest information and localization details of the package? Additionally, I would like to know the country and the type of event associated with the package.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">suivi-colis</span><span class="nm">Health</span><span class="ds">Get the API's health</span></li>
+            <li class="hit"><span class="n">2</span><span class="tl">suivi-colis</span><span class="nm">Latest</span><span class="ds">L'état courant (ie. le dernier état du colis).</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">3</span><span class="tl">suivi-colis</span><span class="nm">Count</span><span class="ds">Compte le nombre d'étapes de l'historique, pratique pour limiter la consommation réseau ou les ressources sur…</span></li>
+            <li class="hit"><span class="n">4</span><span class="tl">suivi-colis</span><span class="nm">All</span><span class="ds">Tout l'historique du colis depuis son envoi jusqu'au dernier état en cours.</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I'm a movie critic and I need to write reviews for the latest movies. Can you provide me with a list of new arrivals on different platforms? It would be great if you could include the streaming platforms and the genres for each movie.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">OTT details</span><span class="nm">Advanced Search</span><span class="ds">This endpoint allows you to search for a movie or tvshow based on various parameters such as release year…</span></li>
+            <li><span class="n">2</span><span class="tl">OTT details</span><span class="nm">Basic Info</span><span class="ds">Get info on a cast such as name , profession , birth and death year , bio , poster , best titles etc.</span></li>
+            <li><span class="n">3</span><span class="tl">OTT details</span><span class="nm">Params</span><span class="ds">Get array of values that can be used as params in Advanced Search .</span></li>
+            <li><span class="n">4</span><span class="tl">OTT details</span><span class="nm">Search</span><span class="ds">This endpoint allows you to search for a movie or tvshow based on the given 'title '.</span></li>
+            <li class="hit"><span class="n">5</span><span class="tl">OTT details</span><span class="nm">Title Details</span><span class="ds">Get basic information on a movie or tv show such as imdbid , title , genre , runtime , imdbrating , language…</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">6</span><span class="tl">OTT details</span><span class="nm">Additional Title Details</span><span class="ds">Get additional details for a movie or tv show like reviews , quotes , plotsummary , number of votes , trailer…</span></li>
+            <li class="hit"><span class="n">7</span><span class="tl">OTT details</span><span class="nm">OTT Providers</span><span class="ds">Get information on OTT platforms we suuport .</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">8</span><span class="tl">OTT details</span><span class="nm">New Arrivals</span><span class="ds">Get the latest arrivals from different platforms .</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G2_instruction" hidden>
+        <div class="card">
+          <div class="card-head"><p>Help me find a 7-letter word that starts with 'fru' to use as a unique password for my online account. Additionally, fetch the income data for the ZIP code 98765 to compare it with other areas.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">Random Word API</span><span class="nm">Get Word by Start</span><span class="ds">Returns a random word that starts with the specified string. For example, "fru" will only return words that…</span></li>
+            <li><span class="n">2</span><span class="tl">Random Word API</span><span class="nm">Get Word by Length</span><span class="ds">Returns a random word that has the specified length. For example, 7 will return any word that is 7 letters…</span></li>
+            <li class="hit"><span class="n">3</span><span class="tl">Random Word API</span><span class="nm">Get Word by Length and Start</span><span class="ds">Returns a random word of specified length and that starts with specified string. For example, 7 and "fru"…</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">4</span><span class="tl">US ZIP Code to Income</span><span class="nm">ZIP code</span><span class="ds">ZIP code</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">5</span><span class="tl">x2y2</span><span class="nm">x2y2 GET</span><span class="ds">x2y2 API endpoint (https://api.x2y2.io) Make over 1000 requests / minute Simply copy the path into the…</span></li>
+            <li><span class="n">6</span><span class="tl">Animals by API-Ninjas</span><span class="nm">/v1/animals</span><span class="ds">API Ninjas Animals API endpoint. Returns up to 10 results matching the input name parameter.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I'm starting a new business and I need to manage my finances effectively. Can you assist me in retrieving the current NAV for mutual funds with IDs 'STU321' and 'VWX654'? Additionally, I want to explore the world of cryptocurrencies. Please provide the latest crypto symbols and their corresponding timestamp.</p></div>
+          <ol class="tools api">
+            <li class="hit"><span class="n">1</span><span class="tl">Mutual fund Nav</span><span class="nm">fundID</span><span class="ds">current Nav</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">2</span><span class="tl">Crypto Symbols by API-Ninjas</span><span class="nm">/v1/cryptosymbols</span><span class="ds">API Ninjas Crypto Symbols API</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G2_category" hidden>
+        <div class="card">
+          <div class="card-head"><p>My friends and I are eagerly awaiting the delivery of a package. Can you please track the package with the Pack &amp; Send reference number 'ReferenceNumberHere'? Additionally, I'm interested in the latest status of the package with colis ID 'CA107308006SI'.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">Orderful</span><span class="nm">Transactions</span><span class="ds">Get Transaction by ID</span></li>
+            <li class="hit"><span class="n">2</span><span class="tl">Pack &amp; Send</span><span class="nm">/api/Tracking/</span><span class="ds">If you support your Pack &amp; Send Reference Number, we can provide your with some relevant information.</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">3</span><span class="tl">suivi-colis</span><span class="nm">Health</span><span class="ds">Get the API's health</span></li>
+            <li><span class="n">4</span><span class="tl">suivi-colis</span><span class="nm">All</span><span class="ds">Tout l'historique du colis depuis son envoi jusqu'au dernier état en cours.</span></li>
+            <li class="hit"><span class="n">5</span><span class="tl">suivi-colis</span><span class="nm">Latest</span><span class="ds">L'état courant (ie. le dernier état du colis).</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>My company is organizing a conference in Argentina and we need to ship some packages. Can you give me a quote for shipping a package from Buenos Aires to Cordoba? Also, provide me with the contact details of the transitaires available in Argentina.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">CEP Brazil</span><span class="nm">Retorna Dados do Endereço através do CEP</span><span class="ds">Retorna dados endereço</span></li>
+            <li><span class="n">2</span><span class="tl">suivi-colis</span><span class="nm">Health</span><span class="ds">Get the API's health</span></li>
+            <li><span class="n">3</span><span class="tl">suivi-colis</span><span class="nm">Count</span><span class="ds">Compte le nombre d'étapes de l'historique, pratique pour limiter la consommation réseau ou les ressources sur…</span></li>
+            <li><span class="n">4</span><span class="tl">suivi-colis</span><span class="nm">Latest</span><span class="ds">L'état courant (ie. le dernier état du colis).</span></li>
+            <li class="hit"><span class="n">5</span><span class="tl">Transitaires</span><span class="nm">Transitaires</span><span class="ds">Renvoie tous les transiatires</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">6</span><span class="tl">Transitaires</span><span class="nm">Transitaire</span><span class="ds">Récupère un transitaire donnée</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">7</span><span class="tl">Transportistas de Argentina</span><span class="nm">/tracking/correo_argentino/result_task/:task_id</span><span class="ds">Result for one Task ID.</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">8</span><span class="tl">Transportistas de Argentina</span><span class="nm">/cities/search/:stateIsoCode/:keyword</span><span class="ds">Search city for iso state and keyword name.</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">9</span><span class="tl">Transportistas de Argentina</span><span class="nm">/quotes/postcode/correo_argentino/:weight/:postCodeSrc/:postCodeDst</span><span class="ds">List of quote for postcode in Correo Argentino.</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="ex" data-seg-panel="tb" data-ex="G3_instruction" hidden>
+        <div class="card">
+          <div class="card-head"><p>I'm organizing a film festival and I need assistance in finding the best films. Can you search for videos related to 'documentary' on Vimeo? Additionally, fetch the related people in the 'cinema' category to invite them as guest speakers. Finally, provide me with a streaming link for a YouTube video with the ID 'UxxajLWwzqY'.</p></div>
+          <ol class="tools api">
+            <li><span class="n">1</span><span class="tl">Vimeo</span><span class="nm">GetRelatedChannels</span><span class="ds"></span></li>
+            <li class="hit"><span class="n">2</span><span class="tl">Vimeo</span><span class="nm">SearchVideos</span><span class="ds">Search for videos.</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">3</span><span class="tl">Vimeo</span><span class="nm">GetRelatedPeople</span><span class="ds">Get a list of related people for a category.</span><span class="tag green">Relevant</span></li>
+            <li class="hit"><span class="n">4</span><span class="tl">YTStream - Download YouTube Videos</span><span class="nm">Download/Stream</span><span class="ds">Stream or download info.</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <div class="card-head"><p>I'm organizing a charity event and I need to promote it on social media. Can you generate short URLs for the event details using the bitly tool? Additionally, I want to create branded short links for the event website using the URL Link Shortener tool.</p></div>
+          <ol class="tools api">
+            <li class="hit"><span class="n">1</span><span class="tl">bitly</span><span class="nm">shorten</span><span class="ds">Given a long URL, returns a bitly short URL.</span><span class="tag green">Relevant</span></li>
+            <li><span class="n">2</span><span class="tl">URL Link Shortener</span><span class="nm">Get a list of domains</span><span class="ds">Get a list of domains</span></li>
+            <li class="hit"><span class="n">3</span><span class="tl">URL Link Shortener</span><span class="nm">Create a new link</span><span class="ds">Create a new link</span><span class="tag green">Relevant</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <h2>ToolBench, StableToolBench and ToolRet</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th>Authors</th><th>arXiv</th><th>Contents</th><th class="num">Citations</th></tr></thead>
+          <tbody>
+            <tr><th>ToolBench</th><td class="nw">Qin et al.</td><td class="nw">July 2023</td><td>16,464 APIs, 126,486 examples, 1,100 test queries</td><td class="num">2,360</td></tr>
+            <tr><th>StableToolBench</th><td class="nw">Guo et al.</td><td class="nw">March 2024</td><td>The 765 solvable test queries and a virtual API server</td><td class="num">147</td></tr>
+            <tr><th>ToolRet</th><td class="nw">Shi et al.</td><td class="nw">March 2025</td><td>35 tool retrieval subsets. One is the 1,100 ToolBench test queries.</td><td class="num">57</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small">Citation counts: Semantic Scholar, 2026-10-03.</p>
+
+      <h2>Papers and files</h2>
+      <dl class="src">
+        <dt>Files used</dt><dd><code>solvable_queries/test_instruction/</code> in <a href="https://github.com/THUNLP-MT/StableToolBench">github.com/THUNLP-MT/StableToolBench</a></dd>
+        <dt>ToolBench</dt><dd>Qin et al., ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs. <a href="https://arxiv.org/abs/2307.16789">arXiv:2307.16789</a>. <a href="https://github.com/OpenBMB/ToolBench">github.com/OpenBMB/ToolBench</a></dd>
+        <dt>StableToolBench</dt><dd>Guo et al., StableToolBench: Towards Stable Large-Scale Benchmarking on Tool Learning of Large Language Models. <a href="https://arxiv.org/abs/2403.07714">arXiv:2403.07714</a></dd>
+        <dt>ToolRet</dt><dd>Shi et al., Retrieval Models Aren't Tool-Savvy: Benchmarking Tool Retrieval for Large Language Models. <a href="https://arxiv.org/abs/2503.01763">arXiv:2503.01763</a></dd>
+      </dl>
+    </section>
+
+    <!-- ============================== Decisions ============================== -->
+    <section role="tabpanel" data-panel="decisions" hidden>
+      <ul class="marks" data-marks="done">
+        <li><span class="txt">One paper for now. The decision to split it into two comes after the fine-tuning stage.</span></li>
+        <li><span class="txt">MetaTool first, then ToolBench.</span></li>
+        <li><span class="txt">The test set is MetaTool's five test files.</span></li>
+        <li><span class="txt">The 20,614 queries are training data for the fine-tuned model only.</span></li>
+        <li><span class="txt">ToolBench queries come from StableToolBench's six test files. ToolBench and StableToolBench are both cited.</span></li>
+        <li><span class="txt">No model is trained on Jev output. TypeSafe's Master Customer Agreement, section 2.3(b), prohibits it.</span></li>
+        <li><span class="txt">Training runs on Google Colab.</span></li>
+        <li><span class="txt">The Jev key is read from <code>TYPESAFE_AI_KEY</code>.</span></li>
+        <li><span class="txt">The code standard is in <code>AGENTS.md</code>.</span></li>
+        <li><span class="txt">WebArena and OSWorld are backups for Mind2Web and AndroidControl.</span></li>
+        <li><span class="txt">Distribution charts for each dataset are added once the download and processing scripts exist.</span></li>
+      </ul>
+    </section>
+
+    <!-- ============================== Open ============================== -->
+    <section role="tabpanel" data-panel="open" hidden>
+      <ul class="marks" data-marks="todo">
+        <li><span class="txt">List lengths to test</span></li>
+        <li><span class="txt">Which distractors are added to a longer list</span><span class="tag gray">Leaning toward random and most similar</span></li>
+        <li><span class="txt">How positions are grouped</span><span class="tag gray">Leaning toward 5 bins</span></li>
+        <li><span class="txt">Number of shuffled orders per query</span></li>
+        <li><span class="txt">Which queries each model runs</span></li>
+        <li><span class="txt">Which open-weight models are compared, and which one is fine-tuned</span></li>
+        <li><span class="txt">Whether to test lists longer than 199 tools</span></li>
+        <li><span class="txt">Mind2Web and AndroidControl</span><span class="tag gray">Proposed, not confirmed</span></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // Tabs. The tab is kept in the URL hash.
+  const tabs = [...document.querySelectorAll("#tabs [data-tab]")];
+  const panels = [...document.querySelectorAll("[data-panel]")];
+  function selectTab(id) {
+    if (!tabs.some((t) => t.dataset.tab === id)) id = tabs[0].dataset.tab;
+    tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    panels.forEach((p) => { p.hidden = p.dataset.panel !== id; });
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    selectTab(t.dataset.tab);
+    try { history.replaceState(null, "", "#" + t.dataset.tab); } catch (e) { /* hash is optional */ }
+    window.scrollTo(0, 0);
+  }));
+  window.addEventListener("hashchange", () => selectTab(location.hash.slice(1)));
+  selectTab(location.hash.slice(1));
+
+  // File picker for the examples.
+  document.querySelectorAll("[data-seg]").forEach((seg) => {
+    const buttons = [...seg.querySelectorAll("[data-ex]")];
+    const groups = [...document.querySelectorAll(`[data-seg-panel="${seg.dataset.seg}"]`)];
+    const pick = (id) => {
+      buttons.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.ex === id)));
+      groups.forEach((g) => { g.hidden = g.dataset.ex !== id; });
+    };
+    buttons.forEach((b) => b.addEventListener("click", () => pick(b.dataset.ex)));
+    pick(buttons[0].dataset.ex);
+  });
+
+  // Position charts, drawn from the counts in data-chart.
+  document.querySelectorAll("[data-chart]").forEach((host) => {
+    const counts = host.dataset.chart.split(",").map(Number);
+    const max = Math.max(...counts);
+    const bars = document.createElement("div");
+    bars.className = "bars";
+    const xs = document.createElement("div");
+    xs.className = "xs";
+    counts.forEach((count, i) => {
+      const col = document.createElement("div");
+      if (count > 0) {
+        const value = document.createElement("span");
+        value.className = "v";
+        value.textContent = count.toLocaleString("en-US");
+        const bar = document.createElement("span");
+        bar.className = "b";
+        bar.style.height = Math.max(2, Math.round((count / max) * 100)) + "px";
+        col.append(value, bar);
+      }
+      bars.append(col);
+      const tick = document.createElement("span");
+      tick.textContent = String(i + 1);
+      xs.append(tick);
+    });
+    bars.style.setProperty("--n", counts.length);
+    xs.style.setProperty("--n", counts.length);
+    host.append(bars, xs);
+  });
+
+  // Check and ring marks for the two lists.
+  const ICON = {
+    done: '<svg class="done" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.2 8.6l3 3L12.8 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    todo: '<svg class="todo" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  };
+  document.querySelectorAll("[data-marks]").forEach((list) => {
+    list.querySelectorAll("li").forEach((li) => li.insertAdjacentHTML("afterbegin", ICON[list.dataset.marks]));
+  });
+})();
+</script>
+</body>
+</html>
