@@ -1,11 +1,9 @@
 """Client for Jev, TypeSafe AI's decision model. Every response is saved under the request's hash and a run number."""
 
-import hashlib
 import json
 import logging
 import os
 import time
-from pathlib import Path
 from typing import Annotated, Any, Literal
 
 import httpx
@@ -22,6 +20,7 @@ from grjev.constants import (
     JEV_RETRY_STATUSES,
     JEV_URL,
 )
+from grjev.store import load_or_compute, run_path
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +84,6 @@ def request_body(request: JevRequest) -> bytes:
     return json.dumps(request.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")).encode()
 
 
-def response_path(body: bytes, model: str, run: int) -> Path:
-    """Return where the response to these request bytes is saved for this run number."""
-    return JEV_CACHE_DIR / model / hashlib.sha256(body).hexdigest() / f"run-{run}.json"
-
-
 def api_key() -> str:
     """Read the Jev key from the environment."""
     key = os.environ.get(JEV_KEY_ENV)
@@ -115,11 +109,6 @@ def post(body: bytes) -> dict[str, Any]:
 def ask(request: JevRequest, run: int = 1) -> JevResponse:
     """Return Jev's response for this request and run number. The API is called only if that run is not saved."""
     body = request_body(request)
-    path = response_path(body, request.model, run)
-    if not path.exists():
-        record = {"request": json.loads(body), "run": run, "response": post(body)}
-        path.parent.mkdir(parents=True, exist_ok=True)
-        partial = path.with_suffix(".part")
-        partial.write_text(json.dumps(record, ensure_ascii=False, indent=1))
-        partial.replace(path)
-    return JevResponse.model_validate(json.loads(path.read_text())["response"])
+    path = run_path(JEV_CACHE_DIR / request.model, body, run)
+    record = load_or_compute(path, lambda: {"request": json.loads(body), "run": run, "response": post(body)})
+    return JevResponse.model_validate(record["response"])

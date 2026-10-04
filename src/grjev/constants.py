@@ -19,6 +19,46 @@ JEV_MAX_ATTEMPTS = 5
 JEV_BACKOFF_SECONDS = 2.0
 JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 
+CLAUDE_CACHE_DIR = DATA_DIR / "cache" / "claude"
+CLAUDE_TIMEOUT_SECONDS = 300
+CLAUDE_CLI_VERSION = "2.1.289"
+# Sonnet 5 and Opus 5 can run with thinking switched off completely.
+CLAUDE_MODELS = ("claude-sonnet-5", "claude-opus-5")
+# Print mode with no tools, MCP servers, skills, settings files or saved session.
+CLAUDE_ARGS = (
+    "-p",
+    "--output-format",
+    "json",
+    "--effort",
+    "low",
+    "--safe-mode",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--disable-slash-commands",
+    "--setting-sources",
+    "",
+    "--no-session-persistence",
+)
+# Switches thinking off.
+CLAUDE_ENV = {"MAX_THINKING_TOKENS": "0"}
+# The CLI runs from an empty folder outside the repo, so it finds no project files. Claude Code shows this path to
+# the model, so the name says nothing about the study and is the same on every machine.
+CLAUDE_WORK_DIR = Path("/tmp/workdir")
+# Variables a Claude Code session exports to its subprocesses. Without them a nested call behaves like a fresh one.
+NESTED_SESSION_VARS = (
+    "CLAUDECODE",
+    "CLAUDE_CODE_CHILD_SESSION",
+    "CLAUDE_CODE_ENTRYPOINT",
+    "CLAUDE_CODE_EXECPATH",
+    "CLAUDE_CODE_MESSAGING_SOCKET",
+    "CLAUDE_CODE_MESSAGING_TOKEN",
+    "CLAUDE_CODE_SESSION_ATTENDED",
+    "CLAUDE_CODE_SESSION_ID",
+    "CLAUDE_EFFORT",
+    "CLAUDE_PID",
+)
+
 METATOOL_COMMIT = "35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb"
 METATOOL_BASE_URL = f"{GITHUB_RAW_URL}/HowieHwong/MetaTool/{METATOOL_COMMIT}/"
 METATOOL_RAW_DIR = DATA_DIR / "metatool" / "raw"

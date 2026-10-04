@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from grjev import jev
+from grjev.store import run_path
 
 KEY = "test-key"
 ANSWER = {
@@ -51,7 +52,7 @@ def test_option_order_changes_the_request_and_its_path() -> None:
     forward = jev.request_body(request({"a": "first", "b": "second"}))
     reverse = jev.request_body(request({"b": "second", "a": "first"}))
     assert forward != reverse
-    assert jev.response_path(forward, "jev-1.13.0", 1) != jev.response_path(reverse, "jev-1.13.0", 1)
+    assert run_path(Path("cache"), forward, 1) != run_path(Path("cache"), reverse, 1)
 
 
 def test_ask_saves_the_response_and_reads_it_back_without_a_second_call(fake: FakeJev) -> None:
