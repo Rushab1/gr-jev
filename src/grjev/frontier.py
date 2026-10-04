@@ -16,9 +16,9 @@ from grjev.constants import (
     CLAUDE_CACHE_DIR,
     CLAUDE_CLI_VERSION,
     CLAUDE_ENV,
+    CLAUDE_INHERITED_VARS,
     CLAUDE_TIMEOUT_SECONDS,
     CLAUDE_WORK_DIR,
-    NESTED_SESSION_VARS,
 )
 from grjev.store import load_or_compute, run_path
 
@@ -36,7 +36,8 @@ class FrontierResponse(BaseModel):
 @functools.cache
 def installed_version() -> str:
     """Return the version number printed by `claude --version`."""
-    output = subprocess.run(["claude", "--version"], capture_output=True, text=True, check=True).stdout
+    command = ["claude", "--version"]
+    output = subprocess.run(command, capture_output=True, text=True, check=True, env=child_environment()).stdout
     match = re.search(r"\d+\.\d+\.\d+", output)
     if match is None:
         raise RuntimeError(f"No version number in the output of claude --version: {output!r}")
@@ -44,9 +45,9 @@ def installed_version() -> str:
 
 
 def child_environment() -> dict[str, str]:
-    """Return our environment with thinking switched off and without the variables of a parent Claude Code session."""
-    kept = {name: value for name, value in os.environ.items() if name not in NESTED_SESSION_VARS}
-    return {**kept, **CLAUDE_ENV}
+    """Return the whole environment of a CLI call: the few variables it needs from ours, and thinking switched off."""
+    inherited = {name: os.environ[name] for name in CLAUDE_INHERITED_VARS if name in os.environ}
+    return {**inherited, **CLAUDE_ENV}
 
 
 def run_claude(model: str, system: str, prompt: str) -> dict[str, Any]:

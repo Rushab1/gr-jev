@@ -45,19 +45,9 @@ CLAUDE_ENV = {"MAX_THINKING_TOKENS": "0"}
 # The CLI runs from an empty folder outside the repo, so it finds no project files. Claude Code shows this path to
 # the model, so the name says nothing about the study and is the same on every machine.
 CLAUDE_WORK_DIR = Path("/tmp/workdir")
-# Variables a Claude Code session exports to its subprocesses. Without them a nested call behaves like a fresh one.
-NESTED_SESSION_VARS = (
-    "CLAUDECODE",
-    "CLAUDE_CODE_CHILD_SESSION",
-    "CLAUDE_CODE_ENTRYPOINT",
-    "CLAUDE_CODE_EXECPATH",
-    "CLAUDE_CODE_MESSAGING_SOCKET",
-    "CLAUDE_CODE_MESSAGING_TOKEN",
-    "CLAUDE_CODE_SESSION_ATTENDED",
-    "CLAUDE_CODE_SESSION_ID",
-    "CLAUDE_EFFORT",
-    "CLAUDE_PID",
-)
+# The only variables of our environment that the CLI receives: enough to find the program and its sign-in. Anything
+# else, such as CLAUDE_CODE_EFFORT_LEVEL or ANTHROPIC_BASE_URL, could change a call without changing its hash.
+CLAUDE_INHERITED_VARS = ("PATH", "HOME", "USER", "TMPDIR", "LANG")
 
 METATOOL_COMMIT = "35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb"
 METATOOL_BASE_URL = f"{GITHUB_RAW_URL}/HowieHwong/MetaTool/{METATOOL_COMMIT}/"
