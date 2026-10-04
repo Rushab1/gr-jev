@@ -159,9 +159,30 @@ BFCL_SHA256 = (
     | {f"multi_turn_func_doc/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
 )
 
+METATOOL_PROCESSED_DIR = DATA_DIR / "metatool" / "processed"
+METATOOL_TOOLS_FILE = "dataset/plugin_des.json"
+# Name of each MetaTool test file in the processed data, and its path in the raw download.
+METATOOL_TEST_FILES = {
+    "similar_tools": "dataset/tmp_dataset/Task2-Subtask1.json",
+    "scenario": "dataset/tmp_dataset/Task2-Subtask2.json",
+    "reliability": "dataset/tmp_dataset/Task2-Subtask3.json",
+    "multi_tool": "dataset/tmp_dataset/Task2-Subtask4.json",
+    "tool_awareness": "dataset/tmp_dataset/Task1.json",
+}
+# One line of the numbered tool list in a MetaTool prompt: the number and the tool name.
+METATOOL_TOOL_LINE = r"^(\d+)\. tool name: (.*?), tool description: "
+
+# The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
+TOOLS_FILE_NAME = "tools.jsonl"
+
 # Dataset name -> the arguments of grjev.download.download_files: base URL, SHA-256 by path, destination folder.
 DOWNLOADS = {
     "metatool": (METATOOL_BASE_URL, METATOOL_SHA256, METATOOL_RAW_DIR),
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
 }
+
+# Dataset name -> where its files in the common format are written.
+PROCESSED_DIRS = {"metatool": METATOOL_PROCESSED_DIR}
+# Dataset name -> its test files, in the order they are shown.
+TEST_FILES = {"metatool": tuple(METATOOL_TEST_FILES)}
