@@ -23,13 +23,16 @@ docs/           project notes
 ## Setup
 
 ```
-uv venv
-uv pip install -r requirements.txt -r requirements-dev.txt
+uv sync
 source .venv/bin/activate
 python scripts/download_data.py metatool stabletoolbench bfcl
 ```
 
-Python 3.13. `requirements.txt` installs the `grjev` package in editable mode. `scripts/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`.
+Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv.lock`, with the `grjev` package in editable mode. Packages are listed in `pyproject.toml`: the ones the code needs under `dependencies`, and `ruff`, `mypy` and `pytest` in the `dev` group. After changing them, run `uv lock` and commit `uv.lock`.
+
+`scripts/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`.
+
+Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_jev.py` makes one call to confirm the key works.
 
 Run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit. The pre-commit config and the CI workflow are not added yet.
 
@@ -68,7 +71,7 @@ Each run writes to `results/<name>/<date>_<incr>/`, for example `results/metatoo
 
 ## Secrets and terms
 
-- The Jev key is read from the environment variable `TYPESAFE_AI_KEY`. Do not commit keys or `.env` files.
+- The Jev key is read from the environment variable `TYPESAFE_API_KEY`. Do not commit keys or `.env` files.
 - Do not train any model on Jev output. TypeSafe's customer agreement prohibits it.
 
 ## Git
