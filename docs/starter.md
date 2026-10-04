@@ -1,18 +1,19 @@
 # Jev study: starter notes
 
-Last updated 2026-10-03. No experiments have been run. The repository contains only this file.
+Last updated 2026-10-04. No experiments have been run.
 
 ## Draft abstract
 
-Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the number of options, the position of the correct option, and the order of the list. The tasks are tool selection (MetaTool, ToolBench), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with one open model fine-tuned on labelled tool-selection data. We report a flaw in MetaTool. The correct tool is the first candidate in all 995 items of its similar-tools subtask, and the two correct tools are candidates 7 and 8 in all 497 items of its multi-tool subtask. A rule that ignores the query scores 100% on both. We release a version with balanced positions. We also train a small student model from the fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
+Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the number of options, the position of the correct option, and the order of the list. The tasks are tool selection (MetaTool, ToolBench), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with two fine-tuned open models, one trained on MetaTool and one on ToolBench, and we test each fine-tuned model on the other benchmark. We report a flaw in MetaTool. The correct tool is the first candidate in all 995 examples of its similar-tools file, and the two correct tools are candidates 7 and 8 in all 497 examples of its multi-tool file. A rule that ignores the query scores 100% on both. We release a version with balanced positions. We also train a small student model from a fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
 
 ## Status
 
 - Goal set on 2026-10-02: two workshop papers by the end of October 2026.
 - Current plan: one paper. After stage 3 we decide whether stage 5 becomes a second paper.
-- Proposed datasets: MetaTool, ToolBench, Mind2Web, AndroidControl. WebArena and OSWorld are backups. This set is not confirmed.
+- Datasets: MetaTool and ToolBench come first. Mind2Web and AndroidControl are proposed and not confirmed. WebArena and OSWorld are backups for them.
 - GPU work runs on Google Colab.
-- No Jev API key is set up on this machine.
+- The Jev key is read from `TYPESAFE_AI_KEY`. It is not set on this machine.
+- The code standard is in `AGENTS.md`. `docs/dashboard.html` records the datasets, the experiments and the decisions.
 - Venue not chosen.
 
 ## Jev
@@ -47,13 +48,32 @@ Question: how do the number of options, the position of the correct option, and 
 |---|---|---|
 | 1 | MetaTool. Document the fixed positions, build a test set with balanced positions, and run Jev across number of options (2 to 199), position of the correct option, and shuffled order. | Jev API key |
 | 2 | Open-weight decision models on the stage 1 grid | Local machine |
-| 3 | One open decision model fine-tuned on MetaTool labels, with some tools held out | Colab |
+| 3 | Two fine-tuned open decision models, one trained on MetaTool's 20,614 queries and one on ToolBench's training set. Each is tested on both benchmarks. | Colab |
 | 4 | A smaller grid on ToolBench, Mind2Web and AndroidControl | Jev API key |
-| 5 | A small student model trained from the stage 3 model. The baseline is a student trained on the labels. Jev is a comparison point. | Colab and local machine |
+| 5 | A small student model trained from a stage 3 model. The baseline is a student trained on the labels. Jev is a comparison point. | Colab and local machine |
 
 Nothing is trained on Jev output, because of the terms above.
 
 Measurements: accuracy, calibration, share of answers that change when the list is reordered, share that change on an identical repeat, latency, and cost.
+
+### Fine-tuning and transfer
+
+Decided on 2026-10-04.
+
+| Model | MetaTool test files | ToolBench test files |
+|---|---|---|
+| Jev | No training | No training |
+| Open model, not fine-tuned | No training | No training |
+| Open model fine-tuned on MetaTool | In-domain | Transfer |
+| Open model fine-tuned on ToolBench | Transfer | In-domain |
+
+No model is trained on both sets.
+
+Metrics. The four MetaTool tool-selection files are scored with accuracy, which the MetaTool paper calls the Correct Selection Rate. Tool awareness is scored with accuracy, precision, recall and F1. ToolBench queries have 1 to 6 relevant APIs. The ToolBench score is precision, recall and F1 if the model selects a set, or accuracy if each list is built with one relevant API. This is not decided.
+
+Training data. The MetaTool model trains on `dataset/data/all_clean_data.csv` with the test queries removed. 993 of the 995 similar-tools queries and 1,797 of the 1,800 scenario queries are rows of that file. The ToolBench model trains on ToolBench's training set. ToolBench's six test files hold out queries, tools or RapidAPI categories from that training set.
+
+Limit. MetaTool's tools are ChatGPT plugins from 2023. ToolBench's APIs were collected from RapidAPI in 2023, and StableToolBench reports that 44.4% of its calls to them succeeded. The fine-tuned models and the student are baselines on these two benchmarks. The paper makes no claim from them about current tools. A search for a tool set from 2025 or 2026, to be used as test-only, started on 2026-10-04.
 
 An audit of the first 28 Jev papers (arXiv 2609.32160) gives a 14-item evaluation checklist. The items that apply here are a baseline that reads label probabilities from an ordinary open model, a model trained on the task, confidence intervals, repeated runs, a pinned model version, and thresholds fixed before evaluation. The audit found that 21 of 27 papers had no label-probability baseline and 12 of 27 reported no confidence intervals or significance tests.
 
@@ -61,14 +81,14 @@ An audit of the first 28 Jev papers (arXiv 2609.32160) gives a 14-item evaluatio
 
 Source: `HowieHwong/MetaTool`, commit `35e81bb7576826e980c80fed8f8c0a2b4a1e6fbb`, folder `dataset/tmp_dataset`.
 
-| Subtask | File | Items | Candidates per item | Position of the correct tool | Score of a fixed-position rule |
+| Test file | File | Examples | Tools per list | Position of the correct tool | Score of a fixed-position rule |
 |---|---|---|---|---|---|
-| Similar tools | `Task2-Subtask1.json` | 995 | 10 | 1 in all 995 items | 100% |
+| Similar tools | `Task2-Subtask1.json` | 995 | 10 | 1 in all 995 examples | 100% |
 | Scenario | `Task2-Subtask2.json` | 1,800 | 5, 10 or 15 | Spread evenly over positions | 10% for position 1 |
 | Reliability | `Task2-Subtask3.json` | 995 | 10 | Correct tool removed by design | Not applicable |
-| Multi-tool | `Task2-Subtask4.json` | 497 | 10 | 7 and 8 in all 497 items | 100% |
+| Multi-tool | `Task2-Subtask4.json` | 497 | 10 | 7 and 8 in all 497 examples | 100% |
 
-The cause is in `src/prompt/prompt_construction.py`. The similar-tools candidates are the 10 nearest neighbours of the correct tool's own embedding, kept in similarity order, so the correct tool comes first. The multi-tool list is shuffled, but `random.seed(48)` is called before each item's shuffle, so every item gets the same permutation.
+The cause is in `src/prompt/prompt_construction.py`. The similar-tools candidates are the 10 nearest neighbours of the correct tool's own embedding, kept in similarity order, so the correct tool comes first. The multi-tool list is shuffled, but `random.seed(48)` is called before each example's shuffle, and the two correct tools land at positions 7 and 8 every time.
 
 The scenario subtask uses 9 distinct candidate lists. Each tool keeps the same position in its list for every query.
 
@@ -163,10 +183,10 @@ Searches that returned no arXiv paper:
 
 Citations are Semantic Scholar counts on 2026-10-03.
 
-| Benchmark | Released | Citations | Size | Format | Correct answers per item | Licence | Role |
+| Benchmark | Released | Citations | Size | Format | Correct answers per example | Licence | Role |
 |---|---|---|---|---|---|---|---|
-| MetaTool | 2023-10 | 240 | 199 tools. 20,614 query and tool pairs. Test subtasks of 995, 1,800, 995 and 497 items. | JSON prompts with a numbered tool list. CSV of query and tool pairs. | 1. The multi-tool subtask has 2 and the reliability subtask has 0. Lists hold 5, 10 or 15 candidates. | MIT | Main grid and fine-tuning data |
-| ToolBench | 2023-07 | 2,360 | 1,100 official test queries. 16,464 APIs in the paper, 13,862 in the ToolRet copy. | Parquet in the ToolRet copy: query and labelled tools with name, description and parameters | Mean 2.39. 40 queries have exactly 1. | Not checked | Second tool set |
+| MetaTool | 2023-10 | 240 | 199 tools. 20,614 query and tool pairs. Five test files of 995, 1,800, 995, 497 and 1,040 examples. | JSON prompts with a numbered tool list. CSV of query and tool pairs. | 1. The multi-tool subtask has 2 and the reliability subtask has 0. Lists hold 5, 10 or 15 candidates. | MIT | Main grid and fine-tuning data |
+| ToolBench | 2023-07 | 2,360 | 1,100 official test queries. 16,464 APIs in the paper, 13,862 in the ToolRet copy. | Parquet in the ToolRet copy: query and labelled tools with name, description and parameters | Mean 2.39. 40 queries have exactly 1. | Not checked | Second tool set and fine-tuning data |
 | Mind2Web | 2023-06 | 1,501 | Train: 7,775 actions from 1,009 tasks. Test: 1,339, 1,019 and 4,060 actions for new tasks, new websites and new domains. | Parquet: task, cleaned HTML, positive and negative candidate elements, operation | Usually 1 element. One training shard has a median of 404 candidates per page. | CC-BY-4.0 for the original, OpenRAIL for the multimodal copy | Browsing |
 | AndroidControl | 2024-06 | 210 | 15,283 demonstrations of 14,548 tasks in 833 apps | TFRecords: goal, step instructions, accessibility trees, screenshots, actions | 1 action per step. Candidates per screen not measured. | Apache-2.0 repository | Computer use on mobile |
 | WebArena | 2023-07 | 2,162 | 812 tasks | Live self-hosted websites | No step labels. One pass or fail per task. | Not checked | Backup |
@@ -174,9 +194,9 @@ Citations are Semantic Scholar counts on 2026-10-03.
 
 ### Notes on the chosen datasets
 
-MetaTool. The tools are ChatGPT plugins from 2023. Some are near duplicates, so a query can have more than one reasonable answer.
+MetaTool. The tools are ChatGPT plugins from 2023. The MetaTool authors merged plugins with overlapping functions: the paper reports 390 plugins merged into 195 tools. The repository has 199 tools.
 
-ToolBench. Measured on the 1,100 test queries: 96.4% have two or more labelled tools. StableToolBench's filter keeps 765 queries as solvable. 6.9% of the 13,862 tools have a blank description. StableToolBench reports that 55.6% of ToolBench APIs were unstable, which affects studies that execute the APIs. Planned use: the 765 solvable queries, with one labelled tool in each candidate list and the other labelled tools left out.
+ToolBench. Measured on the 1,100 test queries in ToolRet's copy: 96.4% have two or more relevant APIs. StableToolBench keeps 765 of the 1,100 as solvable, in six test files. 6.9% of the 13,862 ToolBench tools in ToolRet's copy have a blank description. StableToolBench reports that 44.4% of its calls to ToolBench APIs succeeded. This study does not call the APIs. The test set is the 765 solvable queries. How a ToolBench example is posed to the model is not decided.
 
 Mind2Web. Jev cannot produce the text for typing actions.
 
@@ -200,7 +220,7 @@ OSWorld. Jev needs a planner model and a text view of the screen to act in it.
 | AgentNet (OpenCUA) | 150 | Desktop, 22.6K tasks, MIT. The released steps are screenshots. |
 | ToolRet | 57 | 7.6k tasks over 43k tools from 35 source datasets, including ToolBench and MetaTool |
 | LiveMCPBench | 57 | About 95 tasks |
-| When2Call | 45 | Four options per item |
+| When2Call | 45 | Four options per example |
 
 ## Models to compare
 
@@ -210,9 +230,9 @@ OSWorld. Jev needs a planner model and a text view of the screen to act in it.
 | Second hosted decision model, optional | Liquid d1 | API |
 | Open decision models without task training | `Mapika/decider-2b` (285,776 Hugging Face downloads), Laya 421M, one 4B model to be chosen | Local machine |
 | Open model without decision training | To be chosen. Read through the probabilities of the option labels. | Local machine |
-| Fine-tuned | One open decision model fine-tuned on MetaTool labels | Colab |
+| Fine-tuned | Two open decision models, one fine-tuned on MetaTool's 20,614 queries and one on ToolBench's training set | Colab |
 | Released fine-tuned Mind2Web baselines | `osunlp/MindAct_ActionPrediction_flan-t5-base`, `-large`, `-xl`, and `osunlp/MindAct_CandidateGeneration_deberta-v3-base` | Local machine |
-| Student | A smaller model trained from the fine-tuned model | Colab for training, local machine for latency |
+| Student | A smaller model trained from a fine-tuned model | Colab for training, local machine for latency |
 | Reference | One frontier LLM, with and without reasoning | API |
 
 Licences of the open models have not been checked. Each open model has its own input format.
@@ -234,7 +254,7 @@ Price: $0.042 per million input tokens.
 
 The Mind2Web rates come from `hosamsh/jev-mind2web`: $0.08 per 1,000 steps at 50 candidates and $0.68 per 1,000 steps with the full page. That run paid $3.50 to $7.38 per 1,000 steps for GPT-5.4.
 
-The grid repeats each item across positions and list sizes. Ten positions and six list sizes multiply the cost of a pass by 60.
+The grid repeats each example across positions and list sizes. Ten positions and six list sizes multiply the cost of a pass by 60.
 
 ## Constraints
 
@@ -249,8 +269,13 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 
 ## Open items
 
-- Get a Jev API key.
-- Confirm the dataset set.
+- Set `TYPESAFE_AI_KEY` on this machine.
+- Confirm Mind2Web and AndroidControl.
+- Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, and which distractors are added.
+- Decide how a ToolBench example is posed to the model, and its metric.
+- Decide whether a tool set from 2025 or 2026 is added as test-only, and which one.
+- Decide which fine-tuned model trains the student.
+- Decide whether the MetaTool fine-tuning holds out some tools.
 - Choose the open models and check their licences.
 - Measure AndroidControl's steps per episode and accessibility-tree size.
 - Decide whether to ask TypeSafe for permission to train on Jev output.
