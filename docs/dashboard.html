@@ -1540,7 +1540,7 @@
         <li><span class="txt">The runs on every example wait.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
         <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 360 since 2026-10-05.</span></li>
-        <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
+        <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
         <li><span class="txt">Processed data has one row per example with the same fields for every dataset: id, query, options, labels, and the raw row unchanged. A multi-turn BFCL example has one row per turn.</span></li>
         <li><span class="txt">Every Jev and Claude response is saved under a hash of the exact request and a run number. A repeat of the same request is a new run, so the variance between runs can be measured.</span></li>

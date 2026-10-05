@@ -36,7 +36,7 @@ Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv
 
 Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_jev.py` makes one call to confirm the key works.
 
-The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off. `python scripts/check_frontier.py` makes one call per model.
+The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off and with `--effort low`. `python scripts/check_frontier.py` makes one call per model.
 
 `python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position` and `length`, and `--examples-per-file` runs a seeded sample. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
 

@@ -288,9 +288,11 @@ OSWorld. Jev needs a planner model and a text view of the screen to act in it.
 | Fine-tuned | Two open decision models, one fine-tuned on MetaTool's 20,614 queries and one on ToolBench's training set | Colab |
 | Released fine-tuned Mind2Web baselines | `osunlp/MindAct_ActionPrediction_flan-t5-base`, `-large`, `-xl`, and `osunlp/MindAct_CandidateGeneration_deberta-v3-base` | Local machine |
 | Student | A smaller model trained from a fine-tuned model | Colab for training, local machine for latency |
-| Frontier LLMs | Claude Sonnet 5 and Claude Opus 5, with thinking and tools switched off | Claude Code CLI with the machine's sign-in |
+| Frontier LLMs | Claude Sonnet 5 and Claude Opus 5, with thinking and tools switched off and with `--effort low` | Claude Code CLI with the machine's sign-in |
 
 `Mapika/decider-0.8b` (752 million parameters) and `heman10x/rlcd-modernbert-151m` (151 million parameters) are also Apache-2.0. Licences of the other open models have not been checked. Each open model has its own input format.
+
+The Claude calls pass `--effort low` to the Claude Code CLI, set in `CLAUDE_ARGS` in `src/grjev/constants.py`. Whether the setting changes an answer when thinking is off has not been measured.
 
 ## Cost of one Jev pass
 
