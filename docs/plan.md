@@ -11,8 +11,8 @@ The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`,
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 360, and 351 calls have been made. The whole position run needs 4,087 more calls and the whole length run 3,480 more. A run that would pass the limit does not start.
-3. When Rushab decides to run on every example: the position run needs 4,087 more calls, about $0.43, and the length run 3,480 more, about $4.80. The multi-tool examples are sent with both wordings.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 360, and 351 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,365. A run that would pass the limit does not start.
+3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
 Three points of the code review in `docs/findings/review_2026-10-04.md` are not applied: validating a Jev response before it is saved (finding 2), naming `--effort low` in the documents (finding 4), and the decision on whether the two check scripts make a new call on every run (finding 3).
@@ -63,7 +63,7 @@ Length, 50 queries, random distractors, the 5 placements pooled:
 - "None" is selected in 12.4% of the answers at 5 tools and 10.0% at 199 tools. At 5 tools CSR is 85.6%, so the wrong answers at 5 tools are mostly "None".
 - At 199 tools 98.1% of the returned probabilities are 0.00.
 
-Measured cost. A tool list of the position run took 457 input tokens, which puts the whole position run at about $0.43. A query of the length run took 63,876 input tokens, which puts the whole length run at about $4.80.
+Measured cost. A tool list of the position run took 457 input tokens, which puts the whole position run at about $0.43. A tool list of the multi-tool run with the wording "both" took 402 input tokens, which adds about $0.08 for the 4,473 tool lists of the 497 multi-tool examples. A query of the length run took 63,876 input tokens, which puts the whole length run at about $4.80.
 
 ## How runs are staged
 

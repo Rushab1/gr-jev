@@ -1500,7 +1500,7 @@
           </tbody>
         </table>
       </div>
-      <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
+      <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
       <p>The examples of each sample are drawn with seed 2026. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
@@ -1558,7 +1558,7 @@
     <!-- ============================== Open ============================== -->
     <section role="tabpanel" data-panel="open" hidden>
       <ul class="marks" data-marks="todo">
-        <li><span class="txt">When the limit of 360 Jev calls is raised, and for which runs. 351 calls have been made. The whole position run needs 4,087 more and the whole length run 3,480 more.</span></li>
+        <li><span class="txt">When the limit of 360 Jev calls is raised, and for which runs. 351 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>
