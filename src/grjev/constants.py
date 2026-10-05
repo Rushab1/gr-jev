@@ -96,6 +96,9 @@ BFCL_BASE_URL = (
     f"{GITHUB_RAW_URL}/ShishirPatil/gorilla/{BFCL_COMMIT}/berkeley-function-call-leaderboard/bfcl_eval/data/"
 )
 BFCL_RAW_DIR = DATA_DIR / "bfcl" / "raw"
+# The folders, next to the test files, of the ground-truth files and of the function definition files.
+BFCL_ANSWER_DIR = "possible_answer"
+BFCL_FUNC_DOC_DIR = "multi_turn_func_doc"
 # The 20 BFCL v4 test files at BFCL_COMMIT, with their SHA-256.
 BFCL_TEST_SHA256 = {
     "BFCL_v4_format_sensitivity.json": "1e7ebd0ec441198d3f7d3b60be73d0c9eba54094d2c3731b830f5da7a2c63c19",
@@ -155,8 +158,8 @@ BFCL_FUNC_DOC_SHA256 = {
 }
 BFCL_SHA256 = (
     BFCL_TEST_SHA256
-    | {f"possible_answer/{name}": sha256 for name, sha256 in BFCL_ANSWER_SHA256.items()}
-    | {f"multi_turn_func_doc/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
+    | {f"{BFCL_ANSWER_DIR}/{name}": sha256 for name, sha256 in BFCL_ANSWER_SHA256.items()}
+    | {f"{BFCL_FUNC_DOC_DIR}/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
 )
 
 METATOOL_PROCESSED_DIR = DATA_DIR / "metatool" / "processed"
@@ -171,6 +174,72 @@ METATOOL_TEST_FILES = {
 }
 # One line of the numbered tool list in a MetaTool prompt: the number and the tool name.
 METATOOL_TOOL_LINE = r"^(\d+)\. tool name: (.*?), tool description: "
+
+STABLETOOLBENCH_PROCESSED_DIR = DATA_DIR / "stabletoolbench" / "processed"
+# The six test files, named as in the raw download without ".json", in the order the dashboard shows them.
+STABLETOOLBENCH_TEST_FILES = (
+    "G1_instruction",
+    "G1_tool",
+    "G1_category",
+    "G2_instruction",
+    "G2_category",
+    "G3_instruction",
+)
+
+BFCL_PROCESSED_DIR = DATA_DIR / "bfcl" / "processed"
+# A raw test file is named BFCL_FILE_PREFIX, the test file's name and ".json". Its ground truth has the same file
+# name in the folder BFCL_ANSWER_DIR.
+BFCL_FILE_PREFIX = "BFCL_v4_"
+# A single-turn file whose correct output has no call, and the one that accepts any call. Neither kind has a
+# ground-truth file.
+BFCL_NO_CALL_FILES = ("irrelevance", "live_irrelevance")
+BFCL_ANY_CALL_FILES = ("live_relevance",)
+BFCL_SINGLE_TURN_FILES = (
+    "simple_python",
+    "simple_java",
+    "simple_javascript",
+    "multiple",
+    "parallel",
+    "parallel_multiple",
+    "irrelevance",
+    "live_simple",
+    "live_multiple",
+    "live_parallel",
+    "live_parallel_multiple",
+    "live_irrelevance",
+    "live_relevance",
+)
+BFCL_MULTI_TURN_FILES = (
+    "multi_turn_base",
+    "multi_turn_miss_func",
+    "multi_turn_miss_param",
+    "multi_turn_long_context",
+)
+# The two agentic files. Their answers are text, and a row names API classes instead of listing functions.
+BFCL_WEB_SEARCH_FILE = "web_search"
+BFCL_MEMORY_FILE = "memory"
+# Every test file that has examples, in the order the dashboard shows them. format_sensitivity lists ids of examples
+# in other files.
+BFCL_TEST_FILES = (*BFCL_SINGLE_TURN_FILES, *BFCL_MULTI_TURN_FILES, BFCL_WEB_SEARCH_FILE, BFCL_MEMORY_FILE)
+# API class named by a multi-turn or web search row -> the file in BFCL_FUNC_DOC_DIR that defines its functions.
+BFCL_CLASS_DOCS = {
+    "GorillaFileSystem": "gorilla_file_system.json",
+    "MathAPI": "math_api.json",
+    "MessageAPI": "message_api.json",
+    "TwitterAPI": "posting_api.json",
+    "TicketAPI": "ticket_api.json",
+    "TradingBot": "trading_bot.json",
+    "TravelAPI": "travel_booking.json",
+    "VehicleControlAPI": "vehicle_control.json",
+    "WebSearchAPI": "web_search.json",
+}
+# BFCL runs a memory row once on each memory backend. Backend -> the file in BFCL_FUNC_DOC_DIR with its functions.
+BFCL_MEMORY_DOCS = {"kv": "memory_kv.json", "vector": "memory_vector.json", "rec_sum": "memory_rec_sum.json"}
+# Where a model that only selects could take a parameter value from, in the order the sources are tried. A value
+# with none of them is "other".
+BFCL_VALUE_SOURCES = ("query", "boolean", "schema", "left_out", "description", "other")
+# The names BFCL's function definitions use for the true-or-false type, in lower case.
+BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
@@ -205,6 +274,14 @@ DOWNLOADS = {
 }
 
 # Dataset name -> where its files in the common format are written.
-PROCESSED_DIRS = {"metatool": METATOOL_PROCESSED_DIR}
+PROCESSED_DIRS = {
+    "metatool": METATOOL_PROCESSED_DIR,
+    "stabletoolbench": STABLETOOLBENCH_PROCESSED_DIR,
+    "bfcl": BFCL_PROCESSED_DIR,
+}
 # Dataset name -> its test files, in the order they are shown.
-TEST_FILES = {"metatool": tuple(METATOOL_TEST_FILES)}
+TEST_FILES = {
+    "metatool": tuple(METATOOL_TEST_FILES),
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "bfcl": BFCL_TEST_FILES,
+}
