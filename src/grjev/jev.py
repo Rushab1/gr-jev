@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
 import httpx
@@ -13,6 +14,7 @@ from grjev.constants import (
     HTTP_TIMEOUT_SECONDS,
     JEV_BACKOFF_SECONDS,
     JEV_CACHE_DIR,
+    JEV_CALL_LIMIT,
     JEV_KEY_ENV,
     JEV_MAX_ATTEMPTS,
     JEV_MAX_OPTIONS,
@@ -109,6 +111,24 @@ def post(body: bytes) -> dict[str, Any]:
 def ask(request: JevRequest, run: int = 1) -> JevResponse:
     """Return Jev's response for this request and run number. The API is called only if that run is not saved."""
     body = request_body(request)
-    path = run_path(JEV_CACHE_DIR / request.model, body, run)
-    record = load_or_compute(path, lambda: {"request": json.loads(body), "run": run, "response": post(body)})
+    record = load_or_compute(
+        response_path(request, run), lambda: {"request": json.loads(body), "run": run, "response": post(body)}
+    )
     return JevResponse.model_validate(record["response"])
+
+
+def response_path(request: JevRequest, run: int = 1) -> Path:
+    """Return where the response to this request and run number is saved."""
+    return run_path(JEV_CACHE_DIR / request.model, request_body(request), run)
+
+
+def calls_saved() -> int:
+    """Return the number of saved Jev responses. Each call that returned an answer saved one."""
+    return sum(1 for _ in JEV_CACHE_DIR.rglob("run-*.json"))
+
+
+def check_call_limit(new_calls: int) -> None:
+    """Raise if this many new calls would take the number of saved responses past the limit."""
+    saved = calls_saved()
+    if saved + new_calls > JEV_CALL_LIMIT:
+        raise RuntimeError(f"{new_calls} new Jev calls and {saved} saved ones pass the limit of {JEV_CALL_LIMIT}")

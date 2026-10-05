@@ -1,10 +1,12 @@
 """Every constant in the project: paths, URLs, hashes, model names, seeds and thresholds."""
 
+from fractions import Fraction
 from pathlib import Path
 
 # The package is installed in editable mode, so this file sits in <repo>/src/grjev/.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"
+RESULTS_DIR = REPO_ROOT / "results"
 
 HTTP_TIMEOUT_SECONDS = 60.0
 GITHUB_RAW_URL = "https://raw.githubusercontent.com"
@@ -18,6 +20,17 @@ JEV_RETRY_STATUSES = (429, 503, 529)
 JEV_MAX_ATTEMPTS = 5
 JEV_BACKOFF_SECONDS = 2.0
 JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
+# Rushab's limit on the number of Jev calls. A run that would pass it does not start. Raise it only on his instruction.
+# Raised from 100 on 2026-10-05 for the first subset: 350 calls, and 1 call made before it.
+JEV_CALL_LIMIT = 360
+# Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
+JEV_WORKERS = 8
+JEV_DOLLARS_PER_MILLION_INPUT_TOKENS = 0.042
+# The candidates of one request hold at most this many characters. The largest request of the 2026-10-05 subset had
+# 38,701 input tokens. Jev accepts 64,000 tokens per request.
+JEV_REQUEST_CHARACTERS = 120_000
+# A run logs its progress after this many answered requests.
+PROGRESS_EVERY = 500
 
 CLAUDE_CACHE_DIR = DATA_DIR / "cache" / "claude"
 CLAUDE_TIMEOUT_SECONDS = 300
@@ -240,6 +253,47 @@ BFCL_MEMORY_DOCS = {"kv": "memory_kv.json", "vector": "memory_vector.json", "rec
 BFCL_VALUE_SOURCES = ("query", "boolean", "schema", "left_out", "description", "other")
 # The names BFCL's function definitions use for the true-or-false type, in lower case.
 BFCL_BOOLEAN_TYPES = ("boolean", "bool")
+
+# Experiment -> dataset -> the test files it sends, in order. "position" sends every example in the released order and
+# with its correct tools at each placement. "length" sends each different one-tool query with lists of several lengths.
+EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
+    "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
+    "length": {"metatool": ("similar_tools", "scenario")},
+}
+# Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
+NONE_TEST_FILES = {"metatool": ("similar_tools", "scenario", "reliability")}
+NONE_NAME = "None"
+NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
+# Dataset -> test files whose benchmark asks for two tools. Jev's answer is its two highest-probability tools.
+TWO_TOOL_TEST_FILES = {"metatool": ("multi_tool",)}
+ONE_TOOL_INSTRUCTIONS = (
+    "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+)
+# The wordings of the instruction for two tools that are compared, by name, and the one a run uses by default.
+TWO_TOOL_INSTRUCTIONS = {
+    "one": "Two tools in the list are appropriate to solve the user's query. Choose one of them.",
+    "both": "Two tools in the list are appropriate to solve the user's query. Choose both.",
+}
+TWO_TOOL_WORDING = "one"
+# Dataset -> the list lengths of the "length" experiment. MetaTool has 199 tools, so its last list holds every tool.
+LIST_LENGTHS = {"metatool": (5, 10, 20, 50, 100, 199)}
+# The name of the order in which a test file lists the tools.
+RELEASED_ORDER = "released"
+# Name of a placement -> how far down the list the correct tool goes: the share of the positions after the first.
+PLACEMENTS = {
+    "first": Fraction(0),
+    "quarter": Fraction(1, 4),
+    "middle": Fraction(1, 2),
+    "three_quarters": Fraction(3, 4),
+    "last": Fraction(1),
+}
+# The pairs of placements used for two correct tools with distractors between them.
+SEPARATED_PLACEMENTS = (("first", "last"), ("first", "middle"), ("middle", "last"))
+# The placement rule is decided for lists of at least this many tools, with at most this many correct tools.
+PLACEMENT_MIN_TOOLS = 5
+PLACEMENT_MAX_CORRECT = 2
+# Seed of the order of the distractors, and of which of two correct tools comes first.
+ORDER_SEED = 2026
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
