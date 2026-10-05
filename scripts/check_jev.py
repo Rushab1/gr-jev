@@ -1,8 +1,10 @@
-"""Check that the key in TYPESAFE_API_KEY works. The first run makes one API call; later runs read the saved file."""
+"""Check that the key in TYPESAFE_API_KEY works. Every run makes one new Jev call, counted towards JEV_CALL_LIMIT."""
 
 from dotenv import load_dotenv
 
-from grjev.jev import ChoiceQuestion, JevRequest, ask
+from grjev.constants import JEV_CACHE_DIR
+from grjev.jev import ChoiceQuestion, JevRequest, ask, check_call_limit, request_body
+from grjev.store import next_run
 
 
 def main() -> None:
@@ -17,7 +19,10 @@ def main() -> None:
         },
     )
     state = "Help! My payouts have been failing for 3 days."
-    response = ask(JevRequest(state=state, questions={"department": question}))
+    request = JevRequest(state=state, questions={"department": question})
+    check_call_limit(1)
+    # A run number that is not saved yet, so the answer comes from the API and not from a saved file.
+    response = ask(request, next_run(JEV_CACHE_DIR / request.model, request_body(request)))
     print(response.model_dump_json(indent=1))
 
 

@@ -1,6 +1,7 @@
 """Saved model responses: one file per request hash and run number, so a rerun reads the file and calls nothing."""
 
 import hashlib
+import itertools
 import json
 import tempfile
 from collections.abc import Callable
@@ -11,6 +12,11 @@ from typing import Any
 def run_path(root: Path, request: bytes, run: int) -> Path:
     """Return where the record for these request bytes and this run number is saved under root."""
     return root / hashlib.sha256(request).hexdigest() / f"run-{run}.json"
+
+
+def next_run(root: Path, request: bytes) -> int:
+    """Return the lowest run number that has no record saved under root for these request bytes."""
+    return next(run for run in itertools.count(1) if not run_path(root, request, run).exists())
 
 
 def load_or_compute(path: Path, compute: Callable[[], dict[str, Any]]) -> dict[str, Any]:
