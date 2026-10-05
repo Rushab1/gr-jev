@@ -1217,7 +1217,7 @@
       </div>
       <p>The score is the plain CSR: the percentage of examples with a correct selection, as published results on MetaTool compute it.</p>
       <p>MetaTool's uneven counts are reported as a property of MetaTool and are not corrected in the score. <code>TripTool</code> is the correct tool in 85 of the 2,795 examples of the similar-tools and scenario files, and <code>ShoppingAssistant</code> in 5.</p>
-      <p>Intervals resample examples and correct tools, not runs. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools. Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.</p>
+      <p>No margin of error is computed at this stage. How margins of error are computed for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools. Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.</p>
       <p>Jev returns probabilities with two decimals. <code>123Satyajeet123/jev-wide</code> reports that with 200 candidates 95.8% of the returned probabilities were 0.00.</p>
 
       <h2>Confidently wrong answers</h2>
@@ -1382,7 +1382,7 @@
     <section role="tabpanel" data-panel="results" hidden>
       <p>On 2026-10-05 Jev answered a sample of MetaTool: 50 examples from each of the four test files with a tool list, and 50 queries with lists of 5 to 199 tools. The sample took 350 calls and cost $0.16.</p>
       <p>The position of the correct tool did not change Jev's score. The length of the list did: CSR fell from 85.6% with 5 tools to 72.8% with 199 tools. For a query that needs two tools, the wording of the instruction changed CSR by 14.2 points.</p>
-      <p>With 50 examples, the 95% interval of a CSR reaches about 12 points to either side. CSR in the released order of the similar-tools sample is 76%, with an interval from 64% to 88%. The intervals are 95% bootstrap intervals over the examples.</p>
+      <p>Each figure comes from 50 examples of a test file, or from 50 queries. No margin of error is computed at this stage.</p>
 
       <h2>Position</h2>
       <p>Each example was sent with its tool list in the released order, and with the correct tool at 5 positions of the list: first, 25%, 50%, 75% and last.</p>
@@ -1397,7 +1397,7 @@
         </figure>
       </div>
       <ul class="plain">
-        <li>CSR with the correct tool first minus CSR with it last is +2.0 points on similar tools, with an interval from −4 to 8, and 0.0 points on scenario.</li>
+        <li>CSR with the correct tool first minus CSR with it last is +2.0 points on similar tools and 0.0 points on scenario.</li>
         <li>Jev selected the same candidate in all 5 placements for 44 of the 50 similar-tools examples and 48 of the 50 scenario examples.</li>
         <li>On similar tools Jev was correct in all 5 placements for 35 examples, in none for 10, and in some for 5. On scenario the counts are 40, 8 and 2.</li>
         <li>The released similar-tools file has the correct tool first in every list. CSR in that order is 76%, and the mean over the 5 positions is 76.4%.</li>
@@ -1417,13 +1417,12 @@
           <thead><tr><th>Tools in the list</th><th class="num">5</th><th class="num">10</th><th class="num">20</th><th class="num">50</th><th class="num">100</th><th class="num">199</th></tr></thead>
           <tbody>
             <tr><th>All 50 queries</th><td class="num">85.6%</td><td class="num">85.6%</td><td class="num">81.2%</td><td class="num">80.0%</td><td class="num">76.4%</td><td class="num">72.8%</td></tr>
-            <tr><th>95% interval, all 50 queries</th><td class="num">76 to 95</td><td class="num">76 to 96</td><td class="num">70 to 91</td><td class="num">69 to 90</td><td class="num">65 to 88</td><td class="num">61 to 84</td></tr>
             <tr><th>25 similar-tools queries</th><td class="num">80.0%</td><td class="num">80.0%</td><td class="num">76.8%</td><td class="num">74.4%</td><td class="num">71.2%</td><td class="num">68.0%</td></tr>
             <tr><th>25 scenario queries</th><td class="num">91.2%</td><td class="num">91.2%</td><td class="num">85.6%</td><td class="num">85.6%</td><td class="num">81.6%</td><td class="num">77.6%</td></tr>
           </tbody>
         </table>
       </div>
-      <p>CSR with 5 tools minus CSR with 199 tools is 12.8 points on the same queries, with an interval from 4 to 22.</p>
+      <p>CSR with 5 tools minus CSR with 199 tools is 12.8 points on the same queries.</p>
       <div class="tablewrap narrow">
         <table>
           <thead><tr><th>Position of the correct tool</th><th class="num">First</th><th class="num">25%</th><th class="num">50%</th><th class="num">75%</th><th class="num">Last</th></tr></thead>
@@ -1501,7 +1500,7 @@
         </table>
       </div>
       <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
-      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder, and an interval takes 2,000 resamples of the examples from seed 1. The three folders were written from the saved responses at commit <code>fc0b930</code>. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
+      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three folders were written from the saved responses at commit <code>fc0b930</code>. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
     <!-- ============================== Decisions ============================== -->
@@ -1538,6 +1537,7 @@
         <li><span class="txt">A small subset of every experiment is run before one experiment on every example. The first subset ran on 2026-10-05.</span></li>
         <li><span class="txt">Both wordings of the instruction for two tools are kept, "Choose one of them." and "Choose both.", and the difference between them is reported as a finding.</span></li>
         <li><span class="txt">The runs on every example wait.</span></li>
+        <li><span class="txt">Insights come first. Supporting statistics, such as margins of error, are added for the final paper, and no margin of error is computed at this stage.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
         <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 360 since 2026-10-05.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
@@ -1563,6 +1563,7 @@
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>
+        <li><span class="txt">How margins of error are computed, for the final paper</span></li>
         <li><span class="txt">Accept-or-escalate design for tool selection: how the threshold is chosen, which Claude model is the fallback, and which test files are used</span></li>
         <li><span class="txt">Placement when an example has three or more correct tools: 176 examples in StableToolBench and 322 in BFCL. Baker et al. place 3 or 4 evidence documents adjacent at 5 positions, plus 3 or 4 separated placements.</span></li>
         <li><span class="txt">Lists under 5 tools that have a correct tool and a distractor: 169 examples in StableToolBench and 934 in BFCL. The placement rule starts at 5 tools.</span></li>

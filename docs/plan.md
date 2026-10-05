@@ -19,7 +19,7 @@ The three open points of the code review in `docs/findings/review_2026-10-04.md`
 
 ## Subset of 2026-10-05
 
-350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample, and the intervals are 95% bootstrap intervals over examples, with 2,000 resamples from seed 1. `python scripts/results_figures.py` prints the figures from a results folder, with the code in `src/grjev/metrics.py`.
+350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample of 50 examples of a test file, or of 50 queries. No margin of error is computed at this stage. `python scripts/results_figures.py` prints the figures from a results folder, with the code in `src/grjev/metrics.py`.
 
 The results folders are `results/metatool_position/2026-10-05_04` and `2026-10-05_05`, and `results/metatool_length/2026-10-05_02`. They were written on 2026-10-05 from the saved responses, with 0 new Jev calls, at commit `fc0b930`, which holds the runner. The folders `2026-10-05_02` and `2026-10-05_03` of the position runs and `2026-10-05_01` of the length run hold the same rows and were written before the runner was committed. `results/metatool_position/2026-10-05_01` is a trial with 1 example per test file. Results folders are not in git.
 
@@ -37,7 +37,7 @@ Position, 50 examples per test file:
 | Scenario | 82% | 82% | 84% | 82% | 80% | 82% |
 | Reliability | 86% | | | | | |
 
-- No position effect is visible. CSR with the correct tool first minus CSR with it last is +2.0 points on similar tools, with an interval of -4 to +8, and 0.0 points on scenario.
+- No position effect is visible. CSR with the correct tool first minus CSR with it last is +2.0 points on similar tools and 0.0 points on scenario.
 - Jev selects the same candidate in all 5 placements for 88% of the similar-tools examples and 96% of the scenario examples.
 - "None" is selected in 27 of 300 answers on similar tools (9.0%) and in 24 of 300 on scenario (8.0%), where it is wrong, and in 43 of 50 on reliability (86%), where it is correct. The similar-tools and reliability samples hold the same 50 queries.
 - Confidently wrong. Of the answers with a top probability of 0.9 or more, 14 of 176 are wrong on similar tools (8.0%), 16 of 201 on scenario (8.0%) and 2 of 34 on reliability (5.9%). They are 20%, 30% and 29% of the wrong answers of each file.
@@ -58,9 +58,8 @@ Length, 50 queries, random distractors, the 5 placements pooled:
 | Tools in the list | 5 | 10 | 20 | 50 | 100 | 199 |
 |---|---|---|---|---|---|---|
 | CSR | 85.6% | 85.6% | 81.2% | 80.0% | 76.4% | 72.8% |
-| Interval | 76 to 95 | 76 to 96 | 70 to 91 | 69 to 90 | 65 to 88 | 61 to 84 |
 
-- CSR at 5 tools minus CSR at 199 tools is 12.8 points for the same queries, with an interval of 4 to 22.
+- CSR at 5 tools minus CSR at 199 tools is 12.8 points for the same queries.
 - By placement, with all lengths pooled, CSR is 79.0% first, 81.0% at 25%, 80.0% at 50%, 80.7% at 75% and 80.7% last.
 - "None" is selected in 12.4% of the answers at 5 tools and 10.0% at 199 tools. At 5 tools CSR is 85.6%, so the wrong answers at 5 tools are mostly "None".
 - At 199 tools 98.1% of the returned probabilities are 0.00.
@@ -76,6 +75,7 @@ Decided by Rushab on 2026-10-04.
 - A repeat run, a control or a second variant is added when a result needs it, such as a difference that is not statistically separable.
 - Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.
 - Each proposed run states its claim and its cost.
+- Insights come first. Supporting statistics, such as margins of error, are added for the final paper. Rushab decided this on 2026-10-05, and no margin of error is computed at this stage.
 - An alternative that is not run is kept as a spare, in one line.
 - A small subset of every experiment is run before one experiment on every example. Rushab decided this on 2026-10-05.
 
@@ -203,7 +203,7 @@ The score is the plain CSR: the percentage of examples with a correct selection,
 
 MetaTool's uneven counts are reported as a property of MetaTool and are not corrected in the score. `TripTool` is the correct tool in 85 of the 2,795 examples of the similar-tools and scenario files, and `ShoppingAssistant` in 5.
 
-Intervals resample examples and correct tools, not runs. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools.
+No margin of error is computed at this stage. How margins of error are computed for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools.
 
 ## Confidently wrong answers
 
@@ -327,6 +327,7 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 - Confirm the instruction for one tool and the description of the "None" candidate.
 - Decide the list lengths of the later runs.
 - Decide the threshold for a confidently wrong answer and the accept-or-escalate design.
+- Decide how margins of error are computed, for the final paper.
 - Decide how a ToolBench example is posed to the model, and its metric.
 - Decide which BFCL test files are used, and how a BFCL example is posed to the model.
 - Decide last whether fine-tuning stays in the paper.

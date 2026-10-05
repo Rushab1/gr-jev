@@ -2,9 +2,9 @@
 
 import pytest
 
-from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
+from grjev.constants import CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
-from grjev.metrics import compared_groups, difference, figures, interval, list_groups, list_names, row_groups
+from grjev.metrics import compared_groups, difference, figures, list_groups, list_names, row_groups
 from grjev.placement import length_orders, orders_of
 from grjev.runs import ListAnswer, Row
 
@@ -30,14 +30,6 @@ def one_tool(first: bool, last: bool) -> Row:
     return row("similar_tools", ["a"], answers)
 
 
-def test_an_interval_cuts_the_resampled_means_at_both_ends_and_depends_only_on_the_values_and_the_seed() -> None:
-    correct_in_38_of_50 = [1.0] * 38 + [0.0] * 12
-    # Pins the method: 2,000 resamples of the examples from seed 1, and the 51st and 1,951st of the sorted means.
-    assert interval(correct_in_38_of_50, seed=1) == pytest.approx((0.64, 0.88))
-    assert interval(correct_in_38_of_50, seed=1) == interval(correct_in_38_of_50, seed=1)
-    assert interval([0.5] * 10, seed=1) == (0.5, 0.5)
-
-
 def test_figures_count_the_answers_to_the_named_lists() -> None:
     rows = [
         row(
@@ -57,21 +49,20 @@ def test_figures_count_the_answers_to_the_named_lists() -> None:
             },
         ),
     ]
-    found = figures(rows, ["first", "last"], BOOTSTRAP_SEED, confident_from=0.9)
+    found = figures(rows, ["first", "last"], confident_from=0.9)
     assert (found.examples, found.answers, found.correct, found.csr) == (2, 4, 1, 25.0)
     assert (found.none, found.confident, found.confident_wrong) == (1, 2, 1)
     assert found.zero_probabilities == pytest.approx(100 * 4 / 12)
     assert (found.one_choice, found.all_correct, found.none_correct) == (1, 0, 1)
     assert (found.tied, found.choice_correct) == (0, 1)
-    assert 0 <= found.low <= found.csr <= found.high <= 50
-    first_only = figures(rows, ["first"], BOOTSTRAP_SEED, confident_from=0.9)
+    first_only = figures(rows, ["first"], confident_from=0.9)
     assert (first_only.answers, first_only.correct, first_only.csr, first_only.none) == (2, 1, 50.0, 0)
 
 
 def test_a_probability_at_the_threshold_is_confident() -> None:
     rows = [row("similar_tools", ["a"], {"first": answer("a", True, {"a": CONFIDENT_PROBABILITY, "b": 0.1})})]
-    assert figures(rows, ["first"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY).confident == 1
-    assert figures(rows, ["first"], BOOTSTRAP_SEED, 0.95).confident == 0
+    assert figures(rows, ["first"], CONFIDENT_PROBABILITY).confident == 1
+    assert figures(rows, ["first"], 0.95).confident == 0
 
 
 def test_two_tools_count_a_tie_for_second_place_and_a_choice_that_is_a_correct_tool() -> None:
@@ -80,24 +71,22 @@ def test_two_tools_count_a_tie_for_second_place_and_a_choice_that_is_a_correct_t
         "adjacent_first": answer("a", True, {"a": 0.6, "b": 0.4, "c": 0.0}),
         "adjacent_last": answer("c", False, {"a": 0.3, "b": 0.2, "c": 0.5}),
     }
-    found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, confident_from=0.9)
+    found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), confident_from=0.9)
     assert (found.answers, found.correct, found.tied, found.choice_correct) == (3, 1, 1, 2)
 
 
 def test_an_example_without_one_of_the_lists_is_left_out() -> None:
     placed = row("live_multiple", ["a"], {RELEASED_ORDER: answer("a", True), "first": answer("a", True)})
     no_correct_tool = row("live_multiple", [], {RELEASED_ORDER: answer("a", False)})
-    assert figures([placed, no_correct_tool], [RELEASED_ORDER], BOOTSTRAP_SEED, 0.9).examples == 2
-    assert figures([placed, no_correct_tool], [RELEASED_ORDER, "first"], BOOTSTRAP_SEED, 0.9).examples == 1
-    assert difference([placed, no_correct_tool], [RELEASED_ORDER], ["first"], BOOTSTRAP_SEED) == (0.0, 0.0, 0.0)
+    assert figures([placed, no_correct_tool], [RELEASED_ORDER], 0.9).examples == 2
+    assert figures([placed, no_correct_tool], [RELEASED_ORDER, "first"], 0.9).examples == 1
+    assert difference([placed, no_correct_tool], [RELEASED_ORDER], ["first"]) == 0.0
 
 
 def test_a_difference_is_taken_within_each_example() -> None:
     rows = [one_tool(True, False), one_tool(True, True), one_tool(False, False), one_tool(True, False)]
-    points, low, high = difference(rows, ["first"], ["last"], BOOTSTRAP_SEED)
-    assert points == pytest.approx(50.0)
-    assert 0 <= low <= points <= high <= 100
-    assert difference(rows, ["last"], ["first"], BOOTSTRAP_SEED)[0] == pytest.approx(-50.0)
+    assert difference(rows, ["first"], ["last"]) == pytest.approx(50.0)
+    assert difference(rows, ["last"], ["first"]) == pytest.approx(-50.0)
 
 
 def test_one_correct_tool_has_a_group_for_each_list_for_the_placements_and_for_every_list() -> None:

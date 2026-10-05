@@ -40,7 +40,7 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position` and `length`, and `--examples-per-file` runs a seeded sample. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
 
-`python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None" and the confident answers. The code is in `src/grjev/metrics.py`.
+`python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR, the answers of "None" and the confident answers. The code is in `src/grjev/metrics.py`.
 
 An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES`, `TWO_TOOL_TEST_FILES` and `LIST_LENGTHS` in `constants.py`.
 

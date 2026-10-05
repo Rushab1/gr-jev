@@ -4,7 +4,6 @@ Each test file gets a table with one row per tool list and per group of tool lis
 
 - examples: the examples that have every list of the group
 - answers, correct, CSR: one answer per example and list, and the percentage that is correct
-- 95% interval: the bootstrap interval of CSR over the examples
 - "None": the answers of "None"
 - confident, confident and wrong: the answers whose highest probability is at least CONFIDENT_PROBABILITY
 - probabilities at 0: the share of the returned probabilities that are 0.00
@@ -20,7 +19,7 @@ import argparse
 from collections.abc import Callable
 from pathlib import Path
 
-from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, JEV_DOLLARS_PER_MILLION_INPUT_TOKENS, LIST_LENGTHS
+from grjev.constants import CONFIDENT_PROBABILITY, JEV_DOLLARS_PER_MILLION_INPUT_TOKENS, LIST_LENGTHS
 from grjev.examples import read_jsonl
 from grjev.metrics import Figures, compared_groups, difference, figures, list_groups, list_names, row_groups
 from grjev.runs import Row, RunConfig
@@ -31,7 +30,6 @@ COLUMNS: dict[str, Callable[[Figures], str]] = {
     "answers": lambda found: f"{found.answers:,}",
     "correct": lambda found: f"{found.correct:,}",
     "CSR": lambda found: f"{found.csr:.1f}%",
-    "95% interval": lambda found: f"{found.low:.1f} to {found.high:.1f}",
     '"None"': lambda found: f"{found.none:,}",
     "confident": lambda found: f"{found.confident:,}",
     "confident and wrong": lambda found: f"{found.confident_wrong:,}",
@@ -73,14 +71,14 @@ def print_run(folder: Path) -> None:
         groups = list_groups(list_names(own), lengths)
         table = [["tool lists", *COLUMNS]]
         for group, lists in groups.items():
-            found = figures(own, lists, BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
+            found = figures(own, lists, CONFIDENT_PROBABILITY)
             table.append([group, *(cell(found) for cell in COLUMNS.values())])
         print(f"\n{name}")
         print_table(table)
         for comparison, (first, second) in compared_groups(groups, lengths).items():
-            points, low, high = difference(own, groups[first], groups[second], BOOTSTRAP_SEED)
+            points = difference(own, groups[first], groups[second])
             # Adding 0.0 turns a rounded -0.0 into 0.0.
-            print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points, 95% interval {low:.1f} to {high:.1f}")
+            print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points")
     print()
 
 

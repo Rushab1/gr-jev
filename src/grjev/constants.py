@@ -295,11 +295,6 @@ PLACEMENT_MAX_CORRECT = 2
 # Seed of the order of the distractors, and of which of two correct tools comes first.
 ORDER_SEED = 2026
 
-# A bootstrap interval resamples the examples this many times from this seed, and leaves this share of the resampled
-# means outside at each end, which gives a 95% interval.
-BOOTSTRAP_RESAMPLES = 2000
-BOOTSTRAP_SEED = 1
-INTERVAL_TAIL = Fraction(1, 40)
 # An answer counts as confident in the figures of a run when its highest probability is at least this. It is the
 # value at which arXiv 2609.26550 counts. Rushab has not decided the threshold.
 CONFIDENT_PROBABILITY = 0.9
