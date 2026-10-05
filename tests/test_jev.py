@@ -91,6 +91,15 @@ def test_an_error_status_raises_and_saves_nothing(fake: FakeJev, tmp_path: Path)
     assert list(tmp_path.rglob("*.json")) == []
 
 
+def test_a_response_of_an_unexpected_shape_raises_and_saves_nothing(
+    fake: FakeJev, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(jev, "post", lambda body: {"unexpected": True})
+    with pytest.raises(ValidationError):
+        jev.ask(request({"a": None, "b": None}))
+    assert list(tmp_path.rglob("*.json")) == []
+
+
 def test_a_missing_key_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(jev.JEV_KEY_ENV, raising=False)
     with pytest.raises(RuntimeError, match=jev.JEV_KEY_ENV):

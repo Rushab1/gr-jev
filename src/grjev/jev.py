@@ -111,9 +111,14 @@ def post(body: bytes) -> dict[str, Any]:
 def ask(request: JevRequest, run: int = 1) -> JevResponse:
     """Return Jev's response for this request and run number. The API is called only if that run is not saved."""
     body = request_body(request)
-    record = load_or_compute(
-        response_path(request, run), lambda: {"request": json.loads(body), "run": run, "response": post(body)}
-    )
+
+    def call() -> dict[str, Any]:
+        response = post(body)
+        # A response that does not validate is not saved, so the next call with this request asks Jev again.
+        JevResponse.model_validate(response)
+        return {"request": json.loads(body), "run": run, "response": response}
+
+    record = load_or_compute(response_path(request, run), call)
     return JevResponse.model_validate(record["response"])
 
 
