@@ -1,6 +1,6 @@
 # gr-jev
 
-Research code for a study of Jev, TypeSafe AI's decision model, as a tool and action selector. Background, prior work, datasets and the plan are in `docs/starter.md`.
+Research code for a study of Jev, TypeSafe AI's decision model, as a tool and action selector. Background, prior work and datasets are in `docs/starter.md`. The plan is in `docs/plan.md`.
 
 This file is the code standard for everyone who works here: Rushab, Gyanesh, and AI workers such as Claude Code and Codex.
 
@@ -26,8 +26,8 @@ docs/           project notes
 uv sync
 source .venv/bin/activate
 python scripts/download_data.py metatool stabletoolbench bfcl
-python scripts/process_data.py metatool
-python scripts/dataset_stats.py metatool
+python scripts/process_data.py metatool stabletoolbench bfcl
+python scripts/dataset_stats.py metatool stabletoolbench bfcl
 ```
 
 Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv.lock`, with the `grjev` package in editable mode. Packages are listed in `pyproject.toml`: the ones the code needs under `dependencies`, and `ruff`, `mypy` and `pytest` in the `dev` group. After changing them, run `uv lock` and commit `uv.lock`.
@@ -37,6 +37,10 @@ Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv
 Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_jev.py` makes one call to confirm the key works.
 
 The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off. `python scripts/check_frontier.py` makes one call per model.
+
+`python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position` and `length`, and `--examples-per-file` runs a seeded sample. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
+
+An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES`, `TWO_TOOL_TEST_FILES` and `LIST_LENGTHS` in `constants.py`.
 
 Run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit, and `pytest -m integration` after a change to the Claude bridge. The pre-commit config and the CI workflow are not added yet.
 
@@ -67,7 +71,7 @@ A plain `pytest` run uses no network. Tests marked `integration` call the live C
 
 - Pin every download to a commit or revision and check it against a SHA-256 hash stored in `constants.py`.
 - Never edit files in a `raw/` folder. Build everything in `processed/` with code.
-- Processed data has one row per example with the same fields for every dataset: `id`, `query`, `options`, `labels`, and `raw`, the row of the raw file unchanged. A converter loses no data, and a test on the downloaded files checks that every raw row and every character survives.
+- Processed data has one row per example with the same fields for every dataset: `id`, `query`, `options`, `labels`, and `raw`, the row of the raw file unchanged. When a dataset keeps the answer in a second file, `raw` holds both rows merged. A multi-turn example has one row per turn, and each row holds the whole raw row. `labels` is null when the answer is not one of the options. A converter loses no data, and a test on the downloaded files checks that every raw row and every character survives.
 - Every function that makes a random choice takes a seed or a generator as an argument. Do not call `random.seed` globally.
 - Save every response from Jev and from the frontier models under a hash of the exact request and a run number, and store the request and the model version with it. A rerun reads the saved files and calls nothing. A deliberate repeat of a request gets a new run number, so repeats are separate calls that can be compared. The hash covers only what is sent to the model, never the version of our code. For a Claude call it also covers the CLI version, the CLI arguments, the variables we set and the working folder. The CLI receives no other variable of our environment except the five listed in `constants.py`.
 - Pin the Jev model version. The current one is `jev-1.13.0`.

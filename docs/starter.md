@@ -1,10 +1,10 @@
 # Jev study: starter notes
 
-Last updated 2026-10-04. No experiments have been run.
+Last updated 2026-10-05. A subset of two experiments has been run on Jev. Its results are in `docs/plan.md`.
 
 ## Draft abstract
 
-Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the number of options, the position of the correct option, the order of the list, and the prompt format. The tasks are tool selection (MetaTool, ToolBench, and BFCL as a test-only set), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with two fine-tuned open models, one trained on MetaTool and one on ToolBench, and we test each fine-tuned model on the other benchmark. We compare Jev's errors with those of two frontier LLMs, Claude Sonnet 5 and Claude Opus 5, on the same examples. We report three properties of MetaTool's test files. The correct tool is at position 1 in all 995 examples of the similar-tools file, and the two correct tools are at positions 7 and 8 in all 497 examples of the multi-tool file. A rule that ignores the query scores 100% on both. The four files with tool lists hold 2,287 different queries in 4,287 examples. In 1,432 of the 3,292 examples with a correct tool (43.5%), the correct tool is one of 15 tools. We release a version with balanced positions. We also train a small student model from a fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
+Typed decision models return a probability for each option in a list supplied by the caller and generate no text. Jev, released by TypeSafe AI in September 2026, is used in agents to pick tools and interface elements. This paper measures how the option list affects that pick. We vary the position of the correct option and the number of options, and we report how often Jev gives a high probability to a wrong selection. The tasks are tool selection (MetaTool, ToolBench, and BFCL as a test-only set), web browsing (Mind2Web) and mobile device control (AndroidControl). We compare Jev with open-weight decision models and with two fine-tuned open models, one trained on MetaTool and one on ToolBench, and we test each fine-tuned model on the other benchmark. We compare Jev's errors with those of two frontier LLMs, Claude Sonnet 5 and Claude Opus 5, on the same examples. We report three properties of MetaTool's test files. The correct tool is at position 1 in all 995 examples of the similar-tools file, and the two correct tools are at positions 7 and 8 in all 497 examples of the multi-tool file. A rule that ignores the query scores 100% on both. The four files with tool lists hold 2,287 different queries in 4,287 examples. In 1,432 of the 3,292 examples with a correct tool (43.5%), the correct tool is one of 15 tools. We release a version with balanced positions. We also train a small student model from a fine-tuned model and report its accuracy and latency on a laptop. Results are not yet available.
 
 ## Status
 
@@ -13,10 +13,13 @@ Typed decision models return a probability for each option in a list supplied by
 - Datasets: MetaTool and ToolBench come first. BFCL is a test-only set. Mind2Web and AndroidControl are proposed and not confirmed. WebArena and OSWorld are backups for them.
 - GPU work runs on Google Colab.
 - The Jev key is read from `TYPESAFE_API_KEY`.
-- The code standard is in `AGENTS.md`. `docs/dashboard.html` records the datasets, the experiments and the decisions.
-- Built: downloads of MetaTool, StableToolBench and BFCL pinned to a commit, the Jev client, the Claude bridge, saved responses with run numbers, the common example format, the MetaTool converter, and dataset statistics drawn as charts on the dashboard.
-- Not built: the converters for StableToolBench and BFCL, the runner for open-weight models, and the experiment runner.
-- Calls made: one Jev call to check the key, and short Claude calls to check the bridge.
+- The code standard is in `AGENTS.md`. `docs/plan.md` holds the plan. `docs/dashboard.html` records the datasets, the experiments and the decisions.
+- Built: downloads of MetaTool, StableToolBench and BFCL pinned to a commit, the Jev client, the Claude bridge, saved responses with run numbers, the common example format, the converters for MetaTool, StableToolBench and BFCL, and dataset statistics drawn as charts on the dashboard.
+- Built: the experiment runner, `scripts/run_experiment.py`, with the experiments `position` and `length`.
+- Not built: the runner for open-weight models.
+- Next: the first run on MetaTool, described in `docs/plan.md`. It needs a higher limit on Jev calls.
+- `docs/findings/` holds a code review and a list of proposals from 2026-10-04, with a response to each. No fix from the review has been applied.
+- Calls made: 351 Jev calls, one to check the key and 350 for the subset of 2026-10-05, and short Claude calls to check the bridge.
 - Venue not chosen.
 
 ## Jev
@@ -32,7 +35,9 @@ Typed decision models return a probability for each option in a list supplied by
 | Request limits | 64k tokens per request. 32k for the state plus the longest question. 80 requests per second. |
 | Price | $0.042 per million input tokens. Output is free. |
 | Probability precision | Two decimals |
-| Determinism | No seed or temperature setting. Identical requests can return different answers. |
+| Determinism | No seed or temperature setting. Identical requests can return different answers. TypeSafe's parallel-questions cookbook reports run-to-run noise on 2 of 8 yes-or-no questions over 5 repeats. Its consistency cookbook reports Jev's label changing on 2 of 8 choice questions over 15 repeats, with a new id field in the state on each call. |
+| Several questions | "Every question in a request sees the same state, is evaluated independently" (TypeSafe documentation, Primitives page) |
+| Confidence | For a choice among n options, (top probability − 1/n) / (1 − 1/n). The saved check call returned probabilities 0.89, 0.11 and 0.00 and confidence 0.83. |
 | Access | TypeSafe API with a waitlist. Vercel AI Gateway lists `typesafe-ai/jev` at the same price. |
 
 The vendor's page on known weaknesses says: "In some cases, we observed that the order of a Choice's options can affect the answer, and `jev-1.13` leans toward the option that comes first." The same page lists arithmetic, counting, date comparison, multi-step questions and long states with unrelated content as weak areas.
@@ -45,44 +50,7 @@ The Master Customer Agreement, last updated 2026-09-23, section 2.3(b), says the
 
 ## Plan
 
-Question: how do the number of options, the position of the correct option, the order of the list, and the prompt format change what a decision model picks?
-
-| Stage | Work | Needs |
-|---|---|---|
-| 1 | MetaTool. Document the fixed positions, build a test set with balanced positions, and run Jev across number of options (2 to 199), position of the correct option, shuffled order, and prompt format. | Jev API key |
-| 2 | Open-weight decision models on the stage 1 grid | Local machine |
-| 3 | Two fine-tuned open decision models, one trained on MetaTool's 20,614 queries and one on ToolBench's training set. Each is tested on both benchmarks. | Colab |
-| 4 | A smaller grid on ToolBench, Mind2Web and AndroidControl | Jev API key |
-| 5 | A small student model trained from a stage 3 model. The baseline is a student trained on the labels. Jev is a comparison point. | Colab and local machine |
-
-Nothing is trained on Jev output, because of the terms above.
-
-Measurements: accuracy, calibration, share of answers that change when the list is reordered, share that change on an identical repeat, latency, and cost.
-
-### Fine-tuning and transfer
-
-Decided on 2026-10-04.
-
-| Model | MetaTool test files | ToolBench test files |
-|---|---|---|
-| Jev | No training | No training |
-| Open model, not fine-tuned | No training | No training |
-| Open model fine-tuned on MetaTool | In-domain | Transfer |
-| Open model fine-tuned on ToolBench | Transfer | In-domain |
-
-No model is trained on both sets.
-
-Metrics. The four MetaTool tool-selection files are scored with accuracy, which the MetaTool paper calls the Correct Selection Rate. Tool awareness is scored with accuracy, precision, recall and F1. ToolBench queries have 1 to 6 relevant APIs. The ToolBench score is precision, recall and F1 if the model selects a set, or accuracy if each list is built with one relevant API. This is not decided.
-
-Training data. The MetaTool model trains on `dataset/data/all_clean_data.csv` with the test queries removed. 993 of the 995 similar-tools queries and 1,797 of the 1,800 scenario queries are rows of that file. The ToolBench model trains on ToolBench's training set. ToolBench's six test files hold out queries, tools or RapidAPI categories from that training set.
-
-Limit. MetaTool's tools are ChatGPT plugins from 2023. ToolBench's APIs were collected from RapidAPI in 2023, and StableToolBench reports that 44.4% of its calls to them succeeded. The fine-tuned models and the student are baselines on these two benchmarks. The paper makes no claim from them about current tools. BFCL (ICML 2025, 573 citations on Semantic Scholar on 2026-10-04) was chosen on 2026-10-04 as a test-only set. No model is trained on it.
-
-An audit of the first 28 Jev papers (arXiv 2609.32160) gives a 14-item evaluation checklist. The items that apply here are a baseline that reads label probabilities from an ordinary open model, a model trained on the task, confidence intervals, repeated runs, a pinned model version, and thresholds fixed before evaluation. The audit found that 21 of 27 papers had no label-probability baseline and 12 of 27 reported no confidence intervals or significance tests.
-
-### Jev as a co-pilot
-
-Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM on difficult tasks? The frontier LLM proposes each function call and Jev checks the choice of function before the call runs. The first measurement is a four-way count on the same examples: both correct, only the LLM wrong, only Jev wrong, both wrong, with whether both select the same wrong function. This is a parallel study to REFLEX (arXiv 2609.26532), in which Jev decides first and a strong LLM is the fallback. The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off. Codex is left out, because with tools switched off it still sends the model one tool definition. Not decided: which tasks count as difficult, how token cost is counted, and whether trajectories are run end to end.
+The plan is in `docs/plan.md`: the stages, the design of each experiment, the measures and the open items.
 
 ## MetaTool: fixed positions of the correct tool
 
@@ -99,7 +67,7 @@ The cause is in `src/prompt/prompt_construction.py`. The similar-tools candidate
 
 The scenario subtask uses 9 distinct candidate lists. Each tool keeps the same position in its list for every query.
 
-`baibizhe/jev-decision-benchmarks` noted the fixed positions in a Chinese-language report dated 2026-09-19 and stated that it ran no order-randomisation test. Its Jev scores on the original order were 77.79% on similar tools, 87.04% on reliability, and 81.29% and 88.33% on the two multi-tool conditions. We found no MetaTool GitHub issue and no arXiv paper that reports the fixed positions.
+`baibizhe/jev-decision-benchmarks` noted the fixed positions in a Chinese-language report dated 2026-09-19 and stated that it ran no order-randomisation test. Its Jev scores on the original order were 77.79% on similar tools, 87.04% on reliability, and 81.29% and 88.33% on the two multi-tool conditions. arXiv 2608.13959 (Lee, 2026-08-14) reports the similar-tools position: "the candidate list is ordered rather than shuffled, with the gold tool first in all 995 Subtask1 rows". It cites a note by the same author, "The answer is always first", as in preparation, and says the note moves the correct tool through all ten positions on four models. No copy of the note was found on arXiv or GitHub on 2026-10-04. The paper does not mention the multi-tool file. The 12 issues and pull requests of `HowieHwong/MetaTool` have no title about tool order.
 
 ## MetaTool: repeated queries and uneven tool counts
 
@@ -125,6 +93,29 @@ Other measurements:
 - A rule that selects the tool whose name and description share the most words with the query scores 47.9% on the similar-tools file and 43.2% on the scenario file. Stop words are ignored and ties are split evenly.
 - In the multi-tool file the descriptions of the correct tools have a mean of 21.1 words, and those of the distractors 13.8.
 
+## ToolBench and BFCL: lists without a distractor, and rules that use no model
+
+Measured on StableToolBench's six test files (765 examples), BFCL's 13 single-turn files (3,641 examples) and BFCL's 4 multi-turn files (3,336 turns, each counted as one example). BFCL's agentic files, `web_search` (100 examples) and `memory` (155 examples on three memory backends), are answered in text and store no function as the label. The rules are scored on the examples whose list has a correct entry and a distractor, and a rule scores when the entry it selects is correct.
+
+| Measurement | StableToolBench | BFCL, single-turn | BFCL, multi-turn |
+|---|---|---|---|
+| Examples where every entry in the list is correct | 196 of 765 | 1,207 of 3,641 | 0 of 3,336 |
+| Examples with no correct entry | 0 | 1,124 | 412 |
+| Examples whose label is not a function | 0 | 16, in `live_relevance` | 0 |
+| Examples with a correct entry and a distractor | 569 | 1,294, of which 1,053 are in `live_multiple` and 200 in `multiple` | 2,924, 731 in each file |
+| Random choice | 38.9% to 49.5% by file | 38.4% on `multiple`, 30.2% on `live_multiple` | 5.7% to 5.8% by file |
+| Answering one position every time, best position | 45.7% to 61.7% by file | 36.5% on `multiple`, 36.0% on `live_multiple` | 12.9% to 14.0% by file |
+| Word-overlap rule | 75.8% to 88.9% by file | 94.2% on `multiple`, 70.1% on `live_multiple` | 34.6% to 45.4% by file |
+
+- StableToolBench: the API at position 1 is relevant in 484 of the 765 lists (63%), the API at position 5 in 139 of 404 (34%), and the API at position 10 in 22 of 96 (23%).
+- StableToolBench: the 61 examples of `G3_instruction` use 7 tools and 44 APIs. The other five files use 88 to 330 tools each.
+- StableToolBench: 224 of the 2,490 APIs have a blank description.
+- BFCL: 339 of the 1,998 function names have more than one description, up to 30 for `get_current_weather`.
+- BFCL: in 653 of the 1,053 examples of `live_multiple`, the correct function has a name of the form `Service_N_Intent`, such as `Movies_3_FindMovies`.
+- BFCL multi-turn: a turn's list holds 15 to 39 functions, and its ground truth calls 0 to 7 different functions. 203 turns of `multi_turn_miss_func` and 203 of `multi_turn_miss_param` have no call.
+- BFCL multi-turn: in `multi_turn_miss_func_49` the ground truth of the second turn calls `tail`, which the row withholds until the fourth turn.
+- BFCL parameter values: the 2,501 single-turn examples with a ground truth have 10,193 accepted parameter values. 63.3% are in the query, 8.3% are true or false, 5.9% are listed in the function's schema, 11.2% may be left out, 2.6% are in the description of the function or of the parameter or are the parameter's default, and 8.8% are none of these. In 1,848 of the 2,501 examples (73.9%) no value has to be rewritten. Of the 892 values that do, 269 are dates or times in a fixed format, 230 are numbers that are not in the query as digits, and 157 are place names with a part added.
+
 ## Prior work
 
 A search of arXiv on 2026-10-03 found 76 papers posted since 2026-09-19 that mention Jev or System One models in the title or abstract. Appendix A lists them. None is peer reviewed. The tables below give the results closest to this study.
@@ -144,6 +135,36 @@ A search of arXiv on 2026-10-03 found 76 papers posted since 2026-09-19 that men
 | arXiv 2609.26758 | Renaming two options from 0/1 to no/yes changed the hosted model's AUC from .8146 to .5806. |
 | arXiv 2610.00346 | Swapping yes and no flipped 50.5 answers per hundred for Jev. |
 | arXiv 2610.00831 | For open models on two 20-option tasks, averaging over rotations of the list cut the order-flip rate from 0.33 to 0.14 and from 0.33 to 0.18. |
+
+### Position and order: methods in prior work
+
+Checked on 2026-10-04.
+
+| Work | List | How the order is varied | Measure |
+|---|---|---|---|
+| Liu et al., "Lost in the Middle" (TACL 2024) | 10, 20 or 30 documents | The correct document is placed at chosen positions, such as 1, 5, 10, 15 and 20 of 20 | Accuracy at each position |
+| RAG-MCP (arXiv 2505.03275) | 1 to 11,100 tools | The correct tool is placed from the top to the bottom of the list | Selection success by position and list length |
+| BiasBusters (arXiv 2510.00307) | 5 tools | 5 cyclic rotations, each tool first once | Half the sum of the gaps between each position's share of selections and 1/5 |
+| Baker et al. (arXiv 2412.10079) | 20 documents, 2 to 4 of them evidence | 5 adjacent placements and 3 or 4 separated placements | Score at each placement. Higher when the evidence documents are adjacent. |
+| Levy et al., FLenQA (arXiv 2402.14848) | 2 key paragraphs in padding text | Adjacent at first, middle and last, and one setting with random gaps | Accuracy in each setting. Higher when the paragraphs are adjacent. |
+| Tian et al., LongPiBench (ACL Findings 2025, arXiv 2410.14641) | About 10 relevant pieces in 32K to 256K tokens | The position of the pieces and the distance between them | Recall. It falls 20 to 30% as the distance grows. |
+
+These six test LLMs. arXiv 2407.03007, a study of the stability of tool learning, was returned by the search and not read. None of the works in this table or the table above measures a decision model's position effect on a tool-selection benchmark at several list lengths.
+
+### How later papers report on MetaTool
+
+A check on 2026-10-04 used Semantic Scholar's list of 240 papers that cite MetaTool, read the full text of 35, and confirmed 22 that evaluate on MetaTool data. 183 of the 240 have no citation sentence that names MetaTool, and 6 of those were read.
+
+| Use of MetaTool | Papers | Reported |
+|---|---|---|
+| The 199 tools as a tool-retrieval corpus | 11 | nDCG@k and Recall@k with k of 1, 5 or 10, on splits made by each paper. Examples: Re-Invoke (EMNLP Findings 2024), ToolRet (ACL 2025). |
+| LLMs on the released tool-selection files | 5 | "Accuracy" per file, on the full files or a subsample. PA-Tool (ACL 2026, arXiv 2510.07248) runs the four files, 4,287 examples, with the released few-shot prompt. |
+| The tools as a library for an attack on tool selection | 2 | Attack success rate. ToolHijacker (NDSS 2026), ToolFlood (arXiv 2603.13950). |
+| Other uses | 4 | Tool awareness with "decision accuracy" (MeCo, ACL 2025), tool planning, and single scores |
+
+No paper whose setup could be verified reports separate zero-shot and five-shot columns. No paper found shuffles MetaTool's tool lists and reports the change. No paper found runs Jev or an open-weight decision model on MetaTool. `baibizhe/jev-decision-benchmarks` runs Jev on the released order.
+
+The MetaTool paper reports CSR per file, zero-shot and five-shot. For multi-tool with the prompt "choose zero, one or two tools" it reports 2/2 CSR, 1/1 CSR and 1/2 CSR, and with the prompt "choose two tools" one CSR.
 
 ### Tool selection and agents
 
@@ -262,14 +283,14 @@ OSWorld. Jev needs a planner model and a text view of the screen to act in it.
 |---|---|---|
 | Hosted decision model | Jev `jev-1.13.0` | API |
 | Second hosted decision model, optional | Liquid d1 | API |
-| Open decision models without task training | `Mapika/decider-2b` (285,776 Hugging Face downloads), Laya 421M, one 4B model to be chosen | Local machine |
+| Open decision models without task training | `Mapika/decider-2b` (1.88 billion parameters, Apache-2.0, 262,144-token context, 295,509 Hugging Face downloads on 2026-10-04), `convaiinnovations/laya` (421 million parameters, Apache-2.0, context length not verified), one 4B model to be chosen | Local machine |
 | Open model without decision training | To be chosen. Read through the probabilities of the option labels. | Local machine |
 | Fine-tuned | Two open decision models, one fine-tuned on MetaTool's 20,614 queries and one on ToolBench's training set | Colab |
 | Released fine-tuned Mind2Web baselines | `osunlp/MindAct_ActionPrediction_flan-t5-base`, `-large`, `-xl`, and `osunlp/MindAct_CandidateGeneration_deberta-v3-base` | Local machine |
 | Student | A smaller model trained from a fine-tuned model | Colab for training, local machine for latency |
 | Frontier LLMs | Claude Sonnet 5 and Claude Opus 5, with thinking and tools switched off | Claude Code CLI with the machine's sign-in |
 
-Licences of the open models have not been checked. Each open model has its own input format.
+`Mapika/decider-0.8b` (752 million parameters) and `heman10x/rlcd-modernbert-151m` (151 million parameters) are also Apache-2.0. Licences of the other open models have not been checked. Each open model has its own input format.
 
 ## Cost of one Jev pass
 
@@ -288,7 +309,7 @@ Price: $0.042 per million input tokens.
 
 The Mind2Web rates come from `hosamsh/jev-mind2web`: $0.08 per 1,000 steps at 50 candidates and $0.68 per 1,000 steps with the full page. That run paid $3.50 to $7.38 per 1,000 steps for GPT-5.4.
 
-The grid repeats each example across positions and list sizes. Ten positions and six list sizes multiply the cost of a pass by 60.
+The grid repeats each example across placements and list lengths. Five placements and five list lengths multiply the number of tool lists by 25, and longer lists have more tokens.
 
 ## Constraints
 
@@ -300,21 +321,6 @@ The grid repeats each example across positions and list sizes. Ten positions and
 ## Venues
 
 Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the ECIR 2027 reproducibility track (12 October) and AGENT '27 at ICSE (13 November). These deadlines come from those notes and have not been checked.
-
-## Open items
-
-- Confirm Mind2Web and AndroidControl.
-- Decide the grid: list lengths, how positions are grouped, the number of shuffled orders, which distractors are added, and which prompt formats are compared.
-- Decide how a ToolBench example is posed to the model, and its metric.
-- Decide which BFCL test files are used, and how a BFCL example is posed to the model.
-- Decide whether accuracy is also reported per tool, and whether a repeated query counts once.
-- Decide last whether fine-tuning stays in the paper.
-- Decide which fine-tuned model trains the student.
-- Decide whether the MetaTool fine-tuning holds out some tools.
-- Choose the open models and check their licences.
-- Measure AndroidControl's steps per episode and accessibility-tree size.
-- Decide whether to ask TypeSafe for permission to train on Jev output.
-- Choose a venue.
 
 ## Sources
 
@@ -330,6 +336,15 @@ Not chosen. Earlier project notes list WLLFM at IEEE BigData (26 October), the E
 - WebArena: arXiv 2307.13854
 - WebArena Verified: https://servicenow.github.io/webarena-verified/v1.2.3/
 - OSWorld: arXiv 2404.07972
+- Liu et al., "Lost in the Middle: How Language Models Use Long Contexts", TACL 2024
+- RAG-MCP: arXiv 2505.03275
+- BiasBusters: arXiv 2510.00307
+- Baker et al., "Lost in the Middle, and In-Between": arXiv 2412.10079
+- Levy et al., "Same Task, More Tokens" (FLenQA): arXiv 2402.14848
+- Tian et al., LongPiBench: arXiv 2410.14641, ACL Findings 2025
+- "JEV-as-a-Judge: Accept When Confident, Escalate When Unsure": arXiv 2609.26550
+- "Repair, Not Improvement: Decomposing Constrained Decoding in Tool-Call Abstention": arXiv 2608.13959
+- PA-Tool: arXiv 2510.07248
 - https://github.com/baibizhe/jev-decision-benchmarks
 - https://github.com/kachar/jev-tool-search
 - https://github.com/hosamsh/jev-mind2web
