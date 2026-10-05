@@ -1217,7 +1217,7 @@
       </div>
       <p>The score is the plain CSR: the percentage of examples with a correct selection, as published results on MetaTool compute it.</p>
       <p>MetaTool's uneven counts are reported as a property of MetaTool and are not corrected in the score. <code>TripTool</code> is the correct tool in 85 of the 2,795 examples of the similar-tools and scenario files, and <code>ShoppingAssistant</code> in 5.</p>
-      <p>No margin of error is computed at this stage. How margins of error are computed for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools. Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.</p>
+      <p>Margins of error are reported in the final paper and not at this stage. <code>src/grjev/metrics.py</code> computes one from the saved answers, and the method for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools. Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.</p>
       <p>Jev returns probabilities with two decimals. <code>123Satyajeet123/jev-wide</code> reports that with 200 candidates 95.8% of the returned probabilities were 0.00.</p>
 
       <h2>Confidently wrong answers</h2>
@@ -1382,7 +1382,7 @@
     <section role="tabpanel" data-panel="results" hidden>
       <p>On 2026-10-05 Jev answered a sample of MetaTool: 50 examples from each of the four test files with a tool list, and 50 queries with lists of 5 to 199 tools. The sample took 350 calls and cost $0.16.</p>
       <p>The position of the correct tool did not change Jev's score. The length of the list did: CSR fell from 85.6% with 5 tools to 72.8% with 199 tools. For a query that needs two tools, the wording of the instruction changed CSR by 14.2 points.</p>
-      <p>Each figure comes from 50 examples of a test file, or from 50 queries. No margin of error is computed at this stage.</p>
+      <p>Each figure comes from 50 examples of a test file, or from 50 queries, and is given without a margin of error.</p>
 
       <h2>Position</h2>
       <p>Each example was sent with its tool list in the released order, and with the correct tool at 5 positions of the list: first, 25%, 50%, 75% and last.</p>
@@ -1537,7 +1537,7 @@
         <li><span class="txt">A small subset of every experiment is run before one experiment on every example. The first subset ran on 2026-10-05.</span></li>
         <li><span class="txt">Both wordings of the instruction for two tools are kept, "Choose one of them." and "Choose both.", and the difference between them is reported as a finding.</span></li>
         <li><span class="txt">The runs on every example wait.</span></li>
-        <li><span class="txt">Insights come first. Supporting statistics, such as margins of error, are added for the final paper, and no margin of error is computed at this stage.</span></li>
+        <li><span class="txt">Insights come first. Supporting statistics, such as margins of error, are reported in the final paper. No extra run is made for them at this stage, and the code that computes a margin of error from the saved answers stays.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
         <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 360 since 2026-10-05.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>

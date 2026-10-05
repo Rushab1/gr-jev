@@ -19,7 +19,7 @@ The three open points of the code review in `docs/findings/review_2026-10-04.md`
 
 ## Subset of 2026-10-05
 
-350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample of 50 examples of a test file, or of 50 queries. No margin of error is computed at this stage. `python scripts/results_figures.py` prints the figures from a results folder, with the code in `src/grjev/metrics.py`.
+350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample of 50 examples of a test file, or of 50 queries, and is given here without a margin of error. `python scripts/results_figures.py` prints the figures from a results folder, each CSR with a margin of error computed from the saved answers. The code is in `src/grjev/metrics.py`.
 
 The results folders are `results/metatool_position/2026-10-05_04` and `2026-10-05_05`, and `results/metatool_length/2026-10-05_02`. They were written on 2026-10-05 from the saved responses, with 0 new Jev calls, at commit `fc0b930`, which holds the runner. The folders `2026-10-05_02` and `2026-10-05_03` of the position runs and `2026-10-05_01` of the length run hold the same rows and were written before the runner was committed. `results/metatool_position/2026-10-05_01` is a trial with 1 example per test file. Results folders are not in git.
 
@@ -75,7 +75,7 @@ Decided by Rushab on 2026-10-04.
 - A repeat run, a control or a second variant is added when a result needs it, such as a difference that is not statistically separable.
 - Run-to-run noise changes answers at random and does not favour a position. A difference in CSR between two positions that is larger than its confidence interval needs no repeat run.
 - Each proposed run states its claim and its cost.
-- Insights come first. Supporting statistics, such as margins of error, are added for the final paper. Rushab decided this on 2026-10-05, and no margin of error is computed at this stage.
+- Insights come first. Supporting statistics, such as margins of error, are reported in the final paper. No extra run is made for them at this stage. Rushab decided this on 2026-10-05. The code that computes a margin of error from the saved answers stays in `src/grjev/metrics.py`.
 - An alternative that is not run is kept as a spare, in one line.
 - A small subset of every experiment is run before one experiment on every example. Rushab decided this on 2026-10-05.
 
@@ -203,7 +203,7 @@ The score is the plain CSR: the percentage of examples with a correct selection,
 
 MetaTool's uneven counts are reported as a property of MetaTool and are not corrected in the score. `TripTool` is the correct tool in 85 of the 2,795 examples of the similar-tools and scenario files, and `ShoppingAssistant` in 5.
 
-No margin of error is computed at this stage. How margins of error are computed for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools.
+Margins of error are reported in the final paper and not at this stage. `src/grjev/metrics.py` computes one from the saved answers, and the method for the final paper is not decided. The similar-tools file has 199 different tool lists, the scenario file has 9, and the multi-tool file has 15 different correct tools.
 
 ## Confidently wrong answers
 
