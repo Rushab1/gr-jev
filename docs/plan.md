@@ -15,11 +15,13 @@ A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
-Three points of the code review in `docs/findings/review_2026-10-04.md` are not applied: validating a Jev response before it is saved (finding 2), naming `--effort low` in the documents (finding 4), and the decision on whether the two check scripts make a new call on every run (finding 3).
+The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3), and one run of `scripts/check_jev.py` uses 1 Jev call of the limit.
 
 ## Subset of 2026-10-05
 
-350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample, and the intervals are 95% bootstrap intervals over examples. The results folders are `results/metatool_position/2026-10-05_02` and `2026-10-05_03`, and `results/metatool_length/2026-10-05_01`. They are not in git.
+350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample, and the intervals are 95% bootstrap intervals over examples, with 2,000 resamples from seed 1. `python scripts/results_figures.py` prints the figures from a results folder, with the code in `src/grjev/metrics.py`.
+
+The results folders are `results/metatool_position/2026-10-05_04` and `2026-10-05_05`, and `results/metatool_length/2026-10-05_02`. They were written on 2026-10-05 from the saved responses, with 0 new Jev calls, at commit `fc0b930`, which holds the runner. The folders `2026-10-05_02` and `2026-10-05_03` of the position runs and `2026-10-05_01` of the length run hold the same rows and were written before the runner was committed. `results/metatool_position/2026-10-05_01` is a trial with 1 example per test file. Results folders are not in git.
 
 | Run | Command | Examples | Tool lists | Jev calls |
 |---|---|---|---|---|
@@ -325,7 +327,6 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 - Confirm the instruction for one tool and the description of the "None" candidate.
 - Decide the list lengths of the later runs.
 - Decide the threshold for a confidently wrong answer and the accept-or-escalate design.
-- Decide whether the two check scripts make a new call on every run (finding 3 of the code review).
 - Decide how a ToolBench example is posed to the model, and its metric.
 - Decide which BFCL test files are used, and how a BFCL example is posed to the model.
 - Decide last whether fine-tuning stays in the paper.

@@ -2,6 +2,8 @@
 
 Written by Claude Code on 2026-10-04, in the session that wrote the reviewed code. Each finding of `review_2026-10-04.md` was checked against the working tree. No code and no document was changed for a finding.
 
+Update of 2026-10-05: the fixes described below for findings 2, 3 and 4 are applied. Finding 3 uses the review's proposal, a new call on every run.
+
 | # | Finding | Verdict |
 |---|---|---|
 | 1 | `read_jsonl` cannot read a row that holds U+2028, U+2029 or U+0085 | Accepted. Rushab's decision of no fix stands. |

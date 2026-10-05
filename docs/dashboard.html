@@ -1493,15 +1493,15 @@
         <table>
           <thead><tr><th>Run</th><th class="num">Examples</th><th class="num">Tool lists</th><th class="num">Jev calls</th><th class="num">Input tokens</th><th>Results folder</th></tr></thead>
           <tbody>
-            <tr><th>Position</th><td class="num">200</td><td class="num">1,100</td><td class="num">200</td><td class="num">502,849</td><td><code>results/metatool_position/2026-10-05_02</code></td></tr>
-            <tr><th>Position, multi-tool with "Choose both."</th><td class="num">50</td><td class="num">450</td><td class="num">50</td><td class="num">180,798</td><td><code>results/metatool_position/2026-10-05_03</code></td></tr>
-            <tr><th>List length</th><td class="num">50</td><td class="num">1,500</td><td class="num">100</td><td class="num">3,193,788</td><td><code>results/metatool_length/2026-10-05_01</code></td></tr>
+            <tr><th>Position</th><td class="num">200</td><td class="num">1,100</td><td class="num">200</td><td class="num">502,849</td><td><code>results/metatool_position/2026-10-05_04</code></td></tr>
+            <tr><th>Position, multi-tool with "Choose both."</th><td class="num">50</td><td class="num">450</td><td class="num">50</td><td class="num">180,798</td><td><code>results/metatool_position/2026-10-05_05</code></td></tr>
+            <tr><th>List length</th><td class="num">50</td><td class="num">1,500</td><td class="num">100</td><td class="num">3,193,788</td><td><code>results/metatool_length/2026-10-05_02</code></td></tr>
             <tr><th>Total</th><td class="num">300</td><td class="num">3,050</td><td class="num">350</td><td class="num">3,877,435</td><td></td></tr>
           </tbody>
         </table>
       </div>
       <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
-      <p>The examples of each sample are drawn with seed 2026. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
+      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder, and an interval takes 2,000 resamples of the examples from seed 1. The three folders were written from the saved responses at commit <code>fc0b930</code>. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
     <!-- ============================== Decisions ============================== -->
@@ -1540,6 +1540,7 @@
         <li><span class="txt">The runs on every example wait.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
         <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 360 since 2026-10-05.</span></li>
+        <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
         <li><span class="txt">Processed data has one row per example with the same fields for every dataset: id, query, options, labels, and the raw row unchanged. A multi-turn BFCL example has one row per turn.</span></li>
@@ -1566,7 +1567,6 @@
         <li><span class="txt">Placement when an example has three or more correct tools: 176 examples in StableToolBench and 322 in BFCL. Baker et al. place 3 or 4 evidence documents adjacent at 5 positions, plus 3 or 4 separated placements.</span></li>
         <li><span class="txt">Lists under 5 tools that have a correct tool and a distractor: 169 examples in StableToolBench and 934 in BFCL. The placement rule starts at 5 tools.</span></li>
         <li><span class="txt">Placement when the correct tools fill more than half of the list, such as 4 relevant APIs in a list of 5. The 5 positions give fewer than 5 different orders.</span></li>
-        <li><span class="txt">Whether <code>check_jev.py</code> and <code>check_frontier.py</code> make a new call on every run. They read the saved response after their first run.</span></li>
         <li><span class="txt">Which open-weight models are compared, and which one is fine-tuned</span></li>
         <li><span class="txt">How a ToolBench example is posed to the model, and its metric</span></li>
         <li><span class="txt">Which BFCL test files are used, and how a BFCL example is posed to the model</span></li>

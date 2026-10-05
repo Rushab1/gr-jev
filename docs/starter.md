@@ -16,9 +16,10 @@ Typed decision models return a probability for each option in a list supplied by
 - The code standard is in `AGENTS.md`. `docs/plan.md` holds the plan. `docs/dashboard.html` records the datasets, the experiments and the decisions.
 - Built: downloads of MetaTool, StableToolBench and BFCL pinned to a commit, the Jev client, the Claude bridge, saved responses with run numbers, the common example format, the converters for MetaTool, StableToolBench and BFCL, and dataset statistics drawn as charts on the dashboard.
 - Built: the experiment runner, `scripts/run_experiment.py`, with the experiments `position` and `length`.
+- Built: `scripts/results_figures.py`, which prints the figures of a run from its results folder, with 95% bootstrap intervals.
 - Not built: the runner for open-weight models.
 - Next: the first run on MetaTool, described in `docs/plan.md`. It needs a higher limit on Jev calls.
-- `docs/findings/` holds a code review and a list of proposals from 2026-10-04, with a response to each. No fix from the review has been applied.
+- `docs/findings/` holds a code review and a list of proposals from 2026-10-04, with a response to each. Findings 2, 3 and 4 of the review were applied on 2026-10-05.
 - Calls made: 351 Jev calls, one to check the key and 350 for the subset of 2026-10-05, and short Claude calls to check the bridge.
 - Venue not chosen.
 
