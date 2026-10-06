@@ -1173,7 +1173,7 @@
       </div>
       <p>The adjacent pair starts at 1 + q × (N − 2). In MetaTool's multi-tool file as released, the two correct tools are adjacent at positions 7 and 8 in 497 of 497 examples. One of them is the query "I want to know the latest news about Tesla and how it has impacted the stock market.", with the correct tools <code>NewsTool</code> and <code>FinanceTool</code>.</p>
       <p>The rule follows Baker et al. (arXiv 2412.10079). They place 2, 3 or 4 evidence documents among 20 documents: 5 placements with the evidence documents adjacent, and 3 or 4 placements with distractor documents between them. They report higher scores when the evidence documents are adjacent. The same rule is used for MetaTool, ToolBench and BFCL.</p>
-      <p>For a multi-tool example Jev's answer is the two tools with the highest probabilities of one question. The example is correct when they are the two correct tools. A tie for second place counts as a miss, and the ties are counted.</p>
+      <p>For a multi-tool example Jev's answer is the two tools with the highest probabilities of one question. The example is correct when they are the two correct tools. When several tools share the second-highest probability, Jev has named no second tool. That counts as a miss, and these cases are counted.</p>
       <p>Rotating the list was considered and dropped. A rotation puts every tool at every position once, and a list of 199 tools would need 199 orders.</p>
 
       <h2>The "None" answer</h2>
@@ -1267,7 +1267,7 @@
             <tr><th>The most similar tools as added distractors</th><td>Whether a longer list lowers CSR more when the added tools are similar to the correct tool</td><td>Random distractors do not show the claim</td><td>44,750 tool lists at 5 lengths, about $2.40</td></tr>
             <tr><th>A second run of identical requests</th><td>How much of a change between two orders is run-to-run noise</td><td>A difference is not statistically separable, or the share of examples whose selection changes between placements is reported</td><td>The first run again: 26,711 tool lists, about $0.50</td></tr>
             <tr><th>Prompt formats</th><td>Whether the selection changes when the same query and tools are written differently, such as a candidate labelled with the tool name or with an id</td><td>Rushab, 2026-10-04: "not really required just yet"</td><td>About 18,000 tool lists and $0.45 for each added format at 10 tools</td></tr>
-            <tr><th>A second question for a multi-tool example, with the first selected tool removed</th><td>The second tool, when one question leaves a tie for second place</td><td>Ties for second place are common in the first run</td><td>4,473 tool lists, about $0.11</td></tr>
+            <tr><th>A second question for a multi-tool example, with the first selected tool removed</th><td>The second tool, when several tools share the second-highest probability of one question</td><td>Such ties are common in the first run</td><td>4,473 tool lists, about $0.11</td></tr>
             <tr><th>CSR averaged over tools</th><td>Whether the score comes mostly from the tools with the largest number of examples</td><td>Jev scores differently on those tools in the first run</td><td>No run</td></tr>
             <tr><th>Jev's probabilities averaged over the placements</th><td>Whether averaging removes a position effect</td><td>A position effect is found</td><td>No run</td></tr>
           </tbody>
@@ -1441,13 +1441,17 @@
       <p>A multi-tool query has two correct tools, and a Jev question returns one selection. Jev's answer is read as its two tools with the highest probabilities. The 50 multi-tool examples were sent twice, with two wordings of the instruction. Both begin "Two tools in the list are appropriate to solve the user's query."</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>The instruction ends</th><th class="num">Both correct tools are Jev's top two</th><th class="num">Tie for second place</th><th class="num">Jev's own selection is a correct tool</th></tr></thead>
+          <thead><tr><th>Outcome of an answer</th><th class="num">"Choose one of them."</th><th class="num">"Choose both."</th></tr></thead>
           <tbody>
-            <tr><th>"Choose one of them."</th><td class="num">314 of 450 (69.8%)</td><td class="num">66 of 450</td><td class="num">445 of 450 (98.9%)</td></tr>
-            <tr><th>"Choose both."</th><td class="num">378 of 450 (84.0%)</td><td class="num">12 of 450</td><td class="num">444 of 450 (98.7%)</td></tr>
+            <tr><th>Both correct tools are the top two</th><td class="num">314 (69.8%)</td><td class="num">378 (84.0%)</td></tr>
+            <tr><th>Only top tool is correct, second tool is wrong</th><td class="num">66</td><td class="num">54</td></tr>
+            <tr><th>Only top tool is correct, second place is a tie that includes the other correct tool</th><td class="num">66</td><td class="num">12</td></tr>
+            <tr><th>Top tool is wrong</th><td class="num">4</td><td class="num">6</td></tr>
+            <tr class="total"><th>Total</th><td class="num">450</td><td class="num">450</td></tr>
           </tbody>
         </table>
       </div>
+      <p>The top tool is the one with Jev's highest probability. Jev returns probabilities with two decimals. In a tie, several tools share the second-highest probability, and the other correct tool is always one of them. In 57 of the 66 ties with "Choose one of them.", every tool but the top one has 0.00. A tie counts as a miss.</p>
       <p>The two wordings differ in the second tool. Both are kept, and the difference of 14.2 points is reported as a finding.</p>
       <div class="tablewrap wrap">
         <table>
@@ -1527,7 +1531,7 @@
         <li><span class="txt">A run is in the plan only if it proves a claim of the paper. The simplest run is run first, and a repeat run, a control or a second variant is added when a result needs it.</span></li>
         <li><span class="txt">The first run sends every example of MetaTool's four test files with a tool list in the released order, and every example with a correct tool at 5 positions. A multi-tool example is sent with both wordings of the instruction for two tools. That is 26,711 tool lists in 4,784 requests.</span></li>
         <li><span class="txt">"None" is always the last candidate. No run puts it first.</span></li>
-        <li><span class="txt">For a multi-tool example Jev's answer is its two highest-probability tools from one question. A tie for second place counts as a miss.</span></li>
+        <li><span class="txt">For a multi-tool example Jev's answer is its two highest-probability tools from one question. When several tools share the second-highest probability, the example counts as a miss.</span></li>
         <li><span class="txt">The distractors of an example keep one seeded order in every placement.</span></li>
         <li><span class="txt">Longer lists get plain random distractors. The most similar tools are run only if random distractors do not show the claim.</span></li>
         <li><span class="txt">A longer list is built from one seeded order of the other 198 tools and contains every shorter list of the same query.</span></li>

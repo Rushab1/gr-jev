@@ -42,14 +42,18 @@ Position, 50 examples per test file:
 - "None" is selected in 27 of 300 answers on similar tools (9.0%) and in 24 of 300 on scenario (8.0%), where it is wrong, and in 43 of 50 on reliability (86%), where it is correct. The similar-tools and reliability samples hold the same 50 queries.
 - Confidently wrong. Of the answers with a top probability of 0.9 or more, 14 of 176 are wrong on similar tools (8.0%), 16 of 201 on scenario (8.0%) and 2 of 34 on reliability (5.9%). They are 20%, 30% and 29% of the wrong answers of each file.
 
-Multi-tool, the same 50 examples with two wordings of the instruction, 450 tool lists each:
+Multi-tool, the same 50 examples with two wordings of the instruction, 450 tool lists each. Both wordings begin "Two tools in the list are appropriate to solve the user's query."
 
-| Wording | Both correct tools in Jev's top two | Ties for second place | Released order |
-|---|---|---|---|
-| "Two tools in the list are appropriate to solve the user's query. Choose one of them." | 69.8% | 66 of 450 | 74% |
-| "Two tools in the list are appropriate to solve the user's query. Choose both." | 84.0% | 12 of 450 | 86% |
+| Outcome of an answer | "Choose one of them." | "Choose both." |
+|---|---|---|
+| Both correct tools are the top two | 314 (69.8%) | 378 (84.0%) |
+| Only top tool is correct, second tool is wrong | 66 | 54 |
+| Only top tool is correct, second place is a tie that includes the other correct tool | 66 | 12 |
+| Top tool is wrong | 4 | 6 |
+| Total | 450 | 450 |
 
-- Jev's own selection is a correct tool in 98.9% and 98.7% of the answers. The two wordings differ in the second tool.
+- The top tool is the one with Jev's highest probability. Jev returns probabilities with two decimals. In a tie, several tools share the second-highest probability, and the other correct tool is always one of them. In 57 of the 66 ties with "Choose one of them.", every tool but the top one has 0.00. A tie counts as a miss.
+- The two wordings differ in the second tool. In the released order, both correct tools are the top two in 74% of the examples with "Choose one of them." and in 86% with "Choose both."
 - With the wording "both", CSR is 83.6% with the two correct tools adjacent and 84.0% with them separated.
 - Rushab decided on 2026-10-05 to keep both wordings and to report the difference between them as a finding. Each multi-tool example is sent with both.
 
@@ -140,7 +144,7 @@ Decided on 2026-10-04.
 - Distractors. They are shuffled once per example with a seed and keep that order in every placement. The lists of one example then differ only in the position of the correct tool.
 - Two correct tools. The example gets 8 orders. In 5 the two tools are adjacent and the pair is placed at the 5 positions, starting at 1 + q × (N − 2). In 3 the tools are separated: first and last, first and 50%, 50% and last. A seed decides which tool comes first. The rule follows Baker et al. (arXiv 2412.10079) and is used for MetaTool, ToolBench and BFCL.
 - "None". Where it is offered it is the last candidate. The last placement of the correct tool is then position N of N + 1 candidates.
-- Two tools from Jev. For a multi-tool example Jev's answer is the two tools with the highest probabilities of one question. The example is correct when they are the two correct tools. A tie for second place counts as a miss, and the ties are counted.
+- Two tools from Jev. For a multi-tool example Jev's answer is the two tools with the highest probabilities of one question. The example is correct when they are the two correct tools. When several tools share the second-highest probability, Jev has named no second tool. That counts as a miss, and these cases are counted.
 
 | Tools in the list | Positions of one correct tool | Positions of two adjacent correct tools |
 |---|---|---|
@@ -260,7 +264,7 @@ None of these is run until a result calls for it.
 | The most similar tools as added distractors | Whether a longer list lowers CSR more when the added tools are similar to the correct tool | Random distractors do not show the claim | 44,750 tool lists at 5 lengths, about $2.40 |
 | A second run of identical requests | How much of a change between two orders is run-to-run noise | A difference is not statistically separable, or the share of examples whose selection changes between placements is reported | The first run again: 26,711 tool lists, about $0.50 |
 | Prompt formats | Whether the selection changes when the same query and tools are written differently, such as a candidate labelled with the tool name or with an id | Rushab, 2026-10-04: "not really required just yet" | About 18,000 tool lists and $0.45 for each added format at 10 tools |
-| A second question for a multi-tool example, with the first selected tool removed | The second tool, when one question leaves a tie for second place | Ties for second place are common in the first run | 4,473 tool lists, about $0.11 |
+| A second question for a multi-tool example, with the first selected tool removed | The second tool, when several tools share the second-highest probability of one question | Such ties are common in the first run | 4,473 tool lists, about $0.11 |
 | CSR averaged over tools | Whether the score comes mostly from the tools with the largest number of examples | Jev scores differently on those tools in the first run | No run |
 | Jev's probabilities averaged over the placements | Whether averaging removes a position effect | A position effect is found | No run |
 
