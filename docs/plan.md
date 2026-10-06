@@ -15,7 +15,7 @@ A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
-The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3), and one run of `scripts/check_jev.py` uses 1 Jev call of the limit.
+The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/check_jev.py` uses 1 Jev call of the limit.
 
 ## Subset of 2026-10-05
 
@@ -97,24 +97,24 @@ Measurements: CSR, calibration, confidently wrong answers, latency, and cost. Th
 
 ## The first run
 
-Every example of the four MetaTool test files with a tool list is sent with its list in the released order. Every example with a correct tool is also sent with the correct tool at 5 positions. Tool awareness has no tool list and is not in the run.
+Every example of the four MetaTool test files with a tool list is sent with its list in the released order. Every example with a correct tool is also sent with the correct tool at 5 positions. A multi-tool example is sent with each of the two wordings of the instruction for two tools. Tool awareness has no tool list and is not in the run.
 
 | Test file | Examples | Tool lists per example | Tool lists | "None" candidate | Jev's answer |
 |---|---|---|---|---|---|
 | Similar tools | 995 | 6: the released order and 5 placements | 5,970 | Last | The selected candidate |
 | Scenario | 1,800 | 6: the released order and 5 placements | 10,800 | Last | The selected candidate |
-| Multi-tool | 497 | 9: the released order and 8 placements | 4,473 | Not offered | The two tools with the highest probabilities |
+| Multi-tool | 497 | 18: the released order and 8 placements, with each of the two wordings | 8,946 | Not offered | The two tools with the highest probabilities |
 | Reliability | 995 | 1: the released order. The list has no correct tool to place. | 995 | Last, and correct | The selected candidate |
-| Total | 4,287 | | 22,238 | | |
+| Total | 4,287 | | 26,711 | | |
 
 - Models. Jev first, then open-weight decision models. Claude is not run.
-- Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". That is 4,287 requests.
-- Cost. $0.37 to $0.60 for Jev, estimated and not measured. The lists hold 30.3 million characters, counted at 4 characters per token, plus 300 fixed tokens per request or per list. The one saved Jev call had 349 input tokens for 183 characters of text.
+- Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
+- Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
 - Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 360 on 2026-10-05, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
-| Jev's selection depends on the position of the correct tool | CSR at each of the 5 positions, per test file, with intervals |
+| Jev's selection depends on the position of the correct tool | CSR at each of the 5 positions, per test file |
 | MetaTool's fixed positions change the score of a model with a position effect | CSR in the released order minus mean CSR over the 5 positions |
 | Jev's score on MetaTool as released | CSR in the released order, the row comparable with published results |
 | Jev gives a high probability to wrong selections | The measures of confidently wrong answers, and the tools selected on the reliability file |
@@ -181,7 +181,7 @@ Decided on 2026-10-04: "None" is always the last candidate, and no run puts it f
 
 ## The released-order run
 
-Decided on 2026-10-04, as part of the first run. Every example is run once with its tool list in the released order, with the candidates of the rule above. On MetaTool that is 4,287 tool lists: 995 similar tools, 1,800 scenario, 995 reliability and 497 multi-tool.
+Decided on 2026-10-04, as part of the first run. Every example is run once with its tool list in the released order, with the candidates of the rule above, and a multi-tool example once with each wording. On MetaTool that is 4,784 tool lists: 995 similar tools, 1,800 scenario, 995 reliability and 994 multi-tool, 497 with each wording.
 
 Published results on MetaTool use the released order: the MetaTool paper, PA-Tool (arXiv 2510.07248) and `baibizhe/jev-decision-benchmarks`. The placement runs reorder the lists, and their results are not comparable with those. The released-order run gives the row that is comparable, and the placement runs are compared against it. The prompt still differs from the MetaTool paper's. Jev receives the query as the state and the tools as candidates. The released prompts of the three single-tool files hold 5 worked examples.
 
@@ -258,7 +258,7 @@ None of these is run until a result calls for it.
 | Spare | What it would show | Added when | Size and estimated cost |
 |---|---|---|---|
 | The most similar tools as added distractors | Whether a longer list lowers CSR more when the added tools are similar to the correct tool | Random distractors do not show the claim | 44,750 tool lists at 5 lengths, about $2.40 |
-| A second run of identical requests | How much of a change between two orders is run-to-run noise | A difference is not statistically separable, or the share of examples whose selection changes between placements is reported | The first run again: 22,238 tool lists, $0.37 to $0.60 |
+| A second run of identical requests | How much of a change between two orders is run-to-run noise | A difference is not statistically separable, or the share of examples whose selection changes between placements is reported | The first run again: 26,711 tool lists, about $0.50 |
 | Prompt formats | Whether the selection changes when the same query and tools are written differently, such as a candidate labelled with the tool name or with an id | Rushab, 2026-10-04: "not really required just yet" | About 18,000 tool lists and $0.45 for each added format at 10 tools |
 | A second question for a multi-tool example, with the first selected tool removed | The second tool, when one question leaves a tie for second place | Ties for second place are common in the first run | 4,473 tool lists, about $0.11 |
 | CSR averaged over tools | Whether the score comes mostly from the tools with the largest number of examples | Jev scores differently on those tools in the first run | No run |

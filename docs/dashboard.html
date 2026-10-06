@@ -1096,22 +1096,22 @@
       </div>
 
       <h2>First run</h2>
-      <p>Every example of the four MetaTool test files with a tool list is sent with its list in the released order. Every example with a correct tool is also sent with the correct tool at 5 positions.</p>
+      <p>Every example of the four MetaTool test files with a tool list is sent with its list in the released order. Every example with a correct tool is also sent with the correct tool at 5 positions. A multi-tool example is sent with each of the two wordings of the instruction for two tools.</p>
       <div class="tablewrap">
         <table>
           <thead><tr><th>Test file</th><th class="num">Examples</th><th>Tool lists per example</th><th class="num">Tool lists</th><th>"None" candidate</th><th>Jev's answer</th></tr></thead>
           <tbody>
             <tr><th>Similar tools</th><td class="num">995</td><td>6: the released order and 5 placements</td><td class="num">5,970</td><td>Last</td><td>The selected candidate</td></tr>
             <tr><th>Scenario</th><td class="num">1,800</td><td>6: the released order and 5 placements</td><td class="num">10,800</td><td>Last</td><td>The selected candidate</td></tr>
-            <tr><th>Multi-tool</th><td class="num">497</td><td>9: the released order and 8 placements</td><td class="num">4,473</td><td>Not offered</td><td>The two tools with the highest probabilities</td></tr>
+            <tr><th>Multi-tool</th><td class="num">497</td><td>18: the released order and 8 placements, with each of the two wordings</td><td class="num">8,946</td><td>Not offered</td><td>The two tools with the highest probabilities</td></tr>
             <tr><th>Reliability</th><td class="num">995</td><td>1: the released order. The list has no correct tool to place.</td><td class="num">995</td><td>Last, and correct</td><td>The selected candidate</td></tr>
-            <tr><th>Total</th><td class="num">4,287</td><td></td><td class="num">22,238</td><td></td><td></td></tr>
+            <tr><th>Total</th><td class="num">4,287</td><td></td><td class="num">26,711</td><td></td><td></td></tr>
           </tbody>
         </table>
       </div>
       <p>Tool awareness has no tool list and is not in the run.</p>
-      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". That is 4,287 requests. Jev calls are limited to 360 until Rushab raises the limit, and 351 calls have been made.</p>
-      <p>The cost for Jev is $0.37 to $0.60, estimated and not measured. The lists hold 30.3 million characters, counted at 4 characters per token, plus 300 fixed tokens per request or per list. The one saved Jev call had 349 input tokens for 183 characters of text.</p>
+      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 360 until Rushab raises the limit, and 351 calls have been made.</p>
+      <p>The cost for Jev is about $0.50, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with "Choose both."</p>
       <p>The runner sends these texts to Jev. Rushab has not confirmed the first two. Both wordings of the instruction for two tools are kept, and each multi-tool example is sent with both. The state of a request is the query, and each candidate is a tool name with the tool's description.</p>
       <div class="tablewrap">
         <table>
@@ -1128,7 +1128,7 @@
         <table>
           <thead><tr><th>Claim the run can show</th><th>Read from</th></tr></thead>
           <tbody>
-            <tr><th>Jev's selection depends on the position of the correct tool</th><td>CSR at each of the 5 positions, per test file, with intervals</td></tr>
+            <tr><th>Jev's selection depends on the position of the correct tool</th><td>CSR at each of the 5 positions, per test file</td></tr>
             <tr><th>MetaTool's fixed positions change the score of a model with a position effect</th><td>CSR in the released order minus mean CSR over the 5 positions</td></tr>
             <tr><th>Jev's score on MetaTool as released</th><td>CSR in the released order, the row comparable with published results</td></tr>
             <tr><th>Jev gives a high probability to wrong selections</th><td>The measures of confidently wrong answers, and the tools selected on the reliability file</td></tr>
@@ -1196,7 +1196,7 @@
       <p>"None" is always the last candidate, and no run puts it first. Similar tools and reliability use the same 995 queries, with "None" last in both. A model that selects "None" for being last would also select it on similar tools, where it is wrong, and the first run shows that share.</p>
 
       <h2>Released order</h2>
-      <p>Every example is also run once with its tool list in the released order. On MetaTool that is 4,287 tool lists: 995 similar tools, 1,800 scenario, 995 reliability and 497 multi-tool.</p>
+      <p>Every example is also run once with its tool list in the released order, and a multi-tool example once with each wording. On MetaTool that is 4,784 tool lists: 995 similar tools, 1,800 scenario, 995 reliability and 994 multi-tool, 497 with each wording.</p>
       <p>Published results on MetaTool use the released order: the MetaTool paper, PA-Tool (arXiv 2510.07248) and <code>baibizhe/jev-decision-benchmarks</code>. The placement runs reorder the lists, and their results are not comparable with those. The released-order run gives the row that is comparable, and the placement runs are compared against it.</p>
       <p>The prompt still differs from the MetaTool paper's. Jev receives the query as the state and the tools as candidates. The released prompts of the three single-tool files hold 5 worked examples.</p>
 
@@ -1265,7 +1265,7 @@
           <thead><tr><th>Spare</th><th>What it would show</th><th>Added when</th><th>Size and estimated cost</th></tr></thead>
           <tbody>
             <tr><th>The most similar tools as added distractors</th><td>Whether a longer list lowers CSR more when the added tools are similar to the correct tool</td><td>Random distractors do not show the claim</td><td>44,750 tool lists at 5 lengths, about $2.40</td></tr>
-            <tr><th>A second run of identical requests</th><td>How much of a change between two orders is run-to-run noise</td><td>A difference is not statistically separable, or the share of examples whose selection changes between placements is reported</td><td>The first run again: 22,238 tool lists, $0.37 to $0.60</td></tr>
+            <tr><th>A second run of identical requests</th><td>How much of a change between two orders is run-to-run noise</td><td>A difference is not statistically separable, or the share of examples whose selection changes between placements is reported</td><td>The first run again: 26,711 tool lists, about $0.50</td></tr>
             <tr><th>Prompt formats</th><td>Whether the selection changes when the same query and tools are written differently, such as a candidate labelled with the tool name or with an id</td><td>Rushab, 2026-10-04: "not really required just yet"</td><td>About 18,000 tool lists and $0.45 for each added format at 10 tools</td></tr>
             <tr><th>A second question for a multi-tool example, with the first selected tool removed</th><td>The second tool, when one question leaves a tie for second place</td><td>Ties for second place are common in the first run</td><td>4,473 tool lists, about $0.11</td></tr>
             <tr><th>CSR averaged over tools</th><td>Whether the score comes mostly from the tools with the largest number of examples</td><td>Jev scores differently on those tools in the first run</td><td>No run</td></tr>
@@ -1525,7 +1525,7 @@
         <li><span class="txt">Every example is also run once with its tool list in the released order. That run is the one comparable with published results, and the placement runs are compared against it.</span></li>
         <li><span class="txt">Jev is paired with a frontier LLM by the accept-or-escalate rule of arXiv 2609.26550: Jev's selection is final when its probability is high, and the LLM selects otherwise.</span></li>
         <li><span class="txt">A run is in the plan only if it proves a claim of the paper. The simplest run is run first, and a repeat run, a control or a second variant is added when a result needs it.</span></li>
-        <li><span class="txt">The first run sends every example of MetaTool's four test files with a tool list in the released order, and every example with a correct tool at 5 positions: 22,238 tool lists in 4,287 requests.</span></li>
+        <li><span class="txt">The first run sends every example of MetaTool's four test files with a tool list in the released order, and every example with a correct tool at 5 positions. A multi-tool example is sent with both wordings of the instruction for two tools. That is 26,711 tool lists in 4,784 requests.</span></li>
         <li><span class="txt">"None" is always the last candidate. No run puts it first.</span></li>
         <li><span class="txt">For a multi-tool example Jev's answer is its two highest-probability tools from one question. A tie for second place counts as a miss.</span></li>
         <li><span class="txt">The distractors of an example keep one seeded order in every placement.</span></li>
@@ -1540,7 +1540,7 @@
         <li><span class="txt">Insights come first. Supporting statistics, such as margins of error, are reported in the final paper. No extra run is made for them at this stage, and the code that computes a margin of error from the saved answers stays.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
         <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 360 since 2026-10-05.</span></li>
-        <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
+        <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
         <li><span class="txt">Processed data has one row per example with the same fields for every dataset: id, query, options, labels, and the raw row unchanged. A multi-turn BFCL example has one row per turn.</span></li>
