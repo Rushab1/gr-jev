@@ -62,7 +62,7 @@ def test_figures_count_the_answers_to_the_named_lists() -> None:
     assert (found.none, found.confident, found.confident_wrong) == (1, 2, 1)
     assert found.zero_probabilities == pytest.approx(100 * 4 / 12)
     assert (found.one_choice, found.all_correct, found.none_correct) == (1, 0, 1)
-    assert (found.tied, found.choice_correct) == (0, 1)
+    assert (found.second_wrong, found.second_tied, found.top_wrong) == (0, 0, 0)
     assert 0 <= found.low <= found.csr <= found.high <= 50
     first_only = figures(rows, ["first"], BOOTSTRAP_SEED, confident_from=0.9)
     assert (first_only.answers, first_only.correct, first_only.csr, first_only.none) == (2, 1, 50.0, 0)
@@ -74,14 +74,18 @@ def test_a_probability_at_the_threshold_is_confident() -> None:
     assert figures(rows, ["first"], BOOTSTRAP_SEED, 0.95).confident == 0
 
 
-def test_two_tools_count_a_tie_for_second_place_and_a_choice_that_is_a_correct_tool() -> None:
+def test_an_answer_that_misses_two_correct_tools_is_counted_once_by_how_it_misses() -> None:
     answers = {
-        RELEASED_ORDER: answer("a", False, {"a": 0.9, "b": 0.05, "c": 0.05}),
-        "adjacent_first": answer("a", True, {"a": 0.6, "b": 0.4, "c": 0.0}),
+        RELEASED_ORDER: answer("a", True, {"a": 0.6, "b": 0.4, "c": 0.0}),
+        "adjacent_first": answer("a", False, {"a": 0.6, "c": 0.3, "b": 0.1}),
+        "adjacent_quarter": answer("a", False, {"a": 0.5, "c": 0.5, "b": 0.0}),
+        "adjacent_middle": answer("a", False, {"a": 0.9, "b": 0.05, "c": 0.05}),
         "adjacent_last": answer("c", False, {"a": 0.3, "b": 0.2, "c": 0.5}),
     }
     found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, confident_from=0.9)
-    assert (found.answers, found.correct, found.tied, found.choice_correct) == (3, 1, 1, 2)
+    assert (found.answers, found.correct) == (5, 1)
+    # A wrong tool is second twice, once after a tie for first place between a correct tool and a wrong one.
+    assert (found.second_wrong, found.second_tied, found.top_wrong) == (2, 1, 1)
 
 
 def test_an_example_without_one_of_the_lists_is_left_out() -> None:

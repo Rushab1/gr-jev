@@ -2,6 +2,7 @@
 
 import random
 import statistics
+from collections import Counter
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 
@@ -13,7 +14,7 @@ from grjev.constants import (
     RELEASED_ORDER,
     SEPARATED_PLACEMENTS,
 )
-from grjev.runs import Row, top_tools
+from grjev.runs import ListAnswer, Row, top_tools
 
 # The name of a group of tool lists -> the names of the lists whose answers it pools.
 type Groups = dict[str, list[str]]
@@ -21,7 +22,11 @@ type Groups = dict[str, list[str]]
 
 @dataclass(frozen=True)
 class Figures:
-    """The figures of the answers to some tool lists. `csr`, `low`, `high` and `zero_probabilities` are percentages."""
+    """The figures of the answers to some tool lists. `csr`, `low`, `high` and `zero_probabilities` are percentages.
+
+    `second_wrong`, `second_tied` and `top_wrong` count the answers that miss the correct tools of a query with
+    several correct tools, each answer once.
+    """
 
     examples: int
     answers: int
@@ -36,8 +41,9 @@ class Figures:
     one_choice: int
     all_correct: int
     none_correct: int
-    tied: int
-    choice_correct: int
+    second_wrong: int
+    second_tied: int
+    top_wrong: int
 
 
 def interval(values: Sequence[float], seed: int) -> tuple[float, float]:
@@ -58,6 +64,20 @@ def correct_shares(rows: Sequence[Row], lists: Collection[str]) -> list[float]:
     return [statistics.fmean(row.answers[name].correct for name in lists) for row in rows]
 
 
+def miss_of(row: Row, answer: ListAnswer) -> str | None:
+    """Return how an answer misses the correct tools of a query with several correct tools, or None when it does not.
+
+    `top_wrong`: no tool with the highest probability is correct. `second_tied`: the top tool is correct, and a tie
+    leaves the next place open. `second_wrong`: the top tool is correct, and a wrong tool takes the next place.
+    """
+    if len(row.labels) < 2 or answer.correct:
+        return None
+    highest = max(answer.probabilities.values())
+    if not any(answer.probabilities[name] == highest for name in row.labels):
+        return "top_wrong"
+    return "second_tied" if top_tools(answer.probabilities, len(row.labels)) is None else "second_wrong"
+
+
 def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from: float) -> Figures:
     """Return the figures of the named tool lists, over the examples that have all of them.
 
@@ -70,6 +90,7 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
     answers = [(row, row.answers[name]) for row in rows for name in lists]
     confident = [answer for _, answer in answers if max(answer.probabilities.values()) >= confident_from]
     probabilities = [value for _, answer in answers for value in answer.probabilities.values()]
+    misses = Counter(miss_of(row, answer) for row, answer in answers)
     return Figures(
         examples=len(rows),
         answers=len(answers),
@@ -84,10 +105,9 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         one_choice=sum(len({row.answers[name].choice for name in lists}) == 1 for row in rows),
         all_correct=sum(share == 1 for share in shares),
         none_correct=sum(share == 0 for share in shares),
-        tied=sum(
-            len(row.labels) > 1 and top_tools(answer.probabilities, len(row.labels)) is None for row, answer in answers
-        ),
-        choice_correct=sum(answer.choice in row.labels for row, answer in answers),
+        second_wrong=misses["second_wrong"],
+        second_tied=misses["second_tied"],
+        top_wrong=misses["top_wrong"],
     )
 
 

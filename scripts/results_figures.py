@@ -10,8 +10,8 @@ Each test file gets a table with one row per tool list and per group of tool lis
 - probabilities at 0: the share of the returned probabilities that are 0.00
 - one choice, all correct, none correct: the examples with the same choice in every list of the group, and those
   answered correctly in every list and in none
-- tied: for two correct tools, the answers with a tie for second place
-- choice is correct: the answers whose own choice is a correct tool
+- second tool wrong, second place tied, top tool wrong: for a query with two correct tools, the answers that miss
+  them. The top tool has the highest probability. In a tie, several tools share the second-highest probability.
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 """
@@ -39,8 +39,9 @@ COLUMNS: dict[str, Callable[[Figures], str]] = {
     "one choice": lambda found: f"{found.one_choice:,}",
     "all correct": lambda found: f"{found.all_correct:,}",
     "none correct": lambda found: f"{found.none_correct:,}",
-    "tied": lambda found: f"{found.tied:,}",
-    "choice is correct": lambda found: f"{found.choice_correct:,}",
+    "second tool wrong": lambda found: f"{found.second_wrong:,}",
+    "second place tied": lambda found: f"{found.second_tied:,}",
+    "top tool wrong": lambda found: f"{found.top_wrong:,}",
 }
 
 
