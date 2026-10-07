@@ -38,11 +38,11 @@ Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_j
 
 The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off and with `--effort low`. `python scripts/check_frontier.py` makes one call per model on every run.
 
-`python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position` and `length`, and `--examples-per-file` runs a seeded sample. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
+`python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position`, `length` and `wording`, and `--examples-per-file` runs a seeded sample. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
 
-`python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None" and the confident answers. The code is in `src/grjev/metrics.py`.
+`python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. The code is in `src/grjev/metrics.py`.
 
-An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES`, `TWO_TOOL_TEST_FILES` and `LIST_LENGTHS` in `constants.py`.
+An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES` and `SEVERAL_TOOL_TEST_FILES` in `constants.py`, and in `LIST_LENGTHS` for the length experiment.
 
 Run `ruff check .`, `ruff format --check .`, `mypy` and `pytest` before every commit, and `pytest -m integration` after a change to the Claude bridge. The pre-commit config and the CI workflow are not added yet.
 

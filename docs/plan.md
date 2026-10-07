@@ -1,17 +1,19 @@
 # Jev study: plan
 
-Last updated 2026-10-05. A subset of the position and length experiments has been run on Jev, 350 calls.
+Last updated 2026-10-06. Two sets of runs have been made on Jev: a subset of the position and length experiments on MetaTool, 350 calls, and the wording run on a subset of StableToolBench, 300 calls.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position` and `length` on a dataset in the common format. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length` and `wording` on a dataset in the common format. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
+The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run".
+
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 360, and 351 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,365. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 651, and 651 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,665. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -47,12 +49,11 @@ Multi-tool, the same 50 examples with two wordings of the instruction, 450 tool 
 | Outcome of an answer | "Choose one of them." | "Choose both." |
 |---|---|---|
 | Both correct tools are the top two | 314 (69.8%) | 378 (84.0%) |
-| Only top tool is correct, second tool is wrong | 66 | 54 |
-| Only top tool is correct, second place is a tie that includes the other correct tool | 66 | 12 |
+| Only top tool is correct | 132 | 66 |
 | Top tool is wrong | 4 | 6 |
 | Total | 450 | 450 |
 
-- The top tool is the one with Jev's highest probability. Jev returns probabilities with two decimals. In a tie, several tools share the second-highest probability, and the other correct tool is always one of them. In 57 of the 66 ties with "Choose one of them.", every tool but the top one has 0.00. A tie counts as a miss.
+- The top tool is the one with Jev's highest probability. In 66 of the 132 answers with "Choose one of them." and in 12 of the 66 with "Choose both.", Jev names no second tool: several tools share the second-highest probability. In 57 of those 66, every tool but the top one has 0.00. In the other answers of the row, the second tool is a wrong tool.
 - The two wordings differ in the second tool. In the released order, both correct tools are the top two in 74% of the examples with "Choose one of them." and in 86% with "Choose both."
 - With the wording "both", CSR is 83.6% with the two correct tools adjacent and 84.0% with them separated.
 - Rushab decided on 2026-10-05 to keep both wordings and to report the difference between them as a finding. Each multi-tool example is sent with both.
@@ -69,6 +70,72 @@ Length, 50 queries, random distractors, the 5 placements pooled:
 - At 199 tools 98.1% of the returned probabilities are 0.00.
 
 Measured cost. A tool list of the position run took 457 input tokens, which puts the whole position run at about $0.43. A tool list of the multi-tool run with the wording "both" took 402 input tokens, which adds about $0.08 for the 4,473 tool lists of the 497 multi-tool examples. A query of the length run took 63,876 input tokens, which puts the whole length run at about $4.80.
+
+## Several correct tools: the wording run
+
+Decided by Rushab on 2026-10-06. Question: is Jev biased towards a single selection when a query needs several tools? On MetaTool's multi-tool file Jev's highest probability is 0.71 above its second-highest on average with "Choose one of them." and 0.70 with "Choose both."
+
+The run was made on 2026-10-06 on StableToolBench, where 738 of the 765 queries have 2 or more relevant APIs. An API is one function of a tool, and the relevant APIs of a query are the correct entries of its list.
+
+- Examples. A seeded sample of 50 examples from each of the six test files, 300 examples, as in the MetaTool subset. 6 of the 300 queries have 1 relevant API, 205 have 2, 63 have 3, 18 have 4, 6 have 5 and 2 have 6.
+- Tool list. The released list of the example. A list under 5 APIs gets random other APIs of the 2,490 added until it has 5, and every list is put in a seeded random order. 141 of the 300 lists are padded, with 299 APIs added. No "None" candidate is offered. An API with a blank description is sent without a description: 149 of the 1,952 candidates.
+- Position. The relevant APIs are not placed at fixed positions. Rushab, 2026-10-05: the MetaTool subset showed no position effect.
+- Wordings. Four instructions go to Jev as four questions of one request per example. The first three state the number of relevant APIs and go to the 294 queries with 2 or more. The fourth states no number and goes to all 300.
+
+| Name | Instruction |
+|---|---|
+| `one` | "Three tools in the list are appropriate to solve the user's query. Choose one of them." |
+| `all` | "Three tools in the list are appropriate to solve the user's query. Choose all of them." |
+| `equal` | "Three tools in the list are appropriate to solve the user's query. Choose all of them with equal probability." |
+| `every` | "Choose every tool in the list that is needed to solve the user's query." |
+
+The number word follows the query, from Two to Six. The texts say "tools", as on MetaTool.
+
+- Score. For a query with k relevant APIs, an answer is correct when Jev's k highest probabilities are the k relevant APIs.
+- Entropy. H = −Σ pᵢ log₂ pᵢ over the probabilities pᵢ of one answer, in bits. It is 0 when one API has 1.00, 1.00 when two APIs have 0.50 each, and 1.58 when three have one third each.
+- Size and cost. 300 requests, 1,182 questions, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_01`, written at commit `2e5e4ad`. `python scripts/results_figures.py` prints the figures of the three tables below. No margin of error is given.
+
+All six test files:
+
+| Wording | Queries | Correct answers | Entropy, mean | Highest probability minus second-highest, mean |
+|---|---|---|---|---|
+| `one` | 294 | 203 (69.0%) | 0.75 | 0.62 |
+| `all` | 294 | 218 (74.1%) | 0.84 | 0.59 |
+| `equal` | 294 | 212 (72.1%) | 0.94 | 0.55 |
+| `every` | 300 | 215 (71.7%) | 0.74 | 0.64 |
+
+Correct answers by number of relevant APIs:
+
+| Relevant APIs | Queries | `one` | `all` | `equal` | `every` |
+|---|---|---|---|---|---|
+| 1 | 6 | not sent | not sent | not sent | 6 (100%) |
+| 2 | 205 | 156 (76.1%) | 166 (81.0%) | 164 (80.0%) | 161 (78.5%) |
+| 3 | 63 | 33 (52.4%) | 37 (58.7%) | 35 (55.6%) | 33 (52.4%) |
+| 4 | 18 | 10 | 11 | 9 | 11 |
+| 5 | 6 | 4 | 4 | 4 | 4 |
+| 6 | 2 | 0 | 0 | 0 | 0 |
+
+Mean entropy by number of relevant APIs:
+
+| Relevant APIs | `every` | `equal` | An even split over the relevant APIs |
+|---|---|---|---|
+| 1 | 0.00 | not sent | 0.00 |
+| 2 | 0.63 | 0.75 | 1.00 |
+| 3 | 0.98 | 1.30 | 1.58 |
+| 4 | 1.19 | 1.59 | 2.00 |
+| 5 | 1.05 | 1.34 | 2.32 |
+| 6 | 1.45 | 1.82 | 2.58 |
+
+- With every wording Jev's highest probability is 0.55 to 0.64 above its second-highest on average. The wording `equal` asks for equal probabilities and gives a mean entropy of 0.75 for 2 relevant APIs, against 1.00 for an even split.
+- `all` scores 5.1 points above `one`. On MetaTool's multi-tool file "Choose both." scores 14.2 points above "Choose one of them."
+- The score falls with the number of relevant APIs: with `all` it is 81.0% for 2 and 58.7% for 3.
+- The 6 queries with 1 relevant API are all correct, with an entropy of 0.00. Their released list holds 1 API, and the other 4 APIs of their list are random.
+
+Not decided: how the number of relevant APIs is read from an answer when the instruction does not state it. A first look at the saved answers of the wording `every` gave the three figures below. The figures script does not print them.
+
+- The largest drop between two neighbouring probabilities comes right after the top API in 250 of the 300 answers. The APIs above the drop are exactly the relevant APIs in 28 of 300.
+- Selecting every API with a probability of 0.03 or more gives exactly the relevant APIs in 155 of 300. The cut of 0.03 was chosen on these same answers.
+- With the number of relevant APIs given to the scoring rule, the highest probabilities are the relevant APIs in 215 of 300.
 
 ## How runs are staged
 
@@ -114,7 +181,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 360 on 2026-10-05, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 651 on 2026-10-06, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -327,7 +394,8 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 360 Jev calls is raised, and for which runs.
+- Decide when the limit of 651 Jev calls is raised, and for which runs.
+- Decide how the number of correct tools is read from one answer of Jev, when the instruction does not state it.
 - Confirm the instruction for one tool and the description of the "None" candidate.
 - Decide the list lengths of the later runs.
 - Decide the threshold for a confidently wrong answer and the accept-or-escalate design.
