@@ -272,6 +272,7 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "copied" sends every example with a list of copies of one of its correct tools, in every rotation.
 # "absent" sends every example with a list that has no correct tool: other tools of the example and "None", in every
 # rotation. "absent_random" does the same with random tools of the dataset that are not in the list of the example.
+# "unrelated" sends every example with a list of such random tools and without "None", in every rotation.
 # The MetaTool test files whose examples have a correct tool to reword.
 METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
@@ -284,6 +285,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "copied": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "absent": {"metatool": ("similar_tools",)},
     "absent_random": {"metatool": ("similar_tools",)},
+    "unrelated": {"metatool": METATOOL_REWORDED_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -341,8 +343,10 @@ COPIED_TOOLS = 5
 # The "absent" experiments list this many tools that are not correct, and "None" with them.
 ABSENT_LIST_TOOLS = 4
 # The experiments whose lists do not get "None" added at the end: the lists of rewordings and of copies, and the
-# "absent" lists, which hold "None" at a place of its own.
-NO_ADDED_NONE_EXPERIMENTS = (*REWORDING_EXPERIMENTS, "absent", "absent_random")
+# "absent" lists, which hold "None" at a place of its own, and the "unrelated" lists, which offer no "None".
+NO_ADDED_NONE_EXPERIMENTS = (*REWORDING_EXPERIMENTS, "absent", "absent_random", "unrelated")
+# The "unrelated" experiment lists this many random tools, as many as the "copied" experiment lists copies.
+UNRELATED_TOOLS = 5
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
 REWORDED_LIST = "reworded"

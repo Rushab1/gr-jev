@@ -35,6 +35,7 @@ from grjev.constants import (
     TWO_TOOL_INSTRUCTIONS,
     TWO_TOOL_WORDING,
     UNCOUNTED_WORDINGS,
+    UNRELATED_TOOLS,
 )
 from grjev.examples import Example, Option, read_rewordings
 from grjev.jev import (
@@ -269,6 +270,19 @@ def absent_random_lists(config: RunConfig, examples: dict[str, list[Example]], t
     )
 
 
+def unrelated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with random tools from outside its own list as its tool list, in every rotation.
+
+    No tool of the list is correct and "None" is not offered. The yielded example has no label. The instruction is
+    the one of the lists of rewordings and of copies.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(outside_tools(example, tools, UNRELATED_TOOLS, config.seed))
+            unlabelled = example.model_copy(update={"labels": []})
+            yield test_file, unlabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
+
+
 # Experiment -> the function that yields the tool lists of its examples.
 LISTS = {
     "position": position_lists,
@@ -280,6 +294,7 @@ LISTS = {
     "copied": copied_lists,
     "absent": absent_lists,
     "absent_random": absent_random_lists,
+    "unrelated": unrelated_lists,
 }
 
 
@@ -358,7 +373,7 @@ def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: Cho
     """
     if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset] or config.experiment in REWORDING_EXPERIMENTS:
         top = top_tools(answer.probabilities, len(labels))
-        return top is not None and set(top) == set(labels)
+        return bool(labels) and top is not None and set(top) == set(labels)
     return answer.choice == (labels[0] if labels else NONE_NAME)
 
 

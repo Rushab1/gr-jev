@@ -707,3 +707,26 @@ def test_fifty_absent_random_metatool_queries_send_four_tools_from_outside_their
             names = [tool.name for tool in listed]
             assert len(names) == 5 and names.count(NONE_NAME) == 1 and item.example.labels == []
             assert not set(names) & own and set(names) - {NONE_NAME} < known
+
+
+def test_fifty_unrelated_metatool_queries_send_five_tools_from_outside_their_list_and_no_none(
+    metatool: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    examples, tools = metatool
+    run_config = config("unrelated", examples=50)
+    planned = plan(run_config, examples, tools)
+    copied = plan(config("copied", examples=50), examples, tools)
+    assert [item.example.id for item in planned] == [item.example.id for item in copied]
+    assert sum(count["calls"] for count in call_counts(run_config, planned).values()) == 50
+    released = {example.id: example for own in examples.values() for example in own}
+    for item in planned:
+        own = {option.name for option in released[item.example.id].options}
+        assert item.example.labels == [] and list(item.lists) == [f"rotated_{moved}" for moved in range(5)]
+        for listed in item.lists.values():
+            names = [tool.name for tool in listed]
+            assert len(set(names)) == 5 and NONE_NAME not in names and not set(names) & own
+            assert list(criteria_of(run_config, item.test_file, listed)) == names
+            assert not is_correct(run_config, item.test_file, [], choice(dict.fromkeys(names, 0.2)))
+            assert not is_correct(
+                run_config, item.test_file, [], choice({names[0]: 0.6} | dict.fromkeys(names[1:], 0.1))
+            )
