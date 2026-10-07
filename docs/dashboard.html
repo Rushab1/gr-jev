@@ -1093,8 +1093,8 @@
             <tr><th>List length</th><td>Random distractors are added to the list, up to 199 tools</td><td>CSR and the position effect as the list grows</td><td>A subset of 50 queries was run on 2026-10-05</td></tr>
             <tr><th>Wording run</th><td>The instruction, for StableToolBench queries with several relevant APIs</td><td>Whether Jev spreads its probability over all the correct tools, and how several tools are read from one answer</td><td>A subset of 300 examples was run on 2026-10-06</td></tr>
             <tr><th>List length on StableToolBench</th><td>Random other APIs are added to the list of a query, up to 199 APIs</td><td>Whether the fall of CSR with the list length on MetaTool holds on a second benchmark</td><td>A subset of 50 queries was run on 2026-10-06</td></tr>
-            <tr><th>Second run of the wording run</th><td>Nothing: the 300 requests are sent again</td><td>Whether Jev's selected API changes between two runs of one request</td><td>Run on 2026-10-06</td></tr>
-            <tr><th>Rewordings of one relevant API</th><td>The list holds only 5 rewordings of one relevant API of the query, in the written order, in a shuffled order and in 5 rotated orders</td><td>Whether Jev gives most of its probability to one entry when all 5 are equally correct, and whether the order of the entries changes its selection</td><td>Three runs of 50 queries were made on 2026-10-06 and 2026-10-07</td></tr>
+            <tr><th>Second run of the wording run and of the MetaTool position subset</th><td>Nothing: the 300 and the 250 requests are sent again</td><td>Whether Jev's selected tool changes between two runs of one request</td><td>Run on 2026-10-06 and 2026-10-07</td></tr>
+            <tr><th>Rewordings of one relevant API</th><td>The list holds only 5 rewordings of one relevant API of the query, in the written order, in a shuffled order and in 5 rotated orders</td><td>Whether Jev gives most of its probability to one entry when all 5 are equally correct, and whether the order of the entries changes its selection</td><td>Three runs of 50 StableToolBench queries were made on 2026-10-06 and 2026-10-07, and one run of 50 MetaTool queries on 2026-10-07</td></tr>
             <tr><th>Spare runs</th><td>The most similar tools as distractors, a second run of identical requests, prompt formats</td><td>Listed under Spare runs</td><td>When a result calls for one</td></tr>
           </tbody>
         </table>
@@ -1115,7 +1115,7 @@
         </table>
       </div>
       <p>Tool awareness has no tool list and is not in the run.</p>
-      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 1,210 until Rushab raises the limit, and 1,210 calls have been made.</p>
+      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 1,510 until Rushab raises the limit, and 1,510 calls have been made.</p>
       <p>The cost for Jev is about $0.50, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with "Choose both."</p>
       <p>The runner sends these texts to Jev. Rushab has not confirmed the first two. Both wordings of the instruction for two tools are kept, and each multi-tool example is sent with both. The state of a request is the query, and each candidate is a tool name with the tool's description.</p>
       <div class="tablewrap">
@@ -1302,6 +1302,7 @@
         </table>
       </div>
       <p>Three runs send the 5 rewordings in different orders: the order in which they are written, a seeded random order for each query, and the written order moved by 0, 1, 2, 3 and 4 places, which puts each rewording at each place once. A first run on 2026-10-06 kept the other APIs of the query's list, 9 to 15 entries. Rushab rejected that design, and its figures are not used.</p>
+      <p>On MetaTool the rotated orders are sent for 50 queries: 17 from the similar-tools file, 17 from the scenario file and 16 from the multi-tool file. They give 38 different tools and 190 rewordings, which reword the name and the description. The "None" candidate is not offered. The lowest similarity of a rewording to its tool is 0.907.</p>
 
       <h2>Spare runs</h2>
       <div class="tablewrap">
@@ -1658,6 +1659,55 @@
         <li>In the file, the first rewording has the shortest description of the 5 for 37 of the 40 APIs with a description, and the second starts with "Use" for 35 of the 45 APIs.</li>
       </ul>
 
+      <h2>MetaTool: second run and rewordings</h2>
+      <p>On 2026-10-07 the 250 requests of the position subset of 2026-10-05 were sent to Jev a second time. The run took 250 calls and cost $0.03.</p>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Test file</th><th class="num">Answers</th><th class="num">Same selected tool in both runs</th><th class="num">Answers with every probability the same</th><th class="num">Largest change of one probability</th><th class="num">Correct answers, first run and second run</th><th class="num">Highest probability minus second-highest, mean, in both runs</th></tr></thead>
+          <tbody>
+            <tr><th>Similar tools</th><td class="num">300</td><td class="num">296</td><td class="num">128</td><td class="num">0.09</td><td class="num">229 and 230</td><td class="num">0.72</td></tr>
+            <tr><th>Scenario</th><td class="num">300</td><td class="num">298</td><td class="num">170</td><td class="num">0.09</td><td class="num">246 and 246</td><td class="num">0.78</td></tr>
+            <tr><th>Multi-tool, "Choose one of them."</th><td class="num">450</td><td class="num">438</td><td class="num">155</td><td class="num">0.10</td><td class="num">314 and 313</td><td class="num">0.71</td></tr>
+            <tr><th>Reliability</th><td class="num">50</td><td class="num">49</td><td class="num">31</td><td class="num">0.08</td><td class="num">43 and 44</td><td class="num">0.80</td></tr>
+            <tr><th>Multi-tool, "Choose both."</th><td class="num">450</td><td class="num">445</td><td class="num">161</td><td class="num">0.06</td><td class="num">378 and 378</td><td class="num">0.70</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>The selected tool differs in 24 of the 1,550 answers. In each of the 24, the first run gave the tool that the second run selects at most 0.09 less than the tool it selected.</li>
+      </ul>
+      <p>The same day Jev answered 50 MetaTool queries with a list of 5 rewordings of one correct tool and no other entry, in the 5 rotated orders. The run took 50 calls and cost under $0.01.</p>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Rewording, by Jev's probability within an answer</th><th class="num">MetaTool, mean of 250 answers</th><th class="num">StableToolBench, mean of 250 answers</th></tr></thead>
+          <tbody>
+            <tr><th>Highest</th><td class="num">0.453</td><td class="num">0.434</td></tr>
+            <tr><th>Second-highest</th><td class="num">0.248</td><td class="num">0.241</td></tr>
+            <tr><th>Third</th><td class="num">0.157</td><td class="num">0.159</td></tr>
+            <tr><th>Fourth</th><td class="num">0.092</td><td class="num">0.102</td></tr>
+            <tr><th>Lowest</th><td class="num">0.049</td><td class="num">0.064</td></tr>
+            <tr><th>Entropy, mean</th><td class="num">1.89</td><td class="num">1.96</td></tr>
+            <tr><th>Highest minus second-highest, mean</th><td class="num">0.20</td><td class="num">0.19</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>MetaTool, rotated orders</th><th class="num">First</th><th class="num">Second</th><th class="num">Third</th><th class="num">Fourth</th><th class="num">Fifth</th></tr></thead>
+          <tbody>
+            <tr><th>Mean probability of the entry at this place of the list</th><td class="num">0.214</td><td class="num">0.184</td><td class="num">0.177</td><td class="num">0.208</td><td class="num">0.218</td></tr>
+            <tr><th>Answers that select the entry at this place, of 250</th><td class="num">51</td><td class="num">46</td><td class="num">36</td><td class="num">56</td><td class="num">61</td></tr>
+            <tr><th>Mean probability of this rewording, by its place in the file</th><td class="num">0.120</td><td class="num">0.301</td><td class="num">0.194</td><td class="num">0.253</td><td class="num">0.131</td></tr>
+            <tr><th>Answers that select this rewording, of 250</th><td class="num">11</td><td class="num">96</td><td class="num">51</td><td class="num">66</td><td class="num">26</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>The entry at the last place is selected in 61 of the 250 answers and the entry at the first place in 51. On StableToolBench the counts are 78 and 30.</li>
+        <li>Jev selects the same rewording in all 5 orders for 22 of the 50 queries, in 4 orders for 12, in 3 for 15 and in 2 for 1. On StableToolBench the counts are 13, 19, 12 and 6.</li>
+        <li>In the file, the first rewording of all 38 tools has the shortest description of the 5, and the second starts with "Use". The second is selected in 96 of the 250 answers and the first in 11.</li>
+      </ul>
+
       <h2>Runs and cost</h2>
       <div class="tablewrap">
         <table>
@@ -1673,12 +1723,15 @@
             <tr><th>Rewordings, written order</th><td class="num">50</td><td class="num">50</td><td class="num">50</td><td class="num">26,945</td><td><code>results/stabletoolbench_reworded/2026-10-06_02</code></td></tr>
             <tr><th>Rewordings, shuffled order</th><td class="num">50</td><td class="num">50</td><td class="num">50</td><td class="num">26,945</td><td><code>results/stabletoolbench_reworded/2026-10-07_01</code></td></tr>
             <tr><th>Rewordings, rotated orders</th><td class="num">50</td><td class="num">250</td><td class="num">50</td><td class="num">71,929</td><td><code>results/stabletoolbench_rotated/2026-10-07_01</code></td></tr>
-            <tr><th>Total</th><td class="num">1,150</td><td class="num">4,300</td><td class="num">1,209</td><td class="num">6,683,563</td><td></td></tr>
+            <tr><th>Second run of the position run</th><td class="num">200</td><td class="num">1,100</td><td class="num">200</td><td class="num">502,849</td><td><code>results/metatool_position/2026-10-07_01</code></td></tr>
+            <tr><th>Second run, multi-tool with "Choose both."</th><td class="num">50</td><td class="num">450</td><td class="num">50</td><td class="num">180,798</td><td><code>results/metatool_position/2026-10-07_02</code></td></tr>
+            <tr><th>Rewordings on MetaTool, rotated orders</th><td class="num">50</td><td class="num">250</td><td class="num">50</td><td class="num">64,578</td><td><code>results/metatool_rotated/2026-10-07_01</code></td></tr>
+            <tr><th>Total</th><td class="num">1,450</td><td class="num">6,100</td><td class="num">1,509</td><td class="num">7,431,788</td><td></td></tr>
           </tbody>
         </table>
       </div>
       <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
-      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, the folder of the wording run at commit <code>2e5e4ad</code>, the folder of the list-length run on StableToolBench at commit <code>2343b01</code>, the folder of the second run of the wording run at commit <code>ac8fd1d</code>, the folders of the rewordings in the written and in the shuffled order at commits <code>a5d5eaa</code> and <code>e0b630d</code>, and the folder of the rotated orders at commit <code>42dbd0d</code>. <code>python scripts/compare_runs.py</code> compares the answers of two results folders. Each list of the wording run is sent with up to four instructions, 1,182 questions in all, and each list of the list-length run on StableToolBench with up to two, 485 questions. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
+      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, the folder of the wording run at commit <code>2e5e4ad</code>, the folder of the list-length run on StableToolBench at commit <code>2343b01</code>, the folder of the second run of the wording run at commit <code>ac8fd1d</code>, the folders of the rewordings in the written and in the shuffled order at commits <code>a5d5eaa</code> and <code>e0b630d</code>, and the folder of the rotated orders at commit <code>42dbd0d</code>. The two folders of the second run on MetaTool were written at commit <code>8fceb0a</code> and the folder of the rewordings on MetaTool at commit <code>93f6128</code>. <code>python scripts/compare_runs.py</code> compares the answers of two results folders. Each list of the wording run is sent with up to four instructions, 1,182 questions in all, and each list of the list-length run on StableToolBench with up to two, 485 questions. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
     <!-- ============================== Decisions ============================== -->
@@ -1723,9 +1776,9 @@
         <li><span class="txt">One relevant API of a query is sent as a list of 5 rewordings of its name and description and no other entry, on the 50 queries of the list-length run. Claude writes the rewordings, each at least 0.80 similar to the API on Qwen3-Embedding-0.6B embeddings. The instruction is "Pick all the tools in the list that are relevant to the task at hand."</span></li>
         <li><span class="txt">The 5 rewordings are also sent in a shuffled order and in 5 rotated orders, and the 300 requests of the wording run are sent a second time.</span></li>
         <li><span class="txt">StableToolBench stays in the study. 43.9% of its queries name a relevant API or its tool, and Jev gives one relevant API its highest probability and the others a low one in those queries.</span></li>
-        <li><span class="txt">The second run and the runs with rewordings are repeated on MetaTool. Rushab decided this on 2026-10-07.</span></li>
+        <li><span class="txt">The second run and the rewordings in rotated orders are repeated on MetaTool, on the 250 requests of the position subset and on 50 queries. Rushab decided this on 2026-10-07.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
-        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 1,210 since 2026-10-07.</span></li>
+        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 1,510 since 2026-10-07.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
@@ -1748,9 +1801,10 @@
         <li><span class="txt">How the number of correct tools is read from one answer of Jev, when the instruction does not state it</span></li>
         <li><span class="txt">Why CSR falls with the list length on MetaTool and not on StableToolBench. A first look with an embedding model counts the wrong entries that are similar to a correct one: a MetaTool list has 0.14 with 5 tools and 7.80 with 199, and a StableToolBench list has 2.32 at the start and 5.78 with 199 APIs.</span></li>
         <li><span class="txt">Whether a rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 36 of 50 with 199 tools, and Jev 34 of 50.</span></li>
-        <li><span class="txt">Why the entry at the last place of a list of 5 rewordings is selected in 78 of 250 answers and the entry at the first place in 30</span></li>
+        <li><span class="txt">Why the entry at the last place of a list of 5 rewordings is selected in 78 of 250 answers on StableToolBench and the entry at the first place in 30. On MetaTool the counts are 61 and 51.</span></li>
+        <li><span class="txt">Whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.</span></li>
         <li><span class="txt">Whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench</span></li>
-        <li><span class="txt">When the limit of 1,210 Jev calls is raised, and for which runs. 1,210 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
+        <li><span class="txt">When the limit of 1,510 Jev calls is raised, and for which runs. 1,510 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>

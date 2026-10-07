@@ -1,6 +1,6 @@
 # Jev study: starter notes
 
-Last updated 2026-10-07. A subset of two experiments has been run on MetaTool, and the wording run with a second run of it, the list-length run and runs with rewordings of one relevant API on subsets of StableToolBench. The results are in `docs/plan.md`.
+Last updated 2026-10-07. A subset of two experiments, a second run of the position subset and a run with rewordings of one correct tool have been run on MetaTool, and the wording run with a second run of it, the list-length run and runs with rewordings of one relevant API on subsets of StableToolBench. The results are in `docs/plan.md`.
 
 ## Draft abstract
 
@@ -20,7 +20,7 @@ Typed decision models return a probability for each option in a list supplied by
 - Not built: the runner for open-weight models.
 - Next: the first run on MetaTool, described in `docs/plan.md`. It needs a higher limit on Jev calls.
 - `docs/findings/` holds a code review and a list of proposals from 2026-10-04, with a response to each. Findings 2, 3 and 4 of the review were applied on 2026-10-05.
-- Calls made: 1,210 Jev calls, one to check the key, 350 for the MetaTool subset of 2026-10-05, and 859 on StableToolBench on 2026-10-06 and 2026-10-07: 300 for the wording run, 300 for a second run of it, 59 for the list-length run and 200 for four runs with rewordings of one relevant API. Short Claude calls checked the bridge.
+- Calls made: 1,510 Jev calls, one to check the key, 650 on MetaTool and 859 on StableToolBench. MetaTool: 350 for the subset of 2026-10-05, and on 2026-10-07 250 for a second run of the position subset and 50 for a run with rewordings of one correct tool. StableToolBench, on 2026-10-06 and 2026-10-07: 300 for the wording run, 300 for a second run of it, 59 for the list-length run and 200 for four runs with rewordings of one relevant API. Short Claude calls checked the bridge.
 - Venue not chosen.
 
 ## Jev
