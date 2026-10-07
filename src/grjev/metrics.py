@@ -131,13 +131,70 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
     )
 
 
-def ranked_means(rows: Sequence[Row], name: str) -> tuple[float, ...]:
-    """Return the mean probability of the highest tool of each answer to the named list, then of the second-highest.
+def ranked_means(rows: Sequence[Row], lists: Sequence[str]) -> tuple[float, ...]:
+    """Return the mean probability of the highest tool of each answer to the named lists, then of the second-highest.
 
     The means go on down to the lowest tool of the shortest list.
     """
-    ranked = [sorted(row.answers[name].probabilities.values(), reverse=True) for row in rows]
+    ranked = [sorted(row.answers[name].probabilities.values(), reverse=True) for row in rows for name in lists]
     return tuple(statistics.fmean(values) for values in zip(*ranked, strict=False))
+
+
+def placed(rows: Sequence[Row], lists: Sequence[str], base: str | None = None) -> tuple[list[float], list[int]]:
+    """Return the mean probability at each place of the named lists, and the number of answers that select each place.
+
+    The place of a tool is its place in the list that is answered. With `base` it is its place in the example's list
+    of that name, which follows one tool through several orders of a list.
+    """
+    values: dict[int, list[float]] = {}
+    selected: Counter[int] = Counter()
+    for row in rows:
+        for name in lists:
+            order = row.answers[base or name].candidates
+            for tool, value in row.answers[name].probabilities.items():
+                values.setdefault(order.index(tool), []).append(value)
+            selected[order.index(row.answers[name].choice)] += 1
+    return [statistics.fmean(values[place]) for place in sorted(values)], [selected[place] for place in sorted(values)]
+
+
+def most_selected(rows: Sequence[Row], lists: Sequence[str]) -> dict[int, int]:
+    """Return the number of examples by the number of the named lists that select the example's most selected tool."""
+    counts = Counter(Counter(row.answers[name].choice for name in lists).most_common(1)[0][1] for row in rows)
+    return dict(sorted(counts.items()))
+
+
+@dataclass(frozen=True)
+class Repeated:
+    """Two answers to one tool list compared over the examples, such as the answers of two runs.
+
+    `same_choice` counts the examples with the same selected tool in both answers, and `identical` those with the same
+    probability for every tool. `largest_change` is the largest change of one tool's probability. `overtaken` is, over
+    the examples whose selected tool differs, the largest lead that the first answer gives its selected tool over the
+    tool that the second answer selects. It is 0 when no selected tool differs.
+    """
+
+    answers: int
+    same_choice: int
+    identical: int
+    largest_change: float
+    overtaken: float
+
+
+def repeated(first: Sequence[Row], second: Sequence[Row], name: str, other: str) -> Repeated:
+    """Compare each example's answer to the list `name` in the first rows with its answer to `other` in the second."""
+    later = {row.id: row.answers[other] for row in second if other in row.answers}
+    pairs = [(row.answers[name], later[row.id]) for row in first if name in row.answers]
+    leads = [
+        one.probabilities[one.choice] - one.probabilities[two.choice] for one, two in pairs if one.choice != two.choice
+    ]
+    changes = [abs(value - two.probabilities[tool]) for one, two in pairs for tool, value in one.probabilities.items()]
+    return Repeated(
+        answers=len(pairs),
+        same_choice=len(pairs) - len(leads),
+        identical=sum(one.probabilities == two.probabilities for one, two in pairs),
+        largest_change=max(changes),
+        overtaken=max(leads, default=0.0),
+    )
 
 
 def difference(

@@ -18,7 +18,10 @@ wording of the instruction. Its columns:
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 
-A reworded run also gets the mean probability of its rewordings, from the highest of an answer to the lowest.
+A reworded run and a rotated run also get the mean probability of the rewordings from the highest of an answer to the
+lowest, the mean probability at each place of the list, and the answers that select each place. A rotated run gets
+the last two by rewording too, in the order as written, and the examples by the number of orders that select their
+most selected rewording.
 """
 
 import argparse
@@ -31,6 +34,7 @@ from grjev.constants import (
     JEV_DOLLARS_PER_MILLION_INPUT_TOKENS,
     LIST_LENGTHS,
     REWORDED_LIST,
+    ROTATED_LIST,
 )
 from grjev.examples import read_jsonl
 from grjev.metrics import (
@@ -40,6 +44,8 @@ from grjev.metrics import (
     figures,
     list_groups,
     list_names,
+    most_selected,
+    placed,
     ranked_means,
     row_groups,
 )
@@ -82,6 +88,23 @@ def print_table(table: list[list[str]]) -> None:
         print("  ".join([cells[0].ljust(widths[0]), *rest]))
 
 
+def print_rewordings(rows: list[Row], lists: list[str]) -> None:
+    """Print the figures of lists that hold the rewordings of one tool: by rank, by place, and by rewording."""
+    ranked = ", ".join(f"{value:.3f}" for value in ranked_means(rows, lists))
+    print(f"\nmean probability of the rewordings, from the highest of an answer to the lowest: {ranked}")
+    by_place = {"at each place of the list": placed(rows, lists)}
+    if len(lists) > 1:
+        # The first rotation lists the rewordings in the order as written.
+        by_place["for each rewording, in the order as written"] = placed(rows, lists, lists[0])
+    for label, (means, selected) in by_place.items():
+        print(f"mean probability {label}: {', '.join(f'{value:.3f}' for value in means)}")
+        print(f"answers that select it, {label}: {', '.join(map(str, selected))}")
+    if len(lists) > 1:
+        print(
+            f"examples by the number of orders that select their most selected rewording: {most_selected(rows, lists)}"
+        )
+
+
 def print_run(folder: Path) -> None:
     """Print the input tokens of one run and their price, then the figures of each of its test files."""
     config = RunConfig.model_validate_json((folder / "config.json").read_text())
@@ -104,9 +127,9 @@ def print_run(folder: Path) -> None:
             points, low, high = difference(own, groups[first], groups[second], BOOTSTRAP_SEED)
             # Adding 0.0 turns a rounded -0.0 into 0.0.
             print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points, 95% interval {low:.1f} to {high:.1f}")
-    if REWORDED_LIST in list_names(rows):
-        ranked = ", ".join(f"{value:.3f}" for value in ranked_means(rows, REWORDED_LIST))
-        print(f"\nmean probability of the rewordings, from the highest of an answer to the lowest: {ranked}")
+    rewordings = [name for name in list_names(rows) if name.split("_")[0] in (REWORDED_LIST, ROTATED_LIST)]
+    if rewordings:
+        print_rewordings(rows, rewordings)
     print()
 
 

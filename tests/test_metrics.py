@@ -12,7 +12,10 @@ from grjev.metrics import (
     interval,
     list_groups,
     list_names,
+    most_selected,
+    placed,
     ranked_means,
+    repeated,
     row_groups,
     top_gap,
 )
@@ -217,4 +220,54 @@ def test_ranked_means_average_the_highest_probability_of_each_answer_then_the_se
         row("G1_tool", ["a", "b", "c"], {"reworded": answer("b", True, {"a": 0.1, "b": 0.6, "c": 0.3})}),
         row("G1_tool", ["a", "b", "c"], {"reworded": answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})}),
     ]
-    assert ranked_means(rows, "reworded") == (pytest.approx(0.55), pytest.approx(0.4), pytest.approx(0.05))
+    assert ranked_means(rows, ["reworded"]) == (pytest.approx(0.55), pytest.approx(0.4), pytest.approx(0.05))
+
+
+def rotated_rows() -> list[Row]:
+    """Two examples with the tools a, b and c in two orders. The second order moves each tool one place forward."""
+    first = {
+        "rotated_0": answer("a", True, {"a": 0.6, "b": 0.3, "c": 0.1}),
+        "rotated_1": answer("a", True, {"b": 0.2, "c": 0.3, "a": 0.5}),
+    }
+    second = {
+        "rotated_0": answer("c", True, {"a": 0.2, "b": 0.2, "c": 0.6}),
+        "rotated_1": answer("b", True, {"b": 0.7, "c": 0.2, "a": 0.1}),
+    }
+    return [row("G1_tool", ["a", "b", "c"], first), row("G1_tool", ["a", "b", "c"], second)]
+
+
+def test_probabilities_and_selections_are_counted_by_place_in_the_list_or_in_a_base_list() -> None:
+    lists = ["rotated_0", "rotated_1"]
+    means, selected = placed(rotated_rows(), lists)
+    assert means == [pytest.approx(1.7 / 4), pytest.approx(1.0 / 4), pytest.approx(1.3 / 4)]
+    assert selected == [2, 0, 2]
+    means, selected = placed(rotated_rows(), lists, "rotated_0")
+    assert means == [pytest.approx(1.4 / 4), pytest.approx(1.4 / 4), pytest.approx(1.2 / 4)]
+    assert selected == [2, 1, 1]
+    assert ranked_means(rotated_rows(), lists) == (pytest.approx(0.6), pytest.approx(0.25), pytest.approx(0.15))
+
+
+def test_examples_are_counted_by_the_number_of_lists_that_select_their_most_selected_tool() -> None:
+    assert most_selected(rotated_rows(), ["rotated_0", "rotated_1"]) == {1: 1, 2: 1}
+    assert most_selected(rotated_rows(), ["rotated_0"]) == {1: 2}
+
+
+def test_two_answers_to_one_list_are_compared_by_selection_and_by_probability() -> None:
+    def numbered(number: int, name: str, given: ListAnswer) -> Row:
+        return row("G1_tool", ["a"], {name: given}).model_copy(update={"id": f"set/file/{number}"})
+
+    first = [
+        numbered(1, "all", answer("a", True, {"a": 0.5, "b": 0.4, "c": 0.1})),
+        numbered(2, "all", answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})),
+        numbered(3, "every", answer("a", True, {"a": 1.0, "b": 0.0, "c": 0.0})),
+    ]
+    second = [
+        numbered(2, "own_all", answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})),
+        numbered(1, "own_all", answer("b", False, {"a": 0.42, "b": 0.5, "c": 0.08})),
+    ]
+    # The third example has no list named "all" and is left out.
+    found = repeated(first, second, "all", "own_all")
+    assert (found.answers, found.same_choice, found.identical) == (2, 1, 1)
+    assert (found.largest_change, found.overtaken) == (pytest.approx(0.1), pytest.approx(0.1))
+    same = repeated(first, first, "all", "all")
+    assert (same.answers, same.same_choice, same.identical, same.largest_change, same.overtaken) == (2, 2, 2, 0.0, 0.0)
