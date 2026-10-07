@@ -43,7 +43,7 @@ from grjev.jev import (
     check_call_limit,
     response_path,
 )
-from grjev.placement import grown_orders, length_orders, orders_of, padded_order, reworded_tool
+from grjev.placement import grown_orders, length_orders, orders_of, padded_order, reworded_order, reworded_tool
 
 logger = logging.getLogger(__name__)
 
@@ -186,12 +186,13 @@ def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
 def reworded_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with a tool list that holds only the rewordings of one of its correct tools.
 
-    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings.
+    The correct tool is chosen with the seed, and its rewordings are in a seeded order. The labels of the yielded
+    example are the rewordings.
     """
     rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
-            listed = rewordings[reworded_tool(example, config.seed)]
+            listed = reworded_order(example, rewordings[reworded_tool(example, config.seed)], config.seed)
             relabelled = example.model_copy(update={"labels": [tool.name for tool in listed]})
             yield test_file, relabelled, {REWORDED_LIST: listed}, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
 

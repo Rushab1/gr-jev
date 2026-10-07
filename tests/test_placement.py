@@ -9,6 +9,7 @@ from grjev.placement import (
     length_orders,
     orders_of,
     padded_order,
+    reworded_order,
     reworded_tool,
     start_positions,
 )
@@ -142,6 +143,16 @@ def test_the_reworded_tool_is_a_correct_tool_chosen_with_the_seed() -> None:
     three_correct = example(6, ["tool_2", "tool_4", "tool_5"])
     assert {reworded_tool(three_correct, seed) for seed in range(20)} == {"tool_2", "tool_4", "tool_5"}
     assert reworded_tool(three_correct, SEED) == reworded_tool(three_correct, SEED)
+
+
+def test_the_rewordings_of_a_tool_are_put_in_a_seeded_order_of_the_example() -> None:
+    rewordings = [Option(name=f"way_{number}", description=f"Said way {number}.") for number in range(1, 6)]
+    one, other = example(6, ["tool_2"]), example(6, ["tool_2"]).model_copy(update={"id": "set/file/1"})
+    order = reworded_order(one, rewordings, SEED)
+    assert sorted(names(order)) == names(rewordings) and order == reworded_order(one, rewordings, SEED)
+    orders = {tuple(names(reworded_order(one, rewordings, seed))) for seed in range(20)}
+    assert len(orders) > 10 and names(reworded_order(other, rewordings, SEED)) != names(order)
+    assert names(rewordings) == [f"way_{number}" for number in range(1, 6)]
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

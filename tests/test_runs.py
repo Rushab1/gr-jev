@@ -32,7 +32,7 @@ from grjev.constants import (
     UNCOUNTED_WORDINGS,
 )
 from grjev.examples import Example, Option, read_dataset, read_rewordings
-from grjev.placement import reworded_tool
+from grjev.placement import reworded_order, reworded_tool
 from grjev.runs import (
     ListAnswer,
     Planned,
@@ -228,7 +228,7 @@ def test_a_reworded_run_asks_a_list_that_holds_only_the_rewordings_of_one_correc
     (question,) = request.questions.values()
     assert request.state == "Do two things." and list(request.questions) == [REWORDED_LIST]
     assert question.instructions == "Pick all the tools in the list that are relevant to the task at hand."
-    listed = rewordings[reworded_tool(two_correct, run_config.seed)]
+    listed = reworded_order(two_correct, rewordings[reworded_tool(two_correct, run_config.seed)], run_config.seed)
     assert item.lists[REWORDED_LIST] == listed and len(listed) == 5
     assert list(criteria_of(run_config, "G1_tool", listed)) == [tool.name for tool in listed]
     assert item.example.labels == [tool.name for tool in listed]
@@ -517,13 +517,13 @@ def test_fifty_reworded_stabletoolbench_lists_hold_only_the_five_rewordings_of_o
     planned = plan(run_config, examples, apis)
     growth = plan(config("growth", dataset="stabletoolbench", examples=50), examples, apis)
     rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
-    by_names = {tuple(tool.name for tool in tools): original for original, tools in rewordings.items()}
+    by_names = {frozenset(tool.name for tool in tools): original for original, tools in rewordings.items()}
     described = {api.name: bool(api.description.strip()) for api in apis}
     assert sum(count["calls"] for count in call_counts(run_config, planned).values()) == len(planned) == 50
     reworded = set()
     for item, grown in zip(planned, growth, strict=True):
         listed = item.lists[REWORDED_LIST]
-        original = by_names[tuple(tool.name for tool in listed)]
+        original = by_names[frozenset(tool.name for tool in listed)]
         reworded.add(original)
         assert item.example.id == grown.example.id and original in (grown.example.labels or [])
         assert len(listed) == 5 and item.example.labels == [tool.name for tool in listed]

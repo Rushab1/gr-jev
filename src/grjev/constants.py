@@ -309,9 +309,9 @@ GROWTH_WORDINGS = ("all", "every")
 # The name of the padded list of an example before it is grown.
 OWN_LIST = "own"
 # The "reworded" experiment. One correct tool of a query is chosen with the seed, and the list that is sent holds only
-# rewordings of its name and description. Dataset -> the file of rewordings: the name of a tool -> its 5 rewordings.
-# Claude Opus 5.5 wrote them on 2026-10-06. A rewording of a StableToolBench API keeps the category and the tool of
-# the name, and rewords the API name and the description. A blank description stays blank.
+# rewordings of its name and description, in a seeded order. Dataset -> the file of rewordings: the name of a tool ->
+# its 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06. A rewording of a StableToolBench API keeps the category
+# and the tool of the name, and rewords the API name and the description. A blank description stays blank.
 REWORDINGS_FILES = {"stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json"}
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
