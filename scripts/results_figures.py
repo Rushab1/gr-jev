@@ -11,6 +11,8 @@ wording of the instruction. Its columns:
 - probabilities at 0: the share of the returned probabilities that are 0.00
 - entropy: the mean entropy of an answer's probabilities, in bits
 - top minus second: the mean of an answer's highest probability minus its second-highest
+- highest correct, lowest correct, correct together: for the queries with several correct tools, the mean probability
+  of the correct tool with the highest probability, of the one with the lowest, and of all the correct tools summed
 - one choice, all correct, none correct: the examples with the same choice in every list of the group, and those
   answered correctly in every list and in none
 - second tool wrong, second place tied, top tool wrong: for a query with two correct tools, the answers that miss
@@ -51,6 +53,12 @@ from grjev.metrics import (
 )
 from grjev.runs import Row, RunConfig
 
+
+def mean_text(value: float | None) -> str:
+    """Return a mean with two decimals, or "none" for a group with no query that has several correct tools."""
+    return "none" if value is None else f"{value:.2f}"
+
+
 # Column header -> the text of the column for the figures of one group of tool lists.
 COLUMNS: dict[str, Callable[[Figures], str]] = {
     "examples": lambda found: f"{found.examples:,}",
@@ -64,6 +72,9 @@ COLUMNS: dict[str, Callable[[Figures], str]] = {
     "probabilities at 0": lambda found: f"{found.zero_probabilities:.1f}%",
     "entropy": lambda found: f"{found.entropy:.2f}",
     "top minus second": lambda found: f"{found.gap:.2f}",
+    "highest correct": lambda found: mean_text(found.highest_correct),
+    "lowest correct": lambda found: mean_text(found.lowest_correct),
+    "correct together": lambda found: mean_text(found.correct_together),
     "one choice": lambda found: f"{found.one_choice:,}",
     "all correct": lambda found: f"{found.all_correct:,}",
     "none correct": lambda found: f"{found.none_correct:,}",

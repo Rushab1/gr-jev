@@ -14,6 +14,7 @@ from grjev.placement import (
     rotated_orders,
     spaced_copies,
     start_positions,
+    wrong_tools,
 )
 
 SEED = 7
@@ -180,6 +181,14 @@ def test_the_copies_of_a_tool_differ_only_by_extra_spaces_in_the_name(name: str,
     assert max(len(copy.name) for copy in copies) == len(name) + most_extra
     assert copies == spaced_copies(tool, 5, "seed") and names(copies) != names(spaced_copies(tool, 5, "other"))
     assert tool.name == name
+
+
+def test_the_wrong_tools_of_an_example_are_chosen_with_the_seed_and_hold_no_correct_tool() -> None:
+    one_correct = example(10, ["tool_3"])
+    kept = wrong_tools(one_correct, 4, SEED)
+    assert len(set(names(kept))) == 4 and "tool_3" not in names(kept)
+    assert set(names(kept)) < set(names(one_correct.options))
+    assert kept == wrong_tools(one_correct, 4, SEED) and names(kept) != names(wrong_tools(one_correct, 4, SEED + 1))
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

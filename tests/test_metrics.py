@@ -215,6 +215,19 @@ def test_a_wording_run_is_pooled_over_its_test_files_and_grouped_by_the_number_o
     assert groups["2 correct tools"] == [two_apis] and groups["G1_tool"] == [one_api, two_apis]
 
 
+def test_the_highest_and_the_lowest_correct_tool_are_averaged_over_queries_with_several_correct_tools() -> None:
+    rows = [
+        row("G1_tool", ["a", "b"], {"all": answer("a", True, {"a": 0.8, "b": 0.1, "c": 0.1})}),
+        row("G1_tool", ["a", "b", "c"], {"all": answer("c", True, {"a": 0.2, "b": 0.3, "c": 0.5})}),
+        row("G1_tool", ["a"], {"all": answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})}),
+    ]
+    found = figures(rows, ["all"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
+    assert found.highest_correct == pytest.approx(0.65) and found.lowest_correct == pytest.approx(0.15)
+    assert found.correct_together == pytest.approx(0.95)
+    single = figures(rows[2:], ["all"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
+    assert (single.highest_correct, single.lowest_correct, single.correct_together) == (None, None, None)
+
+
 def test_ranked_means_average_the_highest_probability_of_each_answer_then_the_second_and_so_on() -> None:
     rows = [
         row("G1_tool", ["a", "b", "c"], {"reworded": answer("b", True, {"a": 0.1, "b": 0.6, "c": 0.3})}),

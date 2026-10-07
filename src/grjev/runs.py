@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 
 from grjev.constants import (
+    ABSENT_LIST_TOOLS,
     COPIED_TOOLS,
     COUNTED_WORDINGS,
     GROWTH_LENGTHS,
@@ -17,6 +18,7 @@ from grjev.constants import (
     JEV_REQUEST_CHARACTERS,
     JEV_WORKERS,
     LIST_LENGTHS,
+    NO_ADDED_NONE_EXPERIMENTS,
     NONE_DESCRIPTION,
     NONE_NAME,
     NONE_TEST_FILES,
@@ -54,6 +56,7 @@ from grjev.placement import (
     reworded_tool,
     rotated_orders,
     spaced_copies,
+    wrong_tools,
 )
 
 logger = logging.getLogger(__name__)
@@ -238,6 +241,24 @@ def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             yield test_file, relabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
 
 
+def absent_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with a list that has no correct tool, in every rotation.
+
+    The list holds tools of the example that are not correct, chosen with the seed, and the "None" candidate, which
+    is last in the first rotation. The yielded example has no label, so "None" is the correct answer.
+    """
+    none = Option(name=NONE_NAME, description=NONE_DESCRIPTION)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders([*wrong_tools(example, ABSENT_LIST_TOOLS, config.seed), none])
+            yield (
+                test_file,
+                example.model_copy(update={"labels": []}),
+                lists,
+                dict.fromkeys(lists, ONE_TOOL_INSTRUCTIONS),
+            )
+
+
 # Experiment -> the function that yields the tool lists of its examples.
 LISTS = {
     "position": position_lists,
@@ -247,18 +268,20 @@ LISTS = {
     "reworded": reworded_lists,
     "rotated": rotated_lists,
     "copied": copied_lists,
+    "absent": absent_lists,
 }
 
 
 def criteria_of(config: RunConfig, test_file: str, tools: list[Option]) -> dict[str, str | None]:
     """Return the candidates of a question in the order of the list, with "None" last where it is offered.
 
-    A tool with a blank description is sent without one. A list of rewordings offers no "None".
+    A tool with a blank description is sent without one. A list of rewordings or of copies offers no "None", and an
+    "absent" list holds it already.
     """
     criteria: dict[str, str | None] = {
         tool.name: tool.description if tool.description.strip() else None for tool in tools
     }
-    if test_file in NONE_TEST_FILES[config.dataset] and config.experiment not in REWORDING_EXPERIMENTS:
+    if test_file in NONE_TEST_FILES[config.dataset] and config.experiment not in NO_ADDED_NONE_EXPERIMENTS:
         criteria[NONE_NAME] = NONE_DESCRIPTION
     return criteria
 

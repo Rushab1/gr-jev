@@ -30,7 +30,10 @@ class Figures:
 
     `entropy` is the mean entropy of an answer's probabilities in bits, and `gap` the mean of its highest probability
     minus its second-highest. `second_wrong`, `second_tied` and `top_wrong` count the answers that miss the correct
-    tools of a query with several correct tools, each answer once.
+    tools of a query with several correct tools, each answer once. `highest_correct`, `lowest_correct` and
+    `correct_together` are means over the answers to queries with several correct tools: the probability of the
+    correct tool with the highest probability, of the one with the lowest, and of all the correct tools summed. They
+    are None when no query has several correct tools.
     """
 
     examples: int
@@ -45,6 +48,9 @@ class Figures:
     zero_probabilities: float
     entropy: float
     gap: float
+    highest_correct: float | None
+    lowest_correct: float | None
+    correct_together: float | None
     one_choice: int
     all_correct: int
     none_correct: int
@@ -109,6 +115,9 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
     confident = [answer for _, answer in answers if max(answer.probabilities.values()) >= confident_from]
     probabilities = [value for _, answer in answers for value in answer.probabilities.values()]
     misses = Counter(miss_of(row, answer) for row, answer in answers)
+    spreads = [
+        sorted(answer.probabilities[tool] for tool in row.labels) for row, answer in answers if len(row.labels) > 1
+    ]
     return Figures(
         examples=len(rows),
         answers=len(answers),
@@ -122,6 +131,9 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         zero_probabilities=100 * statistics.fmean(value == 0 for value in probabilities),
         entropy=statistics.fmean(entropy(answer) for _, answer in answers),
         gap=statistics.fmean(top_gap(answer) for _, answer in answers),
+        highest_correct=statistics.fmean(spread[-1] for spread in spreads) if spreads else None,
+        lowest_correct=statistics.fmean(spread[0] for spread in spreads) if spreads else None,
+        correct_together=statistics.fmean(map(sum, spreads)) if spreads else None,
         one_choice=sum(len({row.answers[name].choice for name in lists}) == 1 for row in rows),
         all_correct=sum(share == 1 for share in shares),
         none_correct=sum(share == 0 for share in shares),

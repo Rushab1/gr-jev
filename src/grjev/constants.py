@@ -269,6 +269,8 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
 # "rotated" sends that list in every rotation of the order in which the rewordings are written.
 # "copied" sends every example with a list of copies of one of its correct tools, in every rotation.
+# "absent" sends every example with a list that has no correct tool: other tools of the example and "None", in every
+# rotation.
 # The MetaTool test files whose examples have a correct tool to reword.
 METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
@@ -279,6 +281,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "copied": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "absent": {"metatool": ("similar_tools",)},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -333,6 +336,11 @@ REWORDINGS_FILES = {
 REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied")
 # The "copied" experiment lists one correct tool this many times. The names of the copies differ only by extra spaces.
 COPIED_TOOLS = 5
+# The "absent" experiment keeps this many tools of the example that are not correct, and lists "None" with them.
+ABSENT_LIST_TOOLS = 4
+# The experiments whose lists do not get "None" added at the end: the lists of rewordings and of copies, and the
+# "absent" lists, which hold "None" at a place of its own.
+NO_ADDED_NONE_EXPERIMENTS = (*REWORDING_EXPERIMENTS, "absent")
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
 REWORDED_LIST = "reworded"

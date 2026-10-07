@@ -271,6 +271,25 @@ def test_a_copied_run_asks_five_copies_of_one_correct_tool_in_every_rotation() -
         assert isinstance(question, jev.ChoiceQuestion) and sorted(question.criteria) == sorted(item.example.labels)
 
 
+def test_an_absent_run_asks_wrong_tools_and_none_in_every_rotation_and_none_is_correct() -> None:
+    one_correct = Example(id="set/similar_tools/0", query="Do one thing.", options=TOOLS, labels=["tool_2"], raw={})
+    run_config = config("absent", "similar_tools")
+    (item,) = plan(run_config, {"similar_tools": [one_correct]}, TOOLS)
+    (request,) = item.requests
+    assert list(request.questions) == [f"rotated_{moved}" for moved in range(5)]
+    assert {question.instructions for question in request.questions.values()} == {ONE_TOOL_INSTRUCTIONS}
+    places = []
+    for name, question in request.questions.items():
+        assert isinstance(question, jev.ChoiceQuestion)
+        candidates = list(question.criteria)
+        assert len(candidates) == 5 and candidates.count(NONE_NAME) == 1 and "tool_2" not in candidates
+        assert candidates == [tool.name for tool in item.lists[name]]
+        places.append(candidates.index(NONE_NAME) + 1)
+    assert places == [5, 4, 3, 2, 1] and item.example.labels == []
+    assert is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.2, NONE_NAME: 0.8}))
+    assert not is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.8, NONE_NAME: 0.2}))
+
+
 def test_a_list_of_rewordings_offers_no_none_and_every_entry_is_correct() -> None:
     rotated = config("rotated", "similar_tools")
     assert list(criteria_of(rotated, "similar_tools", TOOLS[:2])) == ["tool_1", "tool_2"]
@@ -651,3 +670,21 @@ def test_fifty_copied_queries_send_one_request_with_five_copies_of_a_correct_too
         assert original in {tuple(label.split()) for label in correct[item.example.id]}
         for question in item.requests[0].questions.values():
             assert isinstance(question, jev.ChoiceQuestion) and len(question.criteria) == 5
+
+
+def test_fifty_absent_metatool_queries_send_four_similar_tools_and_none_without_the_correct_tool(
+    metatool: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    examples, tools = metatool
+    run_config = config("absent", examples=50)
+    planned = plan(run_config, examples, tools)
+    counts = call_counts(run_config, planned)
+    assert counts["similar_tools"]["examples"] == counts["similar_tools"]["calls"] == 50
+    assert counts["similar_tools"]["questions"] == 250
+    released = {example.id: example for example in examples["similar_tools"]}
+    for item in planned:
+        own = released[item.example.id]
+        for listed in item.lists.values():
+            names = [tool.name for tool in listed]
+            assert len(names) == 5 and names.count(NONE_NAME) == 1 and not set(names) & set(own.labels or [])
+            assert set(names) - {NONE_NAME} < {option.name for option in own.options}

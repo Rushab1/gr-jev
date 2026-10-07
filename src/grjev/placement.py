@@ -108,6 +108,12 @@ def spaced_copies(tool: Option, copies: int, seed: str) -> list[Option]:
     ]
 
 
+def wrong_tools(example: Example, size: int, seed: int) -> list[Option]:
+    """Return `size` tools of the example that are not correct, chosen with the seed."""
+    others = [option for option in example.options if option.name not in (example.labels or [])]
+    return random.Random(f"{seed}/{example.id}/absent").sample(others, size)
+
+
 def rotated_orders(tools: list[Option]) -> dict[str, list[Option]]:
     """Return the tools in every rotation of their order, by name. Each tool is at each place of one rotation."""
     return {f"{ROTATED_LIST}_{moved}": tools[moved:] + tools[:moved] for moved in range(len(tools))}
