@@ -25,8 +25,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # subset on StableToolBench, to 710 the same day for the 59 calls of the growth subset of 50 queries, and to 760 the
 # same day for the 50 calls of the reworded subset of the same 50 queries. Raised to 1,110 on 2026-10-06 for a second
 # run of the 300 requests of the wording subset and for 50 calls of the reworded subset with only the rewordings listed.
-# Raised to 1,160 on 2026-10-07 for 50 calls of the reworded subset with the rewordings in a seeded order.
-JEV_CALL_LIMIT = 1160
+# Raised to 1,160 on 2026-10-07 for 50 calls of the reworded subset with the rewordings in a seeded order, and to
+# 1,210 the same day for the 50 calls of the rotated subset.
+JEV_CALL_LIMIT = 1210
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 JEV_DOLLARS_PER_MILLION_INPUT_TOKENS = 0.042
