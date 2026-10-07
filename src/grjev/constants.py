@@ -30,8 +30,8 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # the 250 requests of the position subset, and the 50 calls of the rotated subset. Raised to 1,511 the same day for one
 # request that lists one API five times, and to 1,512 for a second such request. Raised to 1,612 the same day for the
 # copied subsets of MetaTool and StableToolBench, 50 calls each, and to 1,662 for the 50 calls of the absent subset of
-# MetaTool.
-JEV_CALL_LIMIT = 1662
+# MetaTool, and to 1,712 for the 50 calls of its absent_random subset.
+JEV_CALL_LIMIT = 1712
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 JEV_DOLLARS_PER_MILLION_INPUT_TOKENS = 0.042
