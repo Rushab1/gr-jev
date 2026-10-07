@@ -1,12 +1,12 @@
 # Jev study: plan
 
-Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 799 calls, and runs on subsets of StableToolBench, 911 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, and two runs with the correct tool removed with 50 calls each. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
+Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, and runs on subsets of StableToolBench, 911 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent` and `absent_random` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random` and `unrelated` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
@@ -15,7 +15,7 @@ The wording run on a subset of StableToolBench was made on 2026-10-06. Its desig
 Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together.
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,712, and 1,711 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,725. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,762, and 1,761 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,775. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -41,6 +41,7 @@ Every figure is the mean of a seeded sample: 50 queries for the rewordings, the 
 |---|---|---|
 | 5 copies of one tool: mean probability from the highest of an answer to the lowest | 0.34, 0.24, 0.18, 0.14, 0.10 | 0.32, 0.23, 0.19, 0.15, 0.11 |
 | 5 rewordings of one tool: the same | 0.43, 0.24, 0.16, 0.10, 0.06 | 0.45, 0.25, 0.16, 0.09, 0.05 |
+| 5 random tools with no correct tool and no "None": the same | Not run | 0.81, 0.15, 0.03, 0.01, 0.01 |
 | A normal list: the highest, second-highest and third-highest probability | 0.84, 0.12, 0.03 | 0.85, 0.14, 0.01 for the two-tool queries |
 | A normal list: highest probability minus second-highest | 0.55 to 0.64 over the 4 instructions | 0.70 to 0.80 over the 4 test files |
 | Queries with 2 or more correct tools: the top entry is a correct tool | 276 or 277 of 294 queries | 446 of 450 answers |
@@ -109,6 +110,7 @@ Claude Code's reading, 2026-10-07: the place decides Jev's selection when the en
 | 5 copies of one tool | 0.32 to 0.34 | The place: the last place is selected in 162 and in 102 of 250 answers |
 | 5 rewordings of one tool | 0.43 to 0.45 | The rewording and the place: the same rewording is selected in all 5 orders for 13 and for 22 of 50 queries |
 | Different tools with one correct tool | 0.84 to 0.88 on MetaTool | The tool: 39 and 38 correct answers with the correct tool first and last |
+| 5 random tools with no correct tool, on MetaTool | 0.81 | The tool: the same tool is selected in all 5 orders for 40 of 50 queries, and the five places are selected in 52, 53, 45, 50 and 50 of 250 answers |
 
 Rushab, 2026-10-07: the normal lists show no effect of the place because their tools are not similar enough. The run under "The correct tool removed" tests this with a list of tools that are similar to the correct tool, and it finds "None" selected 34 to 37 times of 50 at each of the 5 places.
 
@@ -584,6 +586,36 @@ A first look at the saved answers gave the figures below. The figures script doe
 - Claude Code read the 5 queries of the run with random tools where Jev selects a tool, as one reader. `internetSearch` is selected in all 5 orders for a query that asks for the manual of a pump, and a web search can do that task. `ChartTool` is selected in all 5 orders for a chart of the age demographics of Florida, and `BookTool` for a story with images: each can do part of the task. In the 2 queries whose selected entry differs, the selected tool is `jini` or `web_requests`, a search tool and a web browser.
 - 6 of the 50 lists of random tools hold a tool for web search or web browsing.
 
+## Random tools without "None"
+
+Decided by Rushab on 2026-10-07: the opposite of the runs with rewordings and with copies. In those runs every entry of the list is correct. In this run no entry is correct, and "None" is not offered.
+
+- Examples. The 50 MetaTool queries of the copied run.
+- List. 5 tools drawn with the seed from the tools that are not in the query's own list. 14 of the 50 lists hold a tool for web search or web browsing: `jini`, `internetSearch`, `total_query_meta_search_engine`, `web_requests`, `universal` or `lsongai`.
+- Orders and instruction. The 5 rotations of the list as 5 questions of one request, with the instruction of the copied run: "Pick all the tools in the list that are relevant to the task at hand."
+- Size and cost. 50 requests with 5 questions each, 62,708 input tokens, under $0.01. The results folder is `results/metatool_unrelated/2026-10-07_01`, written at commit `2aaa6a0`. The code names the experiment `unrelated`. `python scripts/results_figures.py` prints the figures of the two tables. No margin of error is given.
+
+| The 5 entries of the list, MetaTool | Highest probability of an answer, mean | Second-highest | Third | Fourth | Lowest | Entropy, mean | Queries with the same entry selected in all 5 orders, of 50 |
+|---|---|---|---|---|---|---|---|
+| 5 copies of one correct tool | 0.317 | 0.233 | 0.186 | 0.149 | 0.114 | 2.21 | 0 |
+| 5 rewordings of one correct tool | 0.453 | 0.248 | 0.157 | 0.092 | 0.049 | 1.89 | 22 |
+| 5 random tools, none of them correct | 0.805 | 0.146 | 0.033 | 0.011 | 0.005 | 0.70 | 40 |
+
+| 5 random tools | First | Second | Third | Fourth | Fifth |
+|---|---|---|---|---|---|
+| Mean probability of the entry at this place of the list | 0.204 | 0.209 | 0.184 | 0.201 | 0.202 |
+| Answers that select the entry at this place, of 250 | 52 | 53 | 45 | 50 | 50 |
+
+- With 5 random tools Jev's highest probability is 0.81 on average, against 0.84 to 0.88 for a normal MetaTool list with a correct tool.
+- With "None" next to 4 random tools, in the run under "The correct tool removed", Jev answers "None" in 233 of 250 answers.
+
+A first look at the saved answers gave the figures below. The figures script does not print them.
+
+- Jev's highest probability is 0.90 or more in 112 of the 250 answers and 0.50 or more in 235.
+- For the 36 lists without a tool for web search or web browsing, the mean probabilities from the highest to the lowest are 0.756, 0.179, 0.043, 0.015 and 0.006. The highest is 0.90 or more in 57 of the 180 answers, and Jev selects the same tool in all 5 orders for 27 of the 36 queries.
+- For the 14 lists with such a tool, Jev selects it in 66 of the 70 answers.
+- Claude Code read the 33 queries in which one tool has 0.70 or more on average over the 5 orders, as one reader. The tool can do the task of the query in 12, part of it in 6, and cannot do it in 15. Four of the 15: `DataRetrievalTool`, which stores and retrieves user information, has 0.99 for a query that asks for the TAF of London Heathrow; `timemachine`, which gives the current time, has 0.99 for a query that asks for political news and tourist attractions; `URLTool`, which gives domain information, has 0.99 for a query that asks for a digital agency in Toronto; `brandfetch`, which retrieves brand data, has 1.00 for a query that asks for a picture of Facebook's homepage in 2004. A second reader has not checked these readings.
+
 ## How runs are staged
 
 Decided by Rushab on 2026-10-04.
@@ -628,7 +660,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,712 on 2026-10-07, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,762 on 2026-10-07, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -841,7 +873,7 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 1,712 Jev calls is raised, and for which runs.
+- Decide when the limit of 1,762 Jev calls is raised, and for which runs.
 - Have a second reader check whether a kept tool can do the task of the query in the two runs with the correct tool removed.
 - Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.
 - Find a consequence of the two results for a user of Jev, such as reading several tools from one answer.
