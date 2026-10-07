@@ -8,6 +8,7 @@ from grjev.placement import (
     grown_orders,
     length_orders,
     orders_of,
+    outside_tools,
     padded_order,
     reworded_order,
     reworded_tool,
@@ -189,6 +190,17 @@ def test_the_wrong_tools_of_an_example_are_chosen_with_the_seed_and_hold_no_corr
     assert len(set(names(kept))) == 4 and "tool_3" not in names(kept)
     assert set(names(kept)) < set(names(one_correct.options))
     assert kept == wrong_tools(one_correct, 4, SEED) and names(kept) != names(wrong_tools(one_correct, 4, SEED + 1))
+
+
+def test_the_outside_tools_of_an_example_are_chosen_with_the_seed_from_tools_that_it_does_not_list() -> None:
+    dataset = example(30, []).options
+    listed = example(10, ["tool_3"])
+    kept = outside_tools(listed, dataset, 4, SEED)
+    assert len(set(names(kept))) == 4 and not set(names(kept)) & set(names(listed.options))
+    assert set(names(kept)) < set(names(dataset))
+    assert kept == outside_tools(listed, dataset, 4, SEED) and names(kept) != names(
+        outside_tools(listed, dataset, 4, SEED + 1)
+    )
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

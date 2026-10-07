@@ -688,3 +688,22 @@ def test_fifty_absent_metatool_queries_send_four_similar_tools_and_none_without_
             names = [tool.name for tool in listed]
             assert len(names) == 5 and names.count(NONE_NAME) == 1 and not set(names) & set(own.labels or [])
             assert set(names) - {NONE_NAME} < {option.name for option in own.options}
+
+
+def test_fifty_absent_random_metatool_queries_send_four_tools_from_outside_their_list_and_none(
+    metatool: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    examples, tools = metatool
+    run_config = config("absent_random", examples=50)
+    planned = plan(run_config, examples, tools)
+    similar = {item.example.id for item in plan(config("absent", examples=50), examples, tools)}
+    assert {item.example.id for item in planned} == similar
+    assert sum(count["calls"] for count in call_counts(run_config, planned).values()) == 50
+    released = {example.id: example for example in examples["similar_tools"]}
+    known = {tool.name for tool in tools}
+    for item in planned:
+        own = {option.name for option in released[item.example.id].options}
+        for listed in item.lists.values():
+            names = [tool.name for tool in listed]
+            assert len(names) == 5 and names.count(NONE_NAME) == 1 and item.example.labels == []
+            assert not set(names) & own and set(names) - {NONE_NAME} < known

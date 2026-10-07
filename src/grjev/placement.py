@@ -114,6 +114,13 @@ def wrong_tools(example: Example, size: int, seed: int) -> list[Option]:
     return random.Random(f"{seed}/{example.id}/absent").sample(others, size)
 
 
+def outside_tools(example: Example, tools: list[Option], size: int, seed: int) -> list[Option]:
+    """Return `size` tools of the dataset that are not in the list of the example, chosen with the seed."""
+    listed = {option.name for option in example.options}
+    others = [tool for tool in tools if tool.name not in listed]
+    return random.Random(f"{seed}/{example.id}/absent_random").sample(others, size)
+
+
 def rotated_orders(tools: list[Option]) -> dict[str, list[Option]]:
     """Return the tools in every rotation of their order, by name. Each tool is at each place of one rotation."""
     return {f"{ROTATED_LIST}_{moved}": tools[moved:] + tools[:moved] for moved in range(len(tools))}

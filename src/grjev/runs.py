@@ -2,7 +2,7 @@
 
 import logging
 import random
-from collections.abc import Collection, Iterable, Iterator
+from collections.abc import Callable, Collection, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
@@ -51,6 +51,7 @@ from grjev.placement import (
     grown_orders,
     length_orders,
     orders_of,
+    outside_tools,
     padded_order,
     reworded_order,
     reworded_tool,
@@ -241,22 +242,31 @@ def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             yield test_file, relabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
 
 
-def absent_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
-    """Yield each example with a list that has no correct tool, in every rotation.
+def none_rotations(
+    config: RunConfig, examples: dict[str, list[Example]], kept: Callable[[Example], list[Option]]
+) -> ExampleLists:
+    """Yield each example with the tools that `kept` returns for it and the "None" candidate, in every rotation.
 
-    The list holds tools of the example that are not correct, chosen with the seed, and the "None" candidate, which
-    is last in the first rotation. The yielded example has no label, so "None" is the correct answer.
+    "None" is last in the first rotation. The yielded example has no label, so "None" is the correct answer.
     """
     none = Option(name=NONE_NAME, description=NONE_DESCRIPTION)
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
-            lists = rotated_orders([*wrong_tools(example, ABSENT_LIST_TOOLS, config.seed), none])
-            yield (
-                test_file,
-                example.model_copy(update={"labels": []}),
-                lists,
-                dict.fromkeys(lists, ONE_TOOL_INSTRUCTIONS),
-            )
+            lists = rotated_orders([*kept(example), none])
+            unlabelled = example.model_copy(update={"labels": []})
+            yield test_file, unlabelled, lists, dict.fromkeys(lists, ONE_TOOL_INSTRUCTIONS)
+
+
+def absent_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with tools of its own list that are not correct, and "None", in every rotation."""
+    return none_rotations(config, examples, lambda example: wrong_tools(example, ABSENT_LIST_TOOLS, config.seed))
+
+
+def absent_random_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with random tools from outside its own list, and "None", in every rotation."""
+    return none_rotations(
+        config, examples, lambda example: outside_tools(example, tools, ABSENT_LIST_TOOLS, config.seed)
+    )
 
 
 # Experiment -> the function that yields the tool lists of its examples.
@@ -269,6 +279,7 @@ LISTS = {
     "rotated": rotated_lists,
     "copied": copied_lists,
     "absent": absent_lists,
+    "absent_random": absent_random_lists,
 }
 
 
