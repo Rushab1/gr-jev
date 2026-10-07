@@ -2,7 +2,7 @@
 
 import logging
 import random
-from collections.abc import Iterable, Iterator
+from collections.abc import Collection, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 from grjev.constants import (
     COUNTED_WORDINGS,
+    GROWTH_LENGTHS,
+    GROWTH_WORDINGS,
     JEV_MODEL,
     JEV_REQUEST_CHARACTERS,
     JEV_WORKERS,
@@ -38,7 +40,7 @@ from grjev.jev import (
     check_call_limit,
     response_path,
 )
-from grjev.placement import length_orders, orders_of, padded_order
+from grjev.placement import grown_orders, length_orders, orders_of, padded_order
 
 logger = logging.getLogger(__name__)
 
@@ -126,24 +128,45 @@ def length_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
 
 
+def wording_instructions(example: Example, names: Collection[str]) -> dict[str, str]:
+    """Return the instruction of each named wording that is sent for the example, by name of the wording.
+
+    A wording that states the number of correct tools is sent only for a query with two or more of them.
+    """
+    correct = len(example.labels or [])
+    counted = [name for name in names if name in COUNTED_WORDINGS and correct > 1]
+    instructions = {name: COUNTED_WORDINGS[name].format(number=NUMBER_WORDS[correct]) for name in counted}
+    return instructions | {name: UNCOUNTED_WORDINGS[name] for name in names if name in UNCOUNTED_WORDINGS}
+
+
 def wording_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with one tool list, under the name of each wording of the instruction it is sent with.
 
-    The list holds the example's tools in a seeded order, with random other tools added to a short list. A wording
-    that states the number of correct tools is sent only for a query with two or more of them.
+    The list holds the example's tools in a seeded order, with random other tools added to a short list.
     """
     for test_file in config.test_files:
         for example in sampled(examples[test_file], config):
-            correct = len(example.labels or [])
-            counted = COUNTED_WORDINGS if correct > 1 else {}
-            instructions = {name: text.format(number=NUMBER_WORDS[correct]) for name, text in counted.items()}
-            instructions |= UNCOUNTED_WORDINGS
+            instructions = wording_instructions(example, [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS])
             order = padded_order(example, tools, PADDED_LIST_TOOLS, config.seed)
             yield test_file, example, dict.fromkeys(instructions, order), instructions
 
 
+def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its padded tool list and with that list grown to each length, under each wording.
+
+    A list is named by its length, or by OWN_LIST before it is grown, and by the wording of its instruction.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], config):
+            orders = grown_orders(example, tools, PADDED_LIST_TOOLS, GROWTH_LENGTHS[config.dataset], config.seed)
+            wordings = wording_instructions(example, GROWTH_WORDINGS)
+            lists = {f"{size}_{wording}": order for size, order in orders.items() for wording in wordings}
+            instructions = {f"{size}_{wording}": text for size in orders for wording, text in wordings.items()}
+            yield test_file, example, lists, instructions
+
+
 # Experiment -> the function that yields the tool lists of its examples.
-LISTS = {"position": position_lists, "length": length_lists, "wording": wording_lists}
+LISTS = {"position": position_lists, "length": length_lists, "wording": wording_lists, "growth": growth_lists}
 
 
 def criteria_of(config: RunConfig, test_file: str, tools: list[Option]) -> dict[str, str | None]:

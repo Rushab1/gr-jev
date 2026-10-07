@@ -172,6 +172,16 @@ def test_the_wordings_of_a_wording_run_are_not_pooled_and_each_is_compared_with_
     assert compared_groups(list_groups(["every"], []), []) == {}
 
 
+def test_the_lists_of_a_growth_run_are_not_pooled_and_the_first_list_is_compared_with_the_longest() -> None:
+    names = ["own_all", "own_every", "20_all", "20_every", "199_all", "199_every"]
+    groups = list_groups(names, [])
+    assert list(groups) == names
+    assert compared_groups(groups, []) == {
+        "own_all minus 199_all": ("own_all", "199_all"),
+        "own_every minus 199_every": ("own_every", "199_every"),
+    }
+
+
 def test_examples_are_grouped_by_test_file_and_pooled_when_all_have_the_same_lists() -> None:
     similar = row("similar_tools", ["a"], {"5_first": answer("a", True)})
     scenario = row("scenario", ["a"], {"5_first": answer("a", True)})

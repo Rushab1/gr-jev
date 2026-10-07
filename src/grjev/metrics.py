@@ -153,8 +153,8 @@ def list_groups(names: Sequence[str], lengths: Sequence[int]) -> Groups:
     """Return the groups of tool lists that have figures: each list, then the groups that pool lists, then every list.
 
     A position run pools the placements of one correct tool, and the adjacent and the separated orders of two. A
-    length run pools the placements of each list length, and the list lengths of each placement. The wordings of a
-    wording run are not pooled.
+    length run pools the placements of each list length, and the list lengths of each placement. Lists that are
+    named by the wording of their instruction are not pooled.
     """
     placements = list(PLACEMENTS)
     pooled = {
@@ -166,14 +166,16 @@ def list_groups(names: Sequence[str], lengths: Sequence[int]) -> Groups:
     pooled |= {f"{name}, every length": [f"{length}_{name}" for length in lengths] for name in placements}
     present = {group: lists for group, lists in pooled.items() if lists and set(lists) <= set(names)}
     wordings = {*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS}
-    every = {"every list": list(names)} if len(names) > 1 and not set(names) <= wordings else {}
+    worded = any(name.rpartition("_")[2] in wordings for name in names)
+    every = {"every list": list(names)} if len(names) > 1 and not worded else {}
     return {name: [name] for name in names} | present | every
 
 
 def compared_groups(groups: Groups, lengths: Sequence[int]) -> dict[str, tuple[str, str]]:
     """Return the pairs of groups whose CSR is compared, by name of the comparison: the first group minus the second.
 
-    A wording run compares each wording with the one before it.
+    A wording run compares each wording with the one before it. A growth run compares, for each wording, the list
+    before it is grown with the longest list.
     """
     placed = f"{len(PLACEMENTS)} placements"
     pairs = {
@@ -187,6 +189,12 @@ def compared_groups(groups: Groups, lengths: Sequence[int]) -> dict[str, tuple[s
         pairs[f"{shortest} minus {longest}"] = (shortest, longest)
     wordings = [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS]
     pairs |= {f"{later} minus {earlier}": (later, earlier) for earlier, later in pairwise(wordings)}
+    by_wording: dict[str, list[str]] = {}
+    for name in groups:
+        size, _, wording = name.rpartition("_")
+        if size and wording in wordings:
+            by_wording.setdefault(wording, []).append(name)
+    pairs |= {f"{own[0]} minus {own[-1]}": (own[0], own[-1]) for own in by_wording.values() if len(own) > 1}
     return {name: pair for name, pair in pairs.items() if set(pair) <= set(groups)}
 
 

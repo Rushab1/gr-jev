@@ -258,10 +258,12 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # Experiment -> dataset -> the test files it sends, in order. "position" sends every example in the released order and
 # with its correct tools at each placement. "length" sends each different one-tool query with lists of several lengths.
 # "wording" sends every example with one tool list and each wording of the instruction for several correct tools.
+# "growth" sends every example with its tool list and with random other tools added up to several list lengths.
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
     "wording": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -295,6 +297,13 @@ UNCOUNTED_WORDINGS = {"every": "Choose every tool in the list that is needed to 
 NUMBER_WORDS = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six"}
 # In the "wording" experiment a list with fewer tools than this gets random other tools of the dataset added.
 PADDED_LIST_TOOLS = 5
+# The "growth" experiment. Dataset -> the list lengths that the padded list of an example is grown to with random
+# other tools of the dataset.
+GROWTH_LENGTHS = {"stabletoolbench": (20, 50, 100, 199)}
+# The wordings that the "growth" experiment sends with every list.
+GROWTH_WORDINGS = ("all", "every")
+# The name of the padded list of an example before it is grown.
+OWN_LIST = "own"
 # Dataset -> the list lengths of the "length" experiment. MetaTool has 199 tools, so its last list holds every tool.
 LIST_LENGTHS = {"metatool": (5, 10, 20, 50, 100, 199)}
 # The name of the order in which a test file lists the tools.

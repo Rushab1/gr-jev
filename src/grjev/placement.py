@@ -6,6 +6,7 @@ from fractions import Fraction
 from math import ceil
 
 from grjev.constants import (
+    OWN_LIST,
     PLACEMENT_MAX_CORRECT,
     PLACEMENT_MIN_TOOLS,
     PLACEMENTS,
@@ -77,6 +78,27 @@ def padded_order(example: Example, tools: list[Option], size: int, seed: int) ->
     order = example.options + rng.sample(others, max(0, size - len(example.options)))
     rng.shuffle(order)
     return order
+
+
+def grown_orders(
+    example: Example, tools: list[Option], size: int, lengths: Iterable[int], seed: int
+) -> dict[str, list[Option]]:
+    """Return the example's padded list, and that list grown to each length with random other tools, by name.
+
+    Each grown list is in a seeded order of its own and contains every shorter list of the example.
+    """
+    own = padded_order(example, tools, size, seed)
+    listed = {tool.name for tool in own}
+    others = [tool for tool in tools if tool.name not in listed]
+    rng = random.Random(f"{seed}/{example.id}/grown")
+    rng.shuffle(others)
+    orders = {OWN_LIST: own}
+    for length in lengths:
+        if not len(own) <= length <= len(tools):
+            raise ValueError(f"{example.id}: a list of {len(own)} tools cannot grow to {length} of {len(tools)} tools")
+        orders[str(length)] = own + others[: length - len(own)]
+        rng.shuffle(orders[str(length)])
+    return orders
 
 
 def length_orders(example: Example, tools: list[Option], lengths: Iterable[int], seed: int) -> dict[str, list[Option]]:

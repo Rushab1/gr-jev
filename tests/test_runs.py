@@ -15,10 +15,13 @@ from grjev import jev, results, runs
 from grjev.constants import (
     COUNTED_WORDINGS,
     EXPERIMENT_TEST_FILES,
+    GROWTH_LENGTHS,
+    GROWTH_WORDINGS,
     JEV_MAX_OPTIONS,
     LIST_LENGTHS,
     NONE_NAME,
     ONE_TOOL_INSTRUCTIONS,
+    OWN_LIST,
     PADDED_LIST_TOOLS,
     PLACEMENTS,
     PROCESSED_DIRS,
@@ -182,6 +185,24 @@ def test_a_wording_run_asks_a_query_with_one_correct_tool_only_without_the_numbe
     (item,) = plan(wording_config(), {"G1_tool": [one_correct]}, TOOLS)
     assert list(item.requests[0].questions) == list(UNCOUNTED_WORDINGS)
     assert sorted(tool.name for tool in item.lists["every"]) == sorted(tool.name for tool in TOOLS[:7])
+
+
+def test_a_growth_run_asks_the_padded_list_and_every_grown_list_with_both_wordings() -> None:
+    apis = [Option(name=f"api_{number}", description=f"Does thing {number}.") for number in range(1, 251)]
+    two_correct = Example(
+        id="set/G1_tool/0", query="Do two things.", options=apis[:3], labels=["api_1", "api_3"], raw={}
+    )
+    run_config = config("growth", "G1_tool", dataset="stabletoolbench")
+    (item,) = plan(run_config, {"G1_tool": [two_correct]}, apis)
+    sizes = [OWN_LIST, *map(str, GROWTH_LENGTHS["stabletoolbench"])]
+    assert list(item.lists) == [f"{size}_{wording}" for size in sizes for wording in GROWTH_WORDINGS]
+    assert [len(item.lists[f"{size}_all"]) for size in sizes] == [PADDED_LIST_TOOLS, 20, 50, 100, 199]
+    assert all(item.lists[f"{size}_all"] == item.lists[f"{size}_every"] for size in sizes)
+    asked = {name: question.instructions for request in item.requests for name, question in request.questions.items()}
+    assert asked["199_all"] == "Two tools in the list are appropriate to solve the user's query. Choose all of them."
+    assert asked["own_every"] == UNCOUNTED_WORDINGS["every"]
+    (single,) = plan(run_config, {"G1_tool": [two_correct.model_copy(update={"labels": ["api_1"]})]}, apis)
+    assert list(single.lists) == [f"{size}_every" for size in sizes]
 
 
 def test_a_wording_answer_is_correct_when_the_highest_probabilities_are_the_correct_tools() -> None:
@@ -416,3 +437,17 @@ def test_the_stabletoolbench_wording_subset_sends_one_request_per_example(
         assert list(item.lists) == (
             [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS] if len(labels) > 1 else [*UNCOUNTED_WORDINGS]
         )
+
+
+def test_the_stabletoolbench_growth_subset_grows_the_list_that_the_wording_run_sends(
+    stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    planned = plan(config("growth", dataset="stabletoolbench", examples_per_file=8), *stabletoolbench)
+    assert len(planned) == 48
+    wording = {item.example.id: item for item in plan(config("wording", dataset="stabletoolbench"), *stabletoolbench)}
+    for item in planned:
+        labels = item.example.labels or []
+        assert item.lists[f"{OWN_LIST}_every"] == wording[item.example.id].lists["every"]
+        for size in GROWTH_LENGTHS["stabletoolbench"]:
+            apis = [tool.name for tool in item.lists[f"{size}_every"]]
+            assert len(apis) == len(set(apis)) == size and set(labels) <= set(apis)

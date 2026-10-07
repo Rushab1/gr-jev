@@ -2,9 +2,9 @@
 
 import pytest
 
-from grjev.constants import PLACEMENTS, RELEASED_ORDER
+from grjev.constants import OWN_LIST, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
-from grjev.placement import length_orders, orders_of, padded_order, start_positions
+from grjev.placement import grown_orders, length_orders, orders_of, padded_order, start_positions
 
 SEED = 7
 
@@ -115,6 +115,27 @@ def test_a_short_list_is_padded_with_other_tools_of_the_dataset_and_every_list_i
     shuffled = padded_order(long, dataset, 5, SEED)
     assert sorted(names(shuffled)) == sorted(names(long.options)) and names(shuffled) != names(long.options)
     assert names(long.options) == [f"tool_{number}" for number in range(1, 9)]
+
+
+def test_a_grown_list_holds_the_padded_list_and_every_shorter_list_in_an_order_of_its_own() -> None:
+    dataset = example(60, []).options
+    short = example(3, ["tool_1", "tool_2"])
+    orders = grown_orders(short, dataset, 5, [10, 20, 60], SEED)
+    assert list(orders) == [OWN_LIST, "10", "20", "60"]
+    assert orders[OWN_LIST] == padded_order(short, dataset, 5, SEED)
+    assert [len(tools) for tools in orders.values()] == [5, 10, 20, 60]
+    sets = [set(names(tools)) for tools in orders.values()]
+    assert all(smaller < larger for smaller, larger in zip(sets, sets[1:], strict=False))
+    assert all(len(set(names(tools))) == len(tools) for tools in orders.values())
+    assert orders == grown_orders(short, dataset, 5, [10, 20, 60], SEED)
+    assert names(orders["20"])[:10] != names(orders["10"])
+
+
+def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:
+    dataset = example(60, []).options
+    for length in (4, 61):
+        with pytest.raises(ValueError, match="cannot grow"):
+            grown_orders(example(3, ["tool_1"]), dataset, 5, [length], SEED)
 
 
 def test_length_orders_place_the_correct_tool_in_lists_that_contain_the_shorter_ones() -> None:
