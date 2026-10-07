@@ -9,7 +9,6 @@ from grjev.placement import (
     length_orders,
     orders_of,
     padded_order,
-    reworded_order,
     reworded_tool,
     start_positions,
 )
@@ -139,17 +138,10 @@ def test_a_grown_list_holds_the_padded_list_and_every_shorter_list_in_an_order_o
     assert names(orders["20"])[:10] != names(orders["10"])
 
 
-def test_the_reworded_tool_is_a_correct_tool_chosen_with_the_seed_and_its_rewordings_take_its_place() -> None:
+def test_the_reworded_tool_is_a_correct_tool_chosen_with_the_seed() -> None:
     three_correct = example(6, ["tool_2", "tool_4", "tool_5"])
-    chosen = {reworded_tool(three_correct, seed) for seed in range(20)}
-    assert chosen == {"tool_2", "tool_4", "tool_5"}
+    assert {reworded_tool(three_correct, seed) for seed in range(20)} == {"tool_2", "tool_4", "tool_5"}
     assert reworded_tool(three_correct, SEED) == reworded_tool(three_correct, SEED)
-    rewordings = [
-        Option(name=f"tool_4_reworded_{number}", description=f"Thing 4, said way {number}.") for number in (1, 2)
-    ]
-    order = reworded_order(three_correct.options, "tool_4", rewordings)
-    assert names(order) == ["tool_1", "tool_2", "tool_3", "tool_4_reworded_1", "tool_4_reworded_2", "tool_5", "tool_6"]
-    assert names(three_correct.options) == [f"tool_{number}" for number in range(1, 7)]
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

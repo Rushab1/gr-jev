@@ -43,7 +43,7 @@ from grjev.jev import (
     check_call_limit,
     response_path,
 )
-from grjev.placement import grown_orders, length_orders, orders_of, padded_order, reworded_order, reworded_tool
+from grjev.placement import grown_orders, length_orders, orders_of, padded_order, reworded_tool
 
 logger = logging.getLogger(__name__)
 
@@ -184,19 +184,16 @@ def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
 
 
 def reworded_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
-    """Yield each example with its padded tool list, in which rewordings of one correct tool take the place of it.
+    """Yield each example with a tool list that holds only the rewordings of one of its correct tools.
 
-    The labels of the yielded example are the correct tools of that list: the other correct tools and the rewordings.
+    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings.
     """
     rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
-            original = reworded_tool(example, config.seed)
-            order = padded_order(example, tools, PADDED_LIST_TOOLS, config.seed)
-            lists = {REWORDED_LIST: reworded_order(order, original, rewordings[original])}
-            others = [label for label in example.labels or [] if label != original]
-            relabelled = example.model_copy(update={"labels": others + [tool.name for tool in rewordings[original]]})
-            yield test_file, relabelled, lists, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
+            listed = rewordings[reworded_tool(example, config.seed)]
+            relabelled = example.model_copy(update={"labels": [tool.name for tool in listed]})
+            yield test_file, relabelled, {REWORDED_LIST: listed}, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
 
 
 # Experiment -> the function that yields the tool lists of its examples.

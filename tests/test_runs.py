@@ -209,7 +209,7 @@ def test_a_growth_run_asks_the_padded_list_and_every_grown_list_with_both_wordin
     assert list(single.lists) == [f"{size}_every" for size in sizes]
 
 
-def test_a_reworded_run_asks_the_padded_list_with_the_rewordings_of_one_correct_tool_in_its_place(
+def test_a_reworded_run_asks_a_list_that_holds_only_the_rewordings_of_one_correct_tool(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     two_correct = Example(
@@ -226,15 +226,12 @@ def test_a_reworded_run_asks_the_padded_list_with_the_rewordings_of_one_correct_
     (item,) = plan(run_config, {"G1_tool": [two_correct]}, TOOLS)
     (request,) = item.requests
     (question,) = request.questions.values()
-    assert list(request.questions) == [REWORDED_LIST]
+    assert request.state == "Do two things." and list(request.questions) == [REWORDED_LIST]
     assert question.instructions == "Pick all the tools in the list that are relevant to the task at hand."
-    original = reworded_tool(two_correct, run_config.seed)
-    (other,) = {"tool_1", "tool_3"} - {original}
-    (padded,) = plan(wording_config(), {"G1_tool": [two_correct]}, TOOLS)
-    own = padded.lists["every"]
-    place = [tool.name for tool in own].index(original)
-    assert item.lists[REWORDED_LIST] == own[:place] + rewordings[original] + own[place + 1 :]
-    assert item.example.labels == [other, *(tool.name for tool in rewordings[original])]
+    listed = rewordings[reworded_tool(two_correct, run_config.seed)]
+    assert item.lists[REWORDED_LIST] == listed and len(listed) == 5
+    assert list(criteria_of(run_config, "G1_tool", listed)) == [tool.name for tool in listed]
+    assert item.example.labels == [tool.name for tool in listed]
     assert two_correct.labels == ["tool_1", "tool_3"]
 
 
@@ -512,7 +509,7 @@ def test_fifty_stabletoolbench_queries_hold_the_eight_of_each_test_file(
     assert {item.example.id for item in eight_per_file} < {item.example.id for item in fifty}
 
 
-def test_fifty_reworded_stabletoolbench_lists_are_the_padded_lists_with_one_relevant_api_reworded(
+def test_fifty_reworded_stabletoolbench_lists_hold_only_the_five_rewordings_of_one_relevant_api(
     stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
 ) -> None:
     examples, apis = stabletoolbench
@@ -520,23 +517,18 @@ def test_fifty_reworded_stabletoolbench_lists_are_the_padded_lists_with_one_rele
     planned = plan(run_config, examples, apis)
     growth = plan(config("growth", dataset="stabletoolbench", examples=50), examples, apis)
     rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
+    by_names = {tuple(tool.name for tool in tools): original for original, tools in rewordings.items()}
     described = {api.name: bool(api.description.strip()) for api in apis}
     assert sum(count["calls"] for count in call_counts(run_config, planned).values()) == len(planned) == 50
     reworded = set()
     for item, grown in zip(planned, growth, strict=True):
-        own = grown.lists[f"{OWN_LIST}_every"]
-        relevant = set(grown.example.labels or [])
-        (original,) = {tool.name for tool in own} - {tool.name for tool in item.lists[REWORDED_LIST]}
+        listed = item.lists[REWORDED_LIST]
+        original = by_names[tuple(tool.name for tool in listed)]
         reworded.add(original)
-        copies = rewordings[original]
-        assert item.example.id == grown.example.id and original in relevant
-        assert [tool for tool in item.lists[REWORDED_LIST] if tool not in copies] == [
-            tool for tool in own if tool.name != original
-        ]
-        assert len(item.lists[REWORDED_LIST]) == len(own) + 4
-        assert set(item.example.labels or []) == relevant - {original} | {tool.name for tool in copies}
+        assert item.example.id == grown.example.id and original in (grown.example.labels or [])
+        assert len(listed) == 5 and item.example.labels == [tool.name for tool in listed]
         # A rewording has no name of the dataset, and a description exactly when the API it rewords has one.
-        assert all(tool.name not in described for tool in copies)
-        assert all(bool(tool.description.strip()) == described[original] for tool in copies)
+        assert all(tool.name not in described for tool in listed)
+        assert all(bool(tool.description.strip()) == described[original] for tool in listed)
     # The 50 queries reword 45 different APIs, and the file holds no other.
     assert reworded == set(rewordings) and len(reworded) == 45

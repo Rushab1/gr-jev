@@ -1,552 +1,552 @@
 {
  "Media / Shazam / Track Recommendations": [
   {
-   "name": "Media / Shazam / Recommended Tracks",
-   "description": "Returns recommended or similar songs for the given track."
+   "name": "Media / Shazam / Similar Songs",
+   "description": "Songs like a given track."
   },
   {
-   "name": "Media / Shazam / Similar Songs for a Track",
-   "description": "This endpoint gives back songs that are similar to, or recommended for, the track you provide."
+   "name": "Media / Shazam / Recommend Tracks From a Track",
+   "description": "Use this endpoint when you have a track and want recommended or similar songs back."
   },
   {
-   "name": "Media / Shazam / Track Suggestions",
-   "description": "Get song recommendations or similar tracks based on a given track."
+   "name": "Media / Shazam / Track-Based Recommendations",
+   "description": "Returns recommendations, meaning songs similar to the track you pass in."
   },
   {
-   "name": "Media / Shazam / Get Related Tracks",
-   "description": "For a given track, this endpoint returns the recommended or similar songs."
+   "name": "Media / Shazam / Related Music Finder",
+   "description": "Given one track, finds music that is recommended for it or resembles it."
   },
   {
-   "name": "Media / Shazam / Songs Like This Track",
-   "description": "Fetches the songs recommended for, or similar to, the specified track."
+   "name": "Media / Shazam / Get Suggestions for Track",
+   "description": "Recommended and similar songs are returned for the specified track."
   }
  ],
  "Finance / Investing / Metals Futures Prices": [
   {
-   "name": "Finance / Investing / Metal Futures Prices",
-   "description": "Source page: https://www.investing.com/commodities/metals"
+   "name": "Finance / Investing / Metal Futures Quotes",
+   "description": "Source: https://www.investing.com/commodities/metals"
   },
   {
-   "name": "Finance / Investing / Futures Prices for Metals",
-   "description": "Data taken from the page https://www.investing.com/commodities/metals"
+   "name": "Finance / Investing / Futures Prices, Metals",
+   "description": "The data on this page comes from https://www.investing.com/commodities/metals"
   },
   {
-   "name": "Finance / Investing / Prices of Metals Futures",
-   "description": "Page this data comes from: https://www.investing.com/commodities/metals"
+   "name": "Finance / Investing / Prices for Metals Futures",
+   "description": "Taken from the Investing.com metals page, https://www.investing.com/commodities/metals"
   },
   {
-   "name": "Finance / Investing / Metals Futures Quotes",
-   "description": "Sourced from the page https://www.investing.com/commodities/metals"
+   "name": "Finance / Investing / Metals Futures Price List",
+   "description": "See https://www.investing.com/commodities/metals for the page this is sourced from"
   },
   {
-   "name": "Finance / Investing / Get Metals Futures Prices",
-   "description": "The source of this page is https://www.investing.com/commodities/metals"
+   "name": "Finance / Investing / Get Futures Prices of Metals",
+   "description": "Page of origin: https://www.investing.com/commodities/metals"
   }
  ],
  "Travel / Flight Fare Search / Flight Search V2": [
   {
-   "name": "Travel / Flight Fare Search / Search Flights V2",
-   "description": "A quicker, more agile endpoint used for searching flights."
+   "name": "Travel / Flight Fare Search / Find Flights (v2)",
+   "description": "Looks up flights. Built to be quicker and more agile."
   },
   {
-   "name": "Travel / Flight Fare Search / Flight Search (Version 2)",
-   "description": "An endpoint for searching flights that is faster and more agile."
+   "name": "Travel / Flight Fare Search / Flight Lookup 2",
+   "description": "Quick, nimble flight search."
   },
   {
-   "name": "Travel / Flight Fare Search / Flights Search V2",
-   "description": "Use this faster and more agile endpoint to search for flights."
+   "name": "Travel / Flight Fare Search / Search Available Flights, Version 2",
+   "description": "Use this endpoint to search for flights when you want a faster and more agile option."
   },
   {
-   "name": "Travel / Flight Fare Search / V2 Flight Search",
-   "description": "Searches flights through a faster, more agile endpoint."
+   "name": "Travel / Flight Fare Search / V2 Flight Finder",
+   "description": "Searches flights with greater speed and agility."
   },
   {
-   "name": "Travel / Flight Fare Search / Find Flights V2",
-   "description": "This endpoint searches flights and is faster and more agile."
+   "name": "Travel / Flight Fare Search / Flights Query v2",
+   "description": "An agile, high-speed endpoint for querying flights."
   }
  ],
  "Search / Bing Search APIs / Web Search API": [
   {
-   "name": "Search / Bing Search APIs / Bing Web Search",
-   "description": "Get search data and keyword suggestions from the Bing search engine."
+   "name": "Search / Bing Search APIs / Bing Web Lookup",
+   "description": "Bing results plus keyword suggestions."
   },
   {
-   "name": "Search / Bing Search APIs / Web Search",
-   "description": "Returns search data and suggested keywords from Bing's search engine."
+   "name": "Search / Bing Search APIs / Search the Web with Bing",
+   "description": "Use this API to pull search data from the Bing search engine, along with the keywords it suggests."
   },
   {
-   "name": "Search / Bing Search APIs / Search the Web API",
-   "description": "Search data and suggested keywords taken from the Bing search engine."
+   "name": "Search / Bing Search APIs / Web Results API",
+   "description": "Fetches what Bing finds for a search and the keywords Bing suggests."
   },
   {
-   "name": "Search / Bing Search APIs / Web Results Search API",
-   "description": "Fetches search data and suggested keywords from the Bing search engine."
+   "name": "Search / Bing Search APIs / Web Query API",
+   "description": "Search data from the Bing engine, returned together with suggested keywords."
   },
   {
-   "name": "Search / Bing Search APIs / API for Web Search",
-   "description": "Retrieve search data plus suggested keywords from Bing search."
+   "name": "Search / Bing Search APIs / API for Bing Web Searches",
+   "description": "Queries the Bing search engine and gives back search data and keyword suggestions."
   }
  ],
  "Data / Domain SEO Analysis / Domain SEO Analysis": [
   {
-   "name": "Data / Domain SEO Analysis / SEO Analysis of a Domain",
-   "description": "Returns popular SEO metrics for the given domain name"
+   "name": "Data / Domain SEO Analysis / SEO Metrics by Domain",
+   "description": "Popular SEO metrics for a domain."
   },
   {
-   "name": "Data / Domain SEO Analysis / Domain SEO Metrics",
-   "description": "Fetch the popular SEO metrics of a given domain name"
+   "name": "Data / Domain SEO Analysis / Analyze a Domain's SEO",
+   "description": "Use this to look up the common SEO metrics of whatever domain name you supply"
   },
   {
-   "name": "Data / Domain SEO Analysis / Analyze Domain SEO",
-   "description": "Get the popular SEO metrics for a specified domain name"
+   "name": "Data / Domain SEO Analysis / Domain SEO Report",
+   "description": "Returns well-known SEO metrics for the domain name provided"
   },
   {
-   "name": "Data / Domain SEO Analysis / SEO Analysis for Domain",
-   "description": "Retrieve popular SEO metrics for a domain name you provide"
+   "name": "Data / Domain SEO Analysis / SEO Check for a Domain Name",
+   "description": "Given a domain name, fetches its popular SEO metrics"
   },
   {
-   "name": "Data / Domain SEO Analysis / Domain Name SEO Analysis",
-   "description": "Provides popular SEO metrics for a given domain name"
+   "name": "Data / Domain SEO Analysis / Domain Name SEO Stats",
+   "description": "The popular SEO metrics of a given domain name are retrieved"
   }
  ],
  "Sports / Baseball / teams-affiliates/{teamIds}": [
   {
    "name": "Sports / Baseball / team-affiliates/{teamIds}",
-   "description": "Look up the affiliates of baseball teams by ID"
+   "description": "Affiliates of baseball teams, by ID"
   },
   {
    "name": "Sports / Baseball / teams/{teamIds}/affiliates",
-   "description": "Query the affiliates of a baseball team by its ID"
+   "description": "Use the team ID to look up which affiliates a baseball team has"
   },
   {
-   "name": "Sports / Baseball / affiliates-of-teams/{teamIds}",
-   "description": "Get baseball team affiliates using the team ID"
+   "name": "Sports / Baseball / affiliates-by-team/{teamIds}",
+   "description": "Returns the affiliates of the baseball teams whose IDs are given"
   },
   {
-   "name": "Sports / Baseball / teams-affiliates-by-id/{teamIds}",
-   "description": "Find baseball team affiliates by ID"
+   "name": "Sports / Baseball / team-affiliate-lookup/{teamIds}",
+   "description": "Find a baseball team's affiliates from its ID"
   },
   {
-   "name": "Sports / Baseball / team-affiliate-query/{teamIds}",
-   "description": "Queries affiliates of baseball teams by their ID"
+   "name": "Sports / Baseball / baseball-affiliates/{teamIds}",
+   "description": "Baseball team affiliates are queried by team ID"
   }
  ],
  "Data / Domain Info / Full information": [
   {
-   "name": "Data / Domain Info / Complete information",
-   "description": "This endpoint returns complete information about the domain."
+   "name": "Data / Domain Info / Complete domain info",
+   "description": "Everything known about the domain."
   },
   {
-   "name": "Data / Domain Info / Full domain information",
-   "description": "Returns the full information on the domain."
+   "name": "Data / Domain Info / All details",
+   "description": "Use this endpoint when you want the complete set of information for a domain."
   },
   {
-   "name": "Data / Domain Info / All information",
-   "description": "This endpoint gives back all the information on the domain."
+   "name": "Data / Domain Info / Full domain report",
+   "description": "Returns the domain's information in full."
   },
   {
-   "name": "Data / Domain Info / Full details",
-   "description": "Get the full information for the domain from this endpoint."
+   "name": "Data / Domain Info / Entire information",
+   "description": "Gives back all of the information held on the domain."
   },
   {
-   "name": "Data / Domain Info / Full info",
-   "description": "This endpoint provides the full information on the domain."
+   "name": "Data / Domain Info / Full info lookup",
+   "description": "The full information on the domain is returned by this endpoint."
   }
  ],
  "Other / Node Express API Tutorial / Get Specific User": [
   {
-   "name": "Other / Node Express API Tutorial / Get User by ID",
-   "description": "This endpoint returns the user that has the specified ID."
+   "name": "Other / Node Express API Tutorial / User by ID",
+   "description": "One user, looked up by ID."
   },
   {
-   "name": "Other / Node Express API Tutorial / Get a Specific User",
-   "description": "Returns the user with the specified ID."
+   "name": "Other / Node Express API Tutorial / Fetch a Single User",
+   "description": "Use this endpoint to get back the user whose ID you specify."
   },
   {
-   "name": "Other / Node Express API Tutorial / Fetch Specific User",
-   "description": "This endpoint gives back the user whose ID is specified."
+   "name": "Other / Node Express API Tutorial / Find User",
+   "description": "Returns the user that matches the given ID."
   },
   {
-   "name": "Other / Node Express API Tutorial / Get One User",
-   "description": "Get the user with the specified ID from this endpoint."
+   "name": "Other / Node Express API Tutorial / Retrieve One User by ID",
+   "description": "Given an ID, this endpoint responds with that user."
   },
   {
-   "name": "Other / Node Express API Tutorial / Retrieve Specific User",
-   "description": "This endpoint will return the user matching the specified ID."
+   "name": "Other / Node Express API Tutorial / Get the User With an ID",
+   "description": "The user with the specified ID is returned."
   }
  ],
  "Monitoring / SearchingWebRequest / SearchWebRequest": [
   {
-   "name": "Monitoring / SearchingWebRequest / WebSearchRequest",
-   "description": "Get the response from the web after a keyword is specified"
-  },
-  {
-   "name": "Monitoring / SearchingWebRequest / SearchWebQuery",
-   "description": "We need to obtain the web's response once a keyword has been specified"
-  },
-  {
-   "name": "Monitoring / SearchingWebRequest / SearchRequestWeb",
-   "description": "After specifying a keyword, we need to get the response from the web"
+   "name": "Monitoring / SearchingWebRequest / WebKeywordSearch",
+   "description": "Web response for a keyword"
   },
   {
    "name": "Monitoring / SearchingWebRequest / KeywordWebRequest",
-   "description": "Returns the response from the web for a specified keyword"
+   "description": "Specify a keyword and this gets the response from the web for it"
   },
   {
-   "name": "Monitoring / SearchingWebRequest / SearchWebRequestByKeyword",
-   "description": "We have to get the response from the web after giving a keyword"
+   "name": "Monitoring / SearchingWebRequest / SearchRequestWeb",
+   "description": "Returns what the web responds with once a keyword has been given"
+  },
+  {
+   "name": "Monitoring / SearchingWebRequest / WebSearchByKeyword",
+   "description": "After a keyword is specified, the response from the web is fetched"
+  },
+  {
+   "name": "Monitoring / SearchingWebRequest / RequestWebSearch",
+   "description": "We want the web's response to a keyword that we specify"
   }
  ],
  "News_Media / News Network / Search News": [
   {
    "name": "News_Media / News Network / News Search",
-   "description": "Search for news by a given keyword.\nVisit our [demo site](https://core-api.net/news/news.html)"
+   "description": "Keyword news search.\nDemo: [demo site](https://core-api.net/news/news.html)"
   },
   {
-   "name": "News_Media / News Network / Search News by Keyword",
-   "description": "Search news using the given keyword.\nSee our [demo site](https://core-api.net/news/news.html)"
+   "name": "News_Media / News Network / Find News by Keyword",
+   "description": "Use this to look for news that matches a keyword you give.\nYou can visit our [demo site](https://core-api.net/news/news.html)"
   },
   {
-   "name": "News_Media / News Network / Find News",
-   "description": "Find news by the keyword you give.\nVisit our [demo site](https://core-api.net/news/news.html)"
+   "name": "News_Media / News Network / Keyword News Lookup",
+   "description": "Returns news found for the given keyword.\nSee our [demo site](https://core-api.net/news/news.html)"
   },
   {
-   "name": "News_Media / News Network / Search for News",
-   "description": "Searches news by a given keyword.\nOur [demo site](https://core-api.net/news/news.html) is open to visit"
+   "name": "News_Media / News Network / Search for News Articles",
+   "description": "Given a keyword, searches the news.\nOur [demo site](https://core-api.net/news/news.html) is available to visit"
   },
   {
-   "name": "News_Media / News Network / Keyword News Search",
-   "description": "Look up news by given keyword.\nVisit the [demo site](https://core-api.net/news/news.html)"
+   "name": "News_Media / News Network / News Query",
+   "description": "News is searched by the keyword provided.\nVisit the [demo site](https://core-api.net/news/news.html)"
   }
  ],
  "Business_Software / fomoAPI / Get Campaign From URL": [
   {
-   "name": "Business_Software / fomoAPI / Get Campaign by URL",
-   "description": "Get the lead from a specific website campaign"
+   "name": "Business_Software / fomoAPI / Campaign by URL",
+   "description": "Lead of a specific website campaign"
   },
   {
-   "name": "Business_Software / fomoAPI / Fetch Campaign From URL",
-   "description": "Get lead from a specific website's campaign"
+   "name": "Business_Software / fomoAPI / Fetch Campaign Using a URL",
+   "description": "Use this to get the lead that belongs to the campaign of a specific website"
   },
   {
-   "name": "Business_Software / fomoAPI / Campaign From URL",
-   "description": "Retrieve the lead from a specific website campaign"
+   "name": "Business_Software / fomoAPI / URL Campaign Lookup",
+   "description": "Returns the lead from one specific website's campaign"
   },
   {
-   "name": "Business_Software / fomoAPI / Get Campaign Using URL",
-   "description": "Returns the lead from a specific website campaign"
+   "name": "Business_Software / fomoAPI / Get a Website's Campaign",
+   "description": "Given a specific website campaign, retrieves its lead"
   },
   {
-   "name": "Business_Software / fomoAPI / Get URL Campaign",
-   "description": "Get a lead from the campaign of a specific website"
+   "name": "Business_Software / fomoAPI / Retrieve Campaign From Link",
+   "description": "The lead is fetched from the campaign of a specific website"
   }
  ],
  "Business_Software / B2BHint / Search company by Name": [
   {
-   "name": "Business_Software / B2BHint / Search companies by Name",
-   "description": "Searching for a company by parameters returns a list of companies matching your query"
+   "name": "Business_Software / B2BHint / Company name search",
+   "description": "Companies matching your query."
   },
   {
-   "name": "Business_Software / B2BHint / Find company by Name",
-   "description": "Search for a company by parameters to get a list of companies that match your query"
+   "name": "Business_Software / B2BHint / Find companies by Name",
+   "description": "Use this to search for a company by parameters; you get back a list of the companies that match your query"
   },
   {
-   "name": "Business_Software / B2BHint / Company search by Name",
-   "description": "A search for a company by parameters will return the list of companies that match the query"
+   "name": "Business_Software / B2BHint / Look up a company by Name",
+   "description": "Returns a list of matching companies when you search for a company by parameters"
   },
   {
-   "name": "Business_Software / B2BHint / Search for company by Name",
-   "description": "Search a company by parameters and receive a list of the companies that match your query"
+   "name": "Business_Software / B2BHint / Search by company Name",
+   "description": "A parameter-based company search that lists every company matching the query"
   },
   {
-   "name": "Business_Software / B2BHint / Look up company by Name",
-   "description": "Search for a company by parameters; a list of companies matching your query is returned"
+   "name": "Business_Software / B2BHint / Company lookup by Name",
+   "description": "The companies that match your query are listed when a company is searched for by parameters"
   }
  ],
  "Finance / Rankiteo Climate Risk Assessment / GetClimateScoreByGps": [
   {
-   "name": "Finance / Rankiteo Climate Risk Assessment / GetClimateScoreByGpsPosition",
-   "description": "Get the climate score of a specific location, mapped to some industries/disasters, for a given gps position."
-  },
-  {
    "name": "Finance / Rankiteo Climate Risk Assessment / ClimateScoreByGps",
-   "description": "Returns the climate score for a specific location mapped to some industries/disasters, given a gps position."
+   "description": "Climate score at a gps position, mapped to some industries/disasters."
   },
   {
-   "name": "Finance / Rankiteo Climate Risk Assessment / GetClimateScoreFromGps",
-   "description": "With a given gps position, get the climate score for a specific location mapped to some industries/disasters."
+   "name": "Finance / Rankiteo Climate Risk Assessment / GetClimateScoreForGpsPosition",
+   "description": "Use this with a gps position to get the climate score of that specific location, mapped to some industries/disasters."
   },
   {
-   "name": "Finance / Rankiteo Climate Risk Assessment / GetClimateScoreUsingGps",
-   "description": "Get a climate score for a specific location, mapped to certain industries/disasters, using a given gps position."
+   "name": "Finance / Rankiteo Climate Risk Assessment / GpsClimateScore",
+   "description": "Returns a specific location's climate score, mapped to some industries/disasters, from the gps position given."
   },
   {
-   "name": "Finance / Rankiteo Climate Risk Assessment / FetchClimateScoreByGps",
-   "description": "Fetch the climate score for a specific location mapped to some industries/disasters with the given gps position."
+   "name": "Finance / Rankiteo Climate Risk Assessment / FetchClimateScoreFromGps",
+   "description": "Given a gps position, fetches the climate score for that location as mapped to some industries/disasters."
+  },
+  {
+   "name": "Finance / Rankiteo Climate Risk Assessment / ClimateScoreLookupByGps",
+   "description": "The climate score for a specific location, mapped to some industries/disasters, is retrieved with a given gps position."
   }
  ],
  "Social / Instagram_v2 / Validate Username": [
   {
-   "name": "Social / Instagram_v2 / Username Validation",
-   "description": "Validation of an Instagram username"
-  },
-  {
-   "name": "Social / Instagram_v2 / Validate a Username",
-   "description": "Validate an Instagram username"
-  },
-  {
-   "name": "Social / Instagram_v2 / Check Username Validity",
-   "description": "Instagram username validation check"
-  },
-  {
-   "name": "Social / Instagram_v2 / Validate Instagram Username",
+   "name": "Social / Instagram_v2 / Username Validity Check",
    "description": "Validates an Instagram username"
   },
   {
+   "name": "Social / Instagram_v2 / Check a Username",
+   "description": "Use this to validate a username on Instagram"
+  },
+  {
+   "name": "Social / Instagram_v2 / Validate an Instagram Handle",
+   "description": "Instagram handle validation"
+  },
+  {
    "name": "Social / Instagram_v2 / Username Validator",
-   "description": "Instagram validation of a username"
+   "description": "Tells whether an Instagram username is valid"
+  },
+  {
+   "name": "Social / Instagram_v2 / Is Username Valid",
+   "description": "Validation of a username for Instagram"
   }
  ],
  "Finance / MacroTrends Finance / Financial Balance Sheet": [
   {
-   "name": "Finance / MacroTrends Finance / Balance Sheet Financials",
-   "description": "Provides 10 years of cash statement data for the given ticker symbol.\n\nTo pick a time format, set the QUERY PARAMETER (freq) to \"A\" for annual or \"Q\" for quarterly\n\n(symbol) Selects which ticker symbol's company financials to see."
+   "name": "Finance / MacroTrends Finance / Balance Sheet",
+   "description": "10 years of cash statement data for a ticker symbol.\n\nQUERY PARAMETER (freq): \"A\" for annual, \"Q\" for quarterly\n\n(symbol) the ticker symbol whose company financials you want."
   },
   {
-   "name": "Finance / MacroTrends Finance / Financial Balance Sheet Data",
-   "description": "Gives 10 years of data of the cash statement for the given ticker symbol.\n\nChoose the time format with the QUERY PARAMETER (freq): \"A\" for annual or \"Q\" for quarterly\n\n(symbol) Chooses the ticker symbol whose company financials you want to see."
+   "name": "Finance / MacroTrends Finance / Company Balance Sheet Financials",
+   "description": "Use this to get ten years of cash statement data for the ticker symbol you give.\n\nPick the time format with the QUERY PARAMETER (freq): put \"A\" for annual or \"Q\" for quarterly\n\n(symbol) Chooses which ticker symbol's company financials to see."
   },
   {
-   "name": "Finance / MacroTrends Finance / Company Balance Sheet",
-   "description": "Returns 10 years data of cash statement by the given ticker symbol.\n\nFor the time format, put the QUERY PARAMETER (freq) as either \"A\" (annual) or \"Q\" (quarterly)\n\n(symbol) To choose the ticker symbol of the company financials to see."
+   "name": "Finance / MacroTrends Finance / Financials: Balance Sheet",
+   "description": "Returns a decade of cash statement data by ticker symbol.\n\nThe time format is set through a QUERY PARAMETER (freq), either \"A\" (annual) or \"Q\" (quarterly)\n\n(symbol) Selects the ticker symbol of the company financials shown."
   },
   {
-   "name": "Finance / MacroTrends Finance / Balance Sheet (Financial)",
-   "description": "Gives ten years of cash statement data by the given ticker symbol.\n\nTo choose a time format, use the QUERY PARAMETER (freq) with \"A\" for annual or \"Q\" for quarterly\n\n(symbol) To choose which ticker symbol to see the company financials for."
+   "name": "Finance / MacroTrends Finance / Balance Sheet by Ticker",
+   "description": "Given a ticker symbol, provides its cash statement data for 10 years.\n\nFor the time format, the QUERY PARAMETER (freq) takes \"A\" for annual or \"Q\" for quarterly\n\n(symbol) Use it to choose the ticker symbol to see the company financials for."
   },
   {
    "name": "Finance / MacroTrends Finance / Get Financial Balance Sheet",
-   "description": "Get 10 years of cash statement data for a given ticker symbol.\n\nThe QUERY PARAMETER (freq) sets the time format: \"A\" for annual, \"Q\" for quarterly\n\n(symbol) Picks the ticker symbol for which to see the company financials."
+   "description": "Cash statement data covering 10 years is given for the specified ticker symbol.\n\nA QUERY PARAMETER (freq) chooses the time format: \"A\" means annual and \"Q\" means quarterly\n\n(symbol) The ticker symbol to see company financials for."
   }
  ],
  "Location / Spott / Autocomplete places": [
   {
-   "name": "Location / Spott / Places autocomplete",
-   "description": "Returns a list of places that match a prefix and the specified filter properties. Useful for building \"search as you type\" inputs."
+   "name": "Location / Spott / Place autocomplete",
+   "description": "Places matching a prefix and filters. For \"search as you type\" inputs."
+  },
+  {
+   "name": "Location / Spott / Autocomplete a place name",
+   "description": "Use this to get the list of places that match a prefix and the filter properties you specify. It helps when building \"search as you type\" inputs."
+  },
+  {
+   "name": "Location / Spott / Places by prefix",
+   "description": "Lists places that match a prefix, narrowed by specified filter properties. Handy for \"search as you type\" inputs."
+  },
+  {
+   "name": "Location / Spott / Suggest places",
+   "description": "Given a prefix and specified filter properties, returns the matching places as a list. Useful for creating \"search as you type\" inputs."
   },
   {
    "name": "Location / Spott / Autocomplete for places",
-   "description": "Gives back a list of places matching a prefix and specified filter properties. Handy for creating \"search as you type\" inputs."
-  },
-  {
-   "name": "Location / Spott / Autocomplete place names",
-   "description": "Returns the places matching a prefix and specified filter properties as a list. Useful to create \"search as you type\" inputs."
-  },
-  {
-   "name": "Location / Spott / Place autocomplete",
-   "description": "Get a list of places matching a prefix and the given filter properties. Useful when creating \"search as you type\" inputs."
-  },
-  {
-   "name": "Location / Spott / Autocomplete a place",
-   "description": "Lists places that match a prefix and specified filter properties. Useful to make \"search as you type\" inputs."
+   "description": "A list of places that match a prefix and specified filter properties is returned. Good for making \"search as you type\" inputs."
   }
  ],
  "Mapping / Dargan / Geocode": [
   {
-   "name": "Mapping / Dargan / Geocode Postcode",
-   "description": "Returns the latitude and longitude of a given postcode"
-  },
-  {
-   "name": "Mapping / Dargan / Geocoding",
-   "description": "Gives the latitude and longitude for a given postcode"
-  },
-  {
-   "name": "Mapping / Dargan / Postcode Geocode",
-   "description": "Get the latitude and longitude for a given postcode"
+   "name": "Mapping / Dargan / Postcode to Coordinates",
+   "description": "Latitude and longitude of a postcode"
   },
   {
    "name": "Mapping / Dargan / Geocode a Postcode",
-   "description": "Returns latitude and longitude for the postcode given"
+   "description": "Use this to turn a given postcode into its latitude and longitude"
   },
   {
-   "name": "Mapping / Dargan / Geocode Lookup",
-   "description": "Provides the latitude and longitude for a given postcode"
+   "name": "Mapping / Dargan / Geocoding",
+   "description": "Gives back the latitude and longitude that belong to the postcode supplied"
+  },
+  {
+   "name": "Mapping / Dargan / Postcode Geocoder",
+   "description": "Given a postcode, returns where it is as latitude and longitude"
+  },
+  {
+   "name": "Mapping / Dargan / Lat/Long Lookup",
+   "description": "The latitude and longitude for a given postcode are returned"
   }
  ],
  "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment": [
   {
-   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment-analysis",
-   "description": "Returns the sentiment analysis score and the overall sentiment of a given block of text."
+   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment-score",
+   "description": "Sentiment score and overall sentiment of a text."
+  },
+  {
+   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/analyze-sentiment",
+   "description": "Use this to run sentiment analysis on a block of text; it gives the score and the overall sentiment."
   },
   {
    "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/text-sentiment",
-   "description": "Gives the sentiment analysis score and overall sentiment for a given block of text."
+   "description": "Gives a sentiment analysis score, plus the overall sentiment, for the block of text provided."
   },
   {
-   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment-score",
-   "description": "For a given block of text, returns the sentiment analysis score and overall sentiment."
+   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment-analysis",
+   "description": "Given a block of text, returns its overall sentiment and its sentiment analysis score."
   },
   {
    "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/get-sentiment",
-   "description": "Returns a sentiment analysis score and the overall sentiment for a block of text you give."
-  },
-  {
-   "name": "Text_Analysis / Sentiment by API-Ninjas / /v1/sentiment-of-text",
-   "description": "Get the sentiment analysis score and overall sentiment for a given block of text."
+   "description": "The sentiment analysis score and overall sentiment are returned for a given block of text."
   }
  ],
  "Tools / 👋 Demo Project_v13 / Get Products in Category": [
   {
-   "name": "Tools / 👋 Demo Project_v13 / Get Category Products",
+   "name": "Tools / 👋 Demo Project_v13 / Products by Category",
    "description": " "
   },
   {
-   "name": "Tools / 👋 Demo Project_v13 / Get Products by Category",
+   "name": "Tools / 👋 Demo Project_v13 / List Products in a Category",
    "description": " "
   },
   {
-   "name": "Tools / 👋 Demo Project_v13 / Get Products of a Category",
+   "name": "Tools / 👋 Demo Project_v13 / Get a Category's Products",
    "description": " "
   },
   {
-   "name": "Tools / 👋 Demo Project_v13 / Fetch Products in Category",
+   "name": "Tools / 👋 Demo Project_v13 / Fetch Products for Category",
    "description": " "
   },
   {
-   "name": "Tools / 👋 Demo Project_v13 / List Products in Category",
+   "name": "Tools / 👋 Demo Project_v13 / Look Up Products in Category",
    "description": " "
   }
  ],
  "Tools / SEO Keyword Research / Global Result (single)": [
   {
-   "name": "Tools / SEO Keyword Research / Global Result (one)",
+   "name": "Tools / SEO Keyword Research / Single Global Result",
    "description": "API for keyword research"
   },
   {
-   "name": "Tools / SEO Keyword Research / Single Global Result",
-   "description": "Keyword research API endpoint"
-  },
-  {
-   "name": "Tools / SEO Keyword Research / Global Result - single",
-   "description": "An API for researching keywords"
+   "name": "Tools / SEO Keyword Research / Global Result - Single",
+   "description": "Use this API to research keywords"
   },
   {
    "name": "Tools / SEO Keyword Research / Global Single Result",
-   "description": "Keyword Research API service"
+   "description": "Keyword research service"
   },
   {
-   "name": "Tools / SEO Keyword Research / Global Result, single",
-   "description": "API to research keywords"
+   "name": "Tools / SEO Keyword Research / One Global Result",
+   "description": "An API that does keyword research"
+  },
+  {
+   "name": "Tools / SEO Keyword Research / Global Result (one)",
+   "description": "Research keywords with this API"
   }
  ],
  "Video_Images / api.video / GET_live-streams": [
-  {
-   "name": "Video_Images / api.video / GET_livestreams",
-   "description": " "
-  },
-  {
-   "name": "Video_Images / api.video / GET-live-streams",
-   "description": " "
-  },
   {
    "name": "Video_Images / api.video / LIST_live-streams",
    "description": " "
   },
   {
-   "name": "Video_Images / api.video / GET_live_streams",
+   "name": "Video_Images / api.video / GET_livestreams",
    "description": " "
   },
   {
    "name": "Video_Images / api.video / GET_all-live-streams",
    "description": " "
+  },
+  {
+   "name": "Video_Images / api.video / FETCH_live-streams",
+   "description": " "
+  },
+  {
+   "name": "Video_Images / api.video / GET_live-stream-list",
+   "description": " "
   }
  ],
  "Tools / All Purpose Complex Converter / Convert Numbers To Words | Provide Any Integer Number": [
   {
-   "name": "Tools / All Purpose Complex Converter / Convert Number To Words | Provide Any Integer Number",
-   "description": "Converts any number into words."
+   "name": "Tools / All Purpose Complex Converter / Number To Words | Any Integer",
+   "description": "Numbers to words."
   },
   {
-   "name": "Tools / All Purpose Complex Converter / Numbers To Words Conversion | Provide Any Integer Number",
-   "description": "Convert any number to its words."
+   "name": "Tools / All Purpose Complex Converter / Convert a Number Into Words | Give Any Integer Number",
+   "description": "Use this to turn whatever number you provide into words."
   },
   {
-   "name": "Tools / All Purpose Complex Converter / Convert Numbers Into Words | Give Any Integer Number",
-   "description": "Turn any number into words."
+   "name": "Tools / All Purpose Complex Converter / Numbers To Words Converter | Provide Any Integer",
+   "description": "Converts any number into its words."
   },
   {
-   "name": "Tools / All Purpose Complex Converter / Convert Numbers To Words | Supply Any Integer",
+   "name": "Tools / All Purpose Complex Converter / Spell Out Numbers | Supply Any Integer Number",
+   "description": "Writes any number out in words."
+  },
+  {
+   "name": "Tools / All Purpose Complex Converter / Integer To Words Conversion | Provide Any Integer Number",
    "description": "Any number is converted to words."
-  },
-  {
-   "name": "Tools / All Purpose Complex Converter / Number To Words Converter | Provide Any Integer Number",
-   "description": "Converts any given number to words."
   }
  ],
  "Video_Images / Bing Video Search / Video Details": [
   {
    "name": "Video_Images / Bing Video Search / Video Insights",
-   "description": "Get insights on a video, for example related videos."
+   "description": "Insights on a video, e.g. related videos."
   },
   {
-   "name": "Video_Images / Bing Video Search / Details of a Video",
-   "description": "Returns insights about a video, such as its related videos."
+   "name": "Video_Images / Bing Video Search / Details for a Video",
+   "description": "Use this to get insights about a particular video, for example the videos related to it."
   },
   {
-   "name": "Video_Images / Bing Video Search / Video Detail",
-   "description": "Get insights about a video, like related videos."
+   "name": "Video_Images / Bing Video Search / Video Info",
+   "description": "Returns insights about a video, including things like related videos."
   },
   {
    "name": "Video_Images / Bing Video Search / Get Video Details",
-   "description": "Fetch insights about a video, such as videos related to it."
+   "description": "Given a video, fetches insights about it such as related videos."
   },
   {
-   "name": "Video_Images / Bing Video Search / Video Information",
-   "description": "Provides insights about a video, such as related videos."
+   "name": "Video_Images / Bing Video Search / Video Detail Lookup",
+   "description": "Insights about a video, such as its related videos, are retrieved."
   }
  ],
  "Video_Images / MlemAPI / Random mlem": [
   {
    "name": "Video_Images / MlemAPI / Random mlem image",
-   "description": "Returns a single random mlem image in JSON"
+   "description": "A random mlem image, as JSON"
   },
   {
-   "name": "Video_Images / MlemAPI / Get random mlem",
-   "description": "Gives back one random mlem image as JSON"
-  },
-  {
-   "name": "Video_Images / MlemAPI / One random mlem",
-   "description": "Returns one randomly chosen mlem image in JSON"
+   "name": "Video_Images / MlemAPI / Get a random mlem",
+   "description": "Use this to get one mlem image picked at random, in JSON"
   },
   {
    "name": "Video_Images / MlemAPI / Mlem at random",
-   "description": "Return one random mlem image in JSON format"
+   "description": "Gives back a single random mlem image in JSON format"
   },
   {
    "name": "Video_Images / MlemAPI / Random mlem picture",
-   "description": "Returns one random mlem image, in JSON"
+   "description": "One randomly chosen mlem image is returned in JSON"
+  },
+  {
+   "name": "Video_Images / MlemAPI / One random mlem",
+   "description": "Picks a mlem image at random and returns it in JSON"
   }
  ],
  "Video_Images / Alt Bichinhos / Get Portuguese Alt Text.": [
   {
-   "name": "Video_Images / Alt Bichinhos / Get Alt Text in Portuguese.",
-   "description": "This endpoint returns a pet image with alt text in **Brazilian Portuguese**."
-  },
-  {
    "name": "Video_Images / Alt Bichinhos / Portuguese Alt Text.",
-   "description": "Returns a pet image with **Brazilian Portuguese** alt text."
+   "description": "Pet image with **Brazilian Portuguese** alt text."
   },
   {
-   "name": "Video_Images / Alt Bichinhos / Fetch Portuguese Alt Text.",
-   "description": "This endpoint gives back a pet image that has **Brazilian Portuguese** alt text."
+   "name": "Video_Images / Alt Bichinhos / Get Alt Text in Portuguese.",
+   "description": "Use this endpoint to get back a pet image whose alt text is in **Brazilian Portuguese**."
   },
   {
-   "name": "Video_Images / Alt Bichinhos / Get Brazilian Portuguese Alt Text.",
-   "description": "This endpoint will return a pet image together with its **Brazilian Portuguese** alt text."
+   "name": "Video_Images / Alt Bichinhos / Fetch Brazilian Portuguese Alt Text.",
+   "description": "Returns a pet image along with alt text written in **Brazilian Portuguese**."
+  },
+  {
+   "name": "Video_Images / Alt Bichinhos / Pet Image With Portuguese Alt Text.",
+   "description": "Responds with an image of a pet and its **Brazilian Portuguese** alt text."
   },
   {
    "name": "Video_Images / Alt Bichinhos / Get Portuguese Alternative Text.",
-   "description": "Get back a pet image with **Brazilian Portuguese** alt text from this endpoint."
+   "description": "A pet image with **Brazilian Portuguese** alt text is returned by this endpoint."
   }
  ],
  "Video_Images / Image Service / profile-image": [
@@ -559,63 +559,67 @@
    "description": " "
   },
   {
-   "name": "Video_Images / Image Service / image-profile",
-   "description": " "
-  },
-  {
-   "name": "Video_Images / Image Service / profile_image",
+   "name": "Video_Images / Image Service / image-for-profile",
    "description": " "
   },
   {
    "name": "Video_Images / Image Service / profile-photo",
+   "description": " "
+  },
+  {
+   "name": "Video_Images / Image Service / get-profile-image",
    "description": " "
   }
  ],
  "Science / Astronomy Picture of The day / Picture Of The Day": [
   {
    "name": "Science / Astronomy Picture of The day / Daily Picture",
-   "description": "This endpoint returns an astronomy image of the universe, with a caption and an explanation from professionals."
+   "description": "Astronomy image of the universe, with caption and professional explanation."
   },
   {
-   "name": "Science / Astronomy Picture of The day / Image Of The Day",
-   "description": "Returns an astronomy image of the universe with a caption and explanation by professionals."
+   "name": "Science / Astronomy Picture of The day / Astronomy Image Of The Day",
+   "description": "Use this endpoint to get an astronomy image of the universe; it comes with a caption and an explanation written by professionals."
   },
   {
-   "name": "Science / Astronomy Picture of The day / Astronomy Picture Of The Day",
-   "description": "This endpoint gives back an astronomy image of the universe along with a caption and a professional explanation."
+   "name": "Science / Astronomy Picture of The day / Today's Picture",
+   "description": "Returns an image of the universe from astronomy, along with its caption and an explanation from professionals."
   },
   {
    "name": "Science / Astronomy Picture of The day / Get Picture Of The Day",
-   "description": "This endpoint returns an astronomy picture of the universe with caption and explanation from professionals."
+   "description": "Responds with an astronomy picture of the universe, captioned and explained by professionals."
   },
   {
-   "name": "Science / Astronomy Picture of The day / Day's Picture",
-   "description": "An astronomy image of the universe is returned by this endpoint, with caption and explanation from professionals."
+   "name": "Science / Astronomy Picture of The day / Picture For The Day",
+   "description": "An astronomy image of the universe is returned, with caption and explanation from professionals."
   }
  ],
  "Monitoring / Screenshot Maker / Take screenshot": [
   {
-   "name": "Monitoring / Screenshot Maker / Capture screenshot",
-   "description": "collect all parameters, load the webpage and take a screenshot at the end.\nThis API saves it on an S3 bucket and returns the url."
-  },
-  {
-   "name": "Monitoring / Screenshot Maker / Take a screenshot",
-   "description": "gathers all parameters, loads the webpage, then takes a screenshot at the end.\nThe API saves to an S3 bucket and returns the url."
-  },
-  {
    "name": "Monitoring / Screenshot Maker / Screenshot",
-   "description": "collects all the parameters, loads the webpage and finally takes the screenshot.\nThis API stores it in an S3 bucket and gives back the url."
+   "description": "loads the webpage with all parameters and takes a screenshot.\nSaved to an S3 bucket; the url is returned."
+  },
+  {
+   "name": "Monitoring / Screenshot Maker / Capture a webpage screenshot",
+   "description": "use this to collect all the parameters, load the webpage, and take a screenshot once that is done.\nThe API saves it on an S3 bucket and returns the url."
   },
   {
    "name": "Monitoring / Screenshot Maker / Make screenshot",
-   "description": "collect all parameters, load the web page and take the screenshot at the end.\nThe result is saved on an S3 bucket and the url is returned."
+   "description": "gathers every parameter, opens the webpage, then captures a screenshot at the end.\nThis API stores the result in an S3 bucket and gives back the url."
   },
   {
-   "name": "Monitoring / Screenshot Maker / Take webpage screenshot",
-   "description": "after collecting all parameters and loading the webpage, a screenshot is taken at the end.\nThis API saves on an S3 bucket and returns the url."
+   "name": "Monitoring / Screenshot Maker / Take a page screenshot",
+   "description": "after all parameters are collected and the webpage is loaded, a screenshot is taken.\nIt is saved on an S3 bucket and its url is returned."
+  },
+  {
+   "name": "Monitoring / Screenshot Maker / Snap screenshot",
+   "description": "collect all parameters, load the web page, take the screenshot last.\nThe screenshot goes to an S3 bucket and the API returns the url."
   }
  ],
  "Other / GroupDocs.Annotation Cloud / GetFilesList": [
+  {
+   "name": "Other / GroupDocs.Annotation Cloud / ListFiles",
+   "description": " "
+  },
   {
    "name": "Other / GroupDocs.Annotation Cloud / GetFileList",
    "description": " "
@@ -625,148 +629,144 @@
    "description": " "
   },
   {
-   "name": "Other / GroupDocs.Annotation Cloud / ListFiles",
-   "description": " "
-  },
-  {
-   "name": "Other / GroupDocs.Annotation Cloud / GetFilesListing",
-   "description": " "
-  },
-  {
    "name": "Other / GroupDocs.Annotation Cloud / FetchFilesList",
+   "description": " "
+  },
+  {
+   "name": "Other / GroupDocs.Annotation Cloud / FilesListing",
    "description": " "
   }
  ],
  "eCommerce / Amazon Data_v2 / MarketPlace List": [
   {
+   "name": "eCommerce / Amazon Data_v2 / Marketplaces",
+   "description": "Market places we fetch data from!"
+  },
+  {
    "name": "eCommerce / Amazon Data_v2 / List of MarketPlaces",
-   "description": "This endpoint lists the market places we use to fetch data!"
-  },
-  {
-   "name": "eCommerce / Amazon Data_v2 / MarketPlaces List",
-   "description": "Lists down the market places that we use for fetching data!"
-  },
-  {
-   "name": "eCommerce / Amazon Data_v2 / Market Places List",
-   "description": "This endpoint gives the list of market places we fetch data from!"
-  },
-  {
-   "name": "eCommerce / Amazon Data_v2 / List MarketPlaces",
-   "description": "This endpoint lists down the marketplaces used to fetch data!"
+   "description": "Use this endpoint to see the list of market places that we use for fetching data!"
   },
   {
    "name": "eCommerce / Amazon Data_v2 / Get MarketPlace List",
-   "description": "Returns the list of market places we use to fetch data!"
+   "description": "Returns every market place we use to fetch data!"
+  },
+  {
+   "name": "eCommerce / Amazon Data_v2 / MarketPlaces Listing",
+   "description": "Lists down which market places our data is fetched from!"
+  },
+  {
+   "name": "eCommerce / Amazon Data_v2 / All MarketPlaces",
+   "description": "The market places used by us to fetch data are listed by this endpoint!"
   }
  ],
  "Energy / CO2 Offset / Retrieve Compensation": [
   {
    "name": "Energy / CO2 Offset / Get Compensation",
-   "description": "The response contains the full compensation details (if it exists, and the owner is the account)."
+   "description": "Full compensation details (if exists, and owner is account)."
   },
   {
-   "name": "Energy / CO2 Offset / Retrieve a Compensation",
-   "description": "Response holds full details of the compensation (if exists, and owner is account)."
+   "name": "Energy / CO2 Offset / Fetch a Compensation",
+   "description": "Use this to retrieve a compensation; the response holds its full details (if it exists and the account is the owner)."
   },
   {
-   "name": "Energy / CO2 Offset / Fetch Compensation",
-   "description": "Full compensation details are in the response (if it exists and the account is the owner)."
+   "name": "Energy / CO2 Offset / Compensation Details",
+   "description": "Returns the complete details of the compensation in the response (if exists, and owner is account)."
   },
   {
-   "name": "Energy / CO2 Offset / Retrieve Compensation Details",
-   "description": "Response includes the full compensation details (if exists, and owner is account)."
+   "name": "Energy / CO2 Offset / Look Up Compensation",
+   "description": "The response gives full compensation details, provided it exists and the owner is the account."
   },
   {
-   "name": "Energy / CO2 Offset / Compensation Retrieval",
-   "description": "The response returns full compensation details (if exists, and the owner is the account)."
+   "name": "Energy / CO2 Offset / Retrieve Compensation Record",
+   "description": "Full details of the compensation are contained in the response (if exists, and owner is account)."
   }
  ],
  "Jobs / Indeed Jobs API / SearchJobs": [
   {
-   "name": "Jobs / Indeed Jobs API / JobsSearch",
-   "description": "offset = 0 (start of the page; increase it by 10 to paginate)\nkeyword = python (any search keyword works, e.g. a job title or a skill title)\nlocation = california (This API currently gets data for USA Indeed. A specific city or state can be entered.)\nThis gives you a list of 15 jobs on the page; by default a single page holds at most 15 job postings. To get all the data with pagination, keep increasing the offset count by 10.\n\nThis API gives you the following fields.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
+   "name": "Jobs / Indeed Jobs API / JobSearch",
+   "description": "offset = 0 (page start; add 10 per page)\nkeyword = python (any search keyword, e.g. job title or skill title)\nlocation = california (USA Indeed only for now; a city or state works)\nReturns up to 15 jobs per page. Raise offset by 10 each time to page through all the data.\n\nFields returned by this API.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
   },
   {
    "name": "Jobs / Indeed Jobs API / SearchForJobs",
-   "description": "offset = 0 (the page start, which must go up by 10 for pagination)\nkeyword = python (can be any search keyword, for example a job title or skill title)\nlocation = california (For now the API gets data for USA Indeed. You may enter a specific city or state.)\nYou will receive a list of 15 jobs per page, since a single page can have a maximum of 15 job postings by default. To get all the data through pagination, you need to keep raising the offset by 10.\n\nYou will get these fields from this API.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
-  },
-  {
-   "name": "Jobs / Indeed Jobs API / SearchJobPostings",
-   "description": "offset = 0 (beginning of the page; it has to be increased by 10 to achieve pagination)\nkeyword = python (it may be any search keyword, e.g. job title or skill title)\nlocation = california (At present this API gets data for USA Indeed. Enter a specific city or state if you like.)\nThis provides a list of 15 jobs in the page; a single page can have only 15 job postings at most by default. Keep increasing the offset count by 10 to get all the data using pagination.\n\nThe following fields are returned by this API.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
-  },
-  {
-   "name": "Jobs / Indeed Jobs API / JobSearch",
-   "description": "offset = 0 (starting point of the page; raise it by 10 to paginate)\nkeyword = python (any search keyword, such as a job title or a skill title)\nlocation = california (This API gets data for USA Indeed for now. You can give a specific city or state.)\nIt will give you a list of 15 jobs in the page, as a single page has a max of 15 job postings by default. To fetch all the data with pagination, keep increasing the offset by 10.\n\nUsing this API you get the following fields.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
+   "description": "offset = 0 (this is where the page starts, and you increase it by 10 whenever you want the next page)\nkeyword = python (use any search keyword you like, for example a job title or a skill title)\nlocation = california (at the moment the API only gets data for USA Indeed, and you may enter a specific city or state)\nYou will receive a list of 15 jobs for the page, because a single page holds at most 15 job postings by default. To collect all the data through pagination, keep increasing the offset count by 10.\n\nThese are the fields that this API gives you.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
   },
   {
    "name": "Jobs / Indeed Jobs API / FindJobs",
-   "description": "offset = 0 (where the page starts; it must be increased by 10 for pagination)\nkeyword = python (this can be any search keyword, for instance a job title or skill title)\nlocation = california (For now this API fetches data for USA Indeed. A specific city or state can be entered.)\nYou get a list of 15 jobs in the page, because by default one page can hold a maximum of 15 job postings. In order to get all the data via pagination, keep increasing the offset count by 10.\n\nThese are the fields you will get from this API.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
+   "description": "offset = 0 (marks the start of the page and has to grow by 10 for pagination)\nkeyword = python (accepts any search keyword such as a job title or skill title)\nlocation = california (data currently comes from USA Indeed; a specific city or state can be entered)\nThe API provides a list of 15 jobs in the page, since one page can have only 15 job postings at most by default. Getting all the data with pagination requires increasing the offset by 10 repeatedly.\n\nThe API returns the following fields.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
+  },
+  {
+   "name": "Jobs / Indeed Jobs API / JobsLookup",
+   "description": "offset = 0 (for pagination this must go up in steps of 10; 0 is the starting of the page)\nkeyword = python (a job title, a skill title or any other search keyword)\nlocation = california (enter a specific city or state; for now only USA Indeed data is available)\nBy default a single page has a max of 15 job postings, so this gives you a list of 15 jobs in the page. Keep increasing the count of offset by 10 in order to get all the data using pagination.\n\nUsing this API you get the fields below.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
+  },
+  {
+   "name": "Jobs / Indeed Jobs API / QueryJobs",
+   "description": "offset = 0 (the page start, which is increased by 10 to paginate)\nkeyword = python (any search keyword may be used, for instance a job title or skill title)\nlocation = california (data is fetched for USA Indeed for now, and a specific city or state may be entered)\nA list of 15 jobs in the page is provided, as no more than 15 job postings fit on a single page by default. All the data can be fetched with pagination by raising the offset count by 10 each time.\n\nThe following fields are provided by this API.\n\n'position'\n'company_name'\n'job_title'\n'job_location'\n'salary'\n'date'\n'job_url'\n'urgently_hiring'\n'multiple_hiring'\n'company_rating'\n'company_reviews'\n'company_review_link'\n'company_logo_url'\n'page_number'"
   }
  ],
  "Health_and_Fitness / Health Calculator API / Macronutrient Distribution": [
   {
-   "name": "Health_and_Fitness / Health Calculator API / Macronutrient Split",
-   "description": "This endpoint calculates the optimal split of macronutrients (carbohydrates, proteins, and fats) from factors such as activity level, body composition goals, and dietary preferences."
+   "name": "Health_and_Fitness / Health Calculator API / Macro Split",
+   "description": "Optimal split of carbohydrates, proteins, and fats, from activity level, body composition goals, and dietary preferences."
   },
   {
-   "name": "Health_and_Fitness / Health Calculator API / Distribution of Macronutrients",
-   "description": "Calculates the optimal distribution of macronutrients (carbohydrates, proteins, and fats) based on factors like activity level, body composition goals, and dietary preferences."
-  },
-  {
-   "name": "Health_and_Fitness / Health Calculator API / Macronutrients Distribution",
-   "description": "This endpoint works out the optimal distribution of macronutrients (carbohydrates, proteins, and fats), based on factors such as activity level, body composition goals and dietary preferences."
-  },
-  {
-   "name": "Health_and_Fitness / Health Calculator API / Macro Distribution",
-   "description": "Using factors such as activity level, body composition goals, and dietary preferences, this endpoint calculates the optimal distribution of macronutrients (carbohydrates, proteins, and fats)."
+   "name": "Health_and_Fitness / Health Calculator API / Calculate Macronutrient Distribution",
+   "description": "Use this endpoint to work out the best distribution of macronutrients (carbohydrates, proteins, and fats) for someone, given factors like their activity level, body composition goals, and dietary preferences."
   },
   {
    "name": "Health_and_Fitness / Health Calculator API / Macronutrient Breakdown",
-   "description": "This endpoint computes the optimal distribution of macronutrients (carbohydrates, proteins, and fats) according to factors such as activity level, body composition goals, and dietary preferences."
+   "description": "Computes how macronutrients (carbohydrates, proteins, and fats) should optimally be distributed, taking into account activity level, body composition goals, dietary preferences and similar factors."
+  },
+  {
+   "name": "Health_and_Fitness / Health Calculator API / Optimal Macros",
+   "description": "Given factors such as activity level, body composition goals, and dietary preferences, returns the optimal macronutrient distribution (carbohydrates, proteins, and fats)."
+  },
+  {
+   "name": "Health_and_Fitness / Health Calculator API / Macronutrients Distribution Calculator",
+   "description": "The optimal distribution of macronutrients (carbohydrates, proteins, and fats) is calculated from factors such as activity level, body composition goals, and dietary preferences."
   }
  ],
  "Monitoring / OTP / sms": [
   {
    "name": "Monitoring / OTP / send-sms",
-   "description": "sends otp sms to users"
+   "description": "sends an otp to users by sms"
   },
   {
    "name": "Monitoring / OTP / sms-otp",
-   "description": "otp by sms to users"
+   "description": "otp text message for users"
   },
   {
-   "name": "Monitoring / OTP / otp-sms",
-   "description": "sms with otp to users"
+   "name": "Monitoring / OTP / otp-by-sms",
+   "description": "use this to sms an otp to users"
   },
   {
-   "name": "Monitoring / OTP / sms-message",
-   "description": "otp sms for users"
+   "name": "Monitoring / OTP / text-message",
+   "description": "users get an otp over sms"
   },
   {
    "name": "Monitoring / OTP / sms-to-users",
-   "description": "otp sms sent to users"
+   "description": "sms with an otp, sent to users"
   }
  ],
  "Movies / IMDb top 100 movies / Get Top 100 Movies according to IMDb": [
   {
-   "name": "Movies / IMDb top 100 movies / Get IMDb Top 100 Movies",
-   "description": "Get the Top 100 Movies according to IMDb"
+   "name": "Movies / IMDb top 100 movies / IMDb Top 100",
+   "description": "The 100 top movies on IMDb"
   },
   {
-   "name": "Movies / IMDb top 100 movies / Top 100 Movies according to IMDb",
+   "name": "Movies / IMDb top 100 movies / Get IMDb's Top 100 Movies",
+   "description": "Use this to get the Top 100 Movies as IMDb ranks them"
+  },
+  {
+   "name": "Movies / IMDb top 100 movies / Top 100 Movies by IMDb",
    "description": "Returns the Top 100 Movies according to IMDb"
   },
   {
-   "name": "Movies / IMDb top 100 movies / Get the Top 100 Movies by IMDb",
-   "description": "Get the Top 100 Movies as ranked by IMDb"
+   "name": "Movies / IMDb top 100 movies / List the Top 100 IMDb Movies",
+   "description": "IMDb's list of the Top 100 Movies"
   },
   {
-   "name": "Movies / IMDb top 100 movies / Fetch Top 100 Movies according to IMDb",
-   "description": "Fetch the Top 100 Movies according to IMDb"
-  },
-  {
-   "name": "Movies / IMDb top 100 movies / Get Top 100 IMDb Movies",
-   "description": "Get IMDb's Top 100 Movies"
+   "name": "Movies / IMDb top 100 movies / Fetch Top 100 Films according to IMDb",
+   "description": "The Top 100 Movies according to IMDb are fetched"
   }
  ],
  "Movies / MoviesDatabase / /actors/random": [
@@ -779,214 +779,214 @@
    "description": " "
   },
   {
-   "name": "Movies / MoviesDatabase / /actor/random",
-   "description": " "
-  },
-  {
    "name": "Movies / MoviesDatabase / /actors/random-pick",
    "description": " "
   },
   {
    "name": "Movies / MoviesDatabase / /actors/get-random",
    "description": " "
+  },
+  {
+   "name": "Movies / MoviesDatabase / /actor/random",
+   "description": " "
   }
  ],
  "Tools / Domain Backorder / backorders": [
   {
    "name": "Tools / Domain Backorder / backorder-list",
-   "description": "Get the most recent expiring domain names in our pool"
-  },
-  {
-   "name": "Tools / Domain Backorder / domain-backorders",
-   "description": "Returns the latest expiring domain names in our pool"
+   "description": "Latest expiring domains in our pool"
   },
   {
    "name": "Tools / Domain Backorder / get-backorders",
-   "description": "Fetch the latest domain names expiring in our pool"
+   "description": "Use this to get the latest domain names in our pool that are expiring"
+  },
+  {
+   "name": "Tools / Domain Backorder / domain-backorders",
+   "description": "Returns the most recent expiring domain names from our pool"
   },
   {
    "name": "Tools / Domain Backorder / backorders-latest",
-   "description": "Get the latest domain names in our pool that are expiring"
+   "description": "Fetches the domain names that are the latest to expire in our pool"
   },
   {
    "name": "Tools / Domain Backorder / list-backorders",
-   "description": "Retrieve the latest expiring domain names from our pool"
+   "description": "The latest expiring domain names in our pool are retrieved"
   }
  ],
  "Movies / MoviesDatabase / /titles/search/title/{title}": [
   {
    "name": "Movies / MoviesDatabase / /titles/search/by-title/{title}",
-   "description": "Search by a Title"
-  },
-  {
-   "name": "Movies / MoviesDatabase / /titles/search-title/{title}",
-   "description": "Search using the Title"
-  },
-  {
-   "name": "Movies / MoviesDatabase / /titles/title-search/{title}",
-   "description": "Title Search"
+   "description": "Title search"
   },
   {
    "name": "Movies / MoviesDatabase / /titles/find/title/{title}",
-   "description": "Find by Title"
+   "description": "Use this to search using a Title"
+  },
+  {
+   "name": "Movies / MoviesDatabase / /titles/title-search/{title}",
+   "description": "Searches by the Title given"
   },
   {
    "name": "Movies / MoviesDatabase / /titles/lookup/title/{title}",
    "description": "Look up by Title"
+  },
+  {
+   "name": "Movies / MoviesDatabase / /titles/search-title/{title}",
+   "description": "A search by Title"
   }
  ],
  "Tools / HackerRank / Languages": [
   {
    "name": "Tools / HackerRank / Language Codes",
-   "description": "This method gives you information about the language codes that our code checker supports"
+   "description": "Language codes our code checker supports"
   },
   {
    "name": "Tools / HackerRank / Supported Languages",
-   "description": "This method provides information regarding the language codes supported by our code checker"
+   "description": "Use this method to find out which language codes are supported by our code checker"
   },
   {
    "name": "Tools / HackerRank / Get Languages",
-   "description": "With this method you get information on the language codes which our code checker supports"
-  },
-  {
-   "name": "Tools / HackerRank / Languages List",
-   "description": "This method provides you with information about which language codes our code checker supports"
+   "description": "Returns information about the language codes that our code checker supports"
   },
   {
    "name": "Tools / HackerRank / Checker Languages",
-   "description": "This method returns information regarding the language codes our code checker supports"
+   "description": "Tells you which language codes work with our code checker"
+  },
+  {
+   "name": "Tools / HackerRank / Languages List",
+   "description": "Information on the language codes supported by our code checker is provided by this method"
   }
  ],
  "Tools / Exerra phishing check / Check a URL": [
   {
-   "name": "Tools / Exerra phishing check / Check URL",
-   "description": "Checks whether a URL is a known phishing attempt"
+   "name": "Tools / Exerra phishing check / URL Check",
+   "description": "Is this URL known phishing?"
   },
   {
-   "name": "Tools / Exerra phishing check / URL Check",
-   "description": "Check whether a given URL is a known phishing attempt"
+   "name": "Tools / Exerra phishing check / Check URL for Phishing",
+   "description": "Use this to find out whether a URL is a known phishing attempt"
   },
   {
    "name": "Tools / Exerra phishing check / Verify a URL",
-   "description": "Find out if a URL is a known phishing attempt"
+   "description": "Tells you if a given URL is a known attempt at phishing"
   },
   {
-   "name": "Tools / Exerra phishing check / Check one URL",
-   "description": "Check if the URL is a known attempt at phishing"
+   "name": "Tools / Exerra phishing check / Phishing URL Lookup",
+   "description": "Checks a URL against known phishing attempts"
   },
   {
    "name": "Tools / Exerra phishing check / Test a URL",
-   "description": "See if a URL is a known phishing attempt"
+   "description": "Whether a URL is a known phishing attempt is checked"
   }
  ],
  "Tools / Números a Letras / NAL Query": [
   {
    "name": "Tools / Números a Letras / NAL Consulta",
-   "description": "Convierte un número en letras"
+   "description": "Número a letras"
   },
   {
    "name": "Tools / Números a Letras / Query NAL",
-   "description": "Convierte a letras un número"
+   "description": "Úsalo para convertir un número en letras"
   },
   {
    "name": "Tools / Números a Letras / NAL por Query",
    "description": "Pasa un número a letras"
   },
   {
-   "name": "Tools / Números a Letras / NAL Query Parameter",
-   "description": "Transforma un número a letras"
+   "name": "Tools / Números a Letras / NAL Query Param",
+   "description": "Transforma el número dado en letras"
   },
   {
-   "name": "Tools / Números a Letras / NAL via Query",
-   "description": "Convierte el número a letras"
+   "name": "Tools / Números a Letras / Consulta NAL",
+   "description": "Un número se convierte a letras"
   }
  ],
  "Advertising / URL Link Shortener / Get a list of domains": [
   {
-   "name": "Advertising / URL Link Shortener / Get the list of domains",
-   "description": "Get the list of domains"
-  },
-  {
    "name": "Advertising / URL Link Shortener / List domains",
-   "description": "List the domains"
+   "description": "Domains list"
   },
   {
-   "name": "Advertising / URL Link Shortener / Get domains list",
-   "description": "Get a domains list"
+   "name": "Advertising / URL Link Shortener / Get the domains list",
+   "description": "Use this to get the list of domains"
   },
   {
-   "name": "Advertising / URL Link Shortener / Fetch a list of domains",
-   "description": "Fetch a list of domains"
+   "name": "Advertising / URL Link Shortener / Fetch domains",
+   "description": "Returns a list of domains"
+  },
+  {
+   "name": "Advertising / URL Link Shortener / Domains listing",
+   "description": "A list of domains"
   },
   {
    "name": "Advertising / URL Link Shortener / Retrieve a list of domains",
-   "description": "Retrieve a list of domains"
+   "description": "The domains are listed"
   }
  ],
  "Movies / Streaming Availability / Get Basic (FREE)": [
   {
-   "name": "Movies / Streaming Availability / Get Basic Details (FREE)",
-   "description": "Get a show's details via IMDb or TMDb id, including its streaming availability info in the given country."
+   "name": "Movies / Streaming Availability / Basic Details (FREE)",
+   "description": "Show details by IMDb or TMDb id, with streaming availability in the given country."
   },
   {
-   "name": "Movies / Streaming Availability / Basic Get (FREE)",
-   "description": "Returns the details of a show by IMDb or TMDb id, with the streaming availability info for the given country."
-  },
-  {
-   "name": "Movies / Streaming Availability / Get Basic - FREE",
-   "description": "Get the details of a show through its IMDb or TMDb id, including streaming availability information in the given country."
+   "name": "Movies / Streaming Availability / Get Basic Show Info (FREE)",
+   "description": "Use this to get a show's details from its IMDb or TMDb id; the streaming availability info for the given country is included."
   },
   {
    "name": "Movies / Streaming Availability / Fetch Basic (FREE)",
-   "description": "Fetch the details of a show via IMDb or TMDb id, including the info on streaming availability in the given country."
+   "description": "Returns the details of a show looked up via IMDb or TMDb id, along with where it can be streamed in the given country."
   },
   {
-   "name": "Movies / Streaming Availability / Get Basic Info (FREE)",
-   "description": "Via IMDb or TMDb id, get the details of a show, including the streaming availability info in the given country."
+   "name": "Movies / Streaming Availability / Basic Lookup (FREE)",
+   "description": "Given an IMDb or TMDb id, gets the show's details including streaming availability info in the given country."
+  },
+  {
+   "name": "Movies / Streaming Availability / Get Basic - FREE",
+   "description": "The details of a show, including the streaming availability info in the given country, are retrieved via IMDb or TMDb id."
   }
  ],
  "Media / Vimeo / GetChannelInfo": [
   {
-   "name": "Media / Vimeo / GetChannelInformation",
-   "description": "Get information on a single channel."
+   "name": "Media / Vimeo / ChannelInfo",
+   "description": "Info on one channel."
   },
   {
-   "name": "Media / Vimeo / ChannelInfo",
-   "description": "Returns the information on a single channel."
+   "name": "Media / Vimeo / GetChannelInformation",
+   "description": "Use this to get the information for a single channel."
+  },
+  {
+   "name": "Media / Vimeo / FetchChannelDetails",
+   "description": "Returns information about one single channel."
   },
   {
    "name": "Media / Vimeo / GetInfoForChannel",
-   "description": "Get the information about one channel."
+   "description": "Given a single channel, gets its information."
   },
   {
-   "name": "Media / Vimeo / GetChannelDetails",
-   "description": "Fetch the information on a single channel."
-  },
-  {
-   "name": "Media / Vimeo / FetchChannelInfo",
-   "description": "Get the info on a single channel."
+   "name": "Media / Vimeo / ChannelInfoLookup",
+   "description": "The information on a single channel is retrieved."
   }
  ],
  "Entertainment / Watchmode / Title Cast & Crew": [
   {
-   "name": "Entertainment / Watchmode / Cast & Crew of a Title",
-   "description": "Returns all the people associated with the title: the \"cast\" (actors) and the \"crew\" (directors, writers, cinematographers, etc). For more details on a person, pass the person-id to the /person/ endpoint."
+   "name": "Entertainment / Watchmode / Cast & Crew",
+   "description": "Everyone associated with the title: \"cast\" (actors) and \"crew\" (directors, writers, cinematographers, etc). Pass a person-id to the /person/ endpoint for more details on that person."
   },
   {
    "name": "Entertainment / Watchmode / Title Cast and Crew",
-   "description": "Return every person associated with the title, the \"cast\" (actors), and \"crew\" (directors, writers, cinematographers, etc). To get more details on a person, pass the person-id to the /person/ endpoint."
+   "description": "Use this to get all the people associated with a title, meaning the \"cast\" (actors) and the \"crew\" (directors, writers, cinematographers, etc). If you want more details on a person, pass the person-id to the /person/ endpoint."
   },
   {
-   "name": "Entertainment / Watchmode / Title's Cast & Crew",
-   "description": "Return all people linked to the title, both the \"cast\" (actors) and \"crew\" (directors, writers, cinematographers, etc). For further details on a person, send the person-id to the /person/ endpoint."
+   "name": "Entertainment / Watchmode / People in a Title",
+   "description": "Returns every person linked to the title, both \"cast\" (actors) and \"crew\" (directors, writers, cinematographers, etc). More details on a person come from the /person/ endpoint when you pass it the person-id."
   },
   {
    "name": "Entertainment / Watchmode / Cast & Crew for Title",
-   "description": "Gives back all people associated with the title, the \"cast\" (actors), and the \"crew\" (directors, writers, cinematographers, etc). More details on a person are available by passing the person-id to the /person/ endpoint."
+   "description": "Given a title, lists all people associated with it, the \"cast\" (actors), and \"crew\" (directors, writers, cinematographers, etc). For further details on a person, send the person-id to the /person/ endpoint."
   },
   {
-   "name": "Entertainment / Watchmode / Title Crew & Cast",
-   "description": "Return all people associated with a title, the \"cast\" (actors) as well as the \"crew\" (directors, writers, cinematographers, etc). For more details about a person, pass their person-id to the /person/ endpoint."
+   "name": "Entertainment / Watchmode / Title's Cast & Crew",
+   "description": "All people associated with the title, the \"cast\" (actors) and the \"crew\" (directors, writers, cinematographers, etc), are returned. For more details about a person, the person-id is passed to the /person/ endpoint."
   }
  ]
 }

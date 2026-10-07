@@ -18,9 +18,7 @@ wording of the instruction. Its columns:
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 
-A reworded run also gets the figures of the rewordings of each example's reworded tool. `--before` names a results
-folder and a tool list of a run that asked the same examples before the tool was reworded, and adds the mean
-probability of that tool in those answers.
+A reworded run also gets the mean probability of its rewordings, from the highest of an answer to the lowest.
 """
 
 import argparse
@@ -33,20 +31,17 @@ from grjev.constants import (
     JEV_DOLLARS_PER_MILLION_INPUT_TOKENS,
     LIST_LENGTHS,
     REWORDED_LIST,
-    REWORDINGS_FILES,
 )
-from grjev.examples import read_jsonl, read_rewordings
+from grjev.examples import read_jsonl
 from grjev.metrics import (
     Figures,
     compared_groups,
     difference,
     figures,
-    group_figures,
     list_groups,
     list_names,
-    reworded_tools,
+    ranked_means,
     row_groups,
-    tool_probability,
 )
 from grjev.runs import Row, RunConfig
 
@@ -76,7 +71,6 @@ def parse_args() -> argparse.Namespace:
     """Read the results folders from the command line."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("folders", nargs="+", type=Path, help="results folders, such as results/<name>/<date>_<incr>")
-    parser.add_argument("--before", nargs=2, metavar=("FOLDER", "LIST"), help="a run and its list before the rewording")
     return parser.parse_args()
 
 
@@ -88,24 +82,7 @@ def print_table(table: list[list[str]]) -> None:
         print("  ".join([cells[0].ljust(widths[0]), *rest]))
 
 
-def print_rewordings(config: RunConfig, rows: list[Row], before: list[str] | None) -> None:
-    """Print the figures of the rewordings of a reworded run, and the probability of the reworded tools before it."""
-    rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
-    originals = {tool.name: original for original, tools in rewordings.items() for tool in tools}
-    found = group_figures(rows, REWORDED_LIST, originals)
-    print(f"\nrewordings of one correct tool, {found.answers:,} answers")
-    print(f"mean probability, from the top rewording of an answer down: {', '.join(f'{p:.3f}' for p in found.ranked)}")
-    print(f"mean probability of the rewordings together: {found.total:.3f}")
-    print(f"answers that give every rewording 0: {found.empty:,}")
-    print(f"mean share of the rewordings' probability that the top rewording has: {found.top_share:.1f}%")
-    print(f"mean entropy of the rewordings' probabilities divided by their sum: {found.entropy:.2f} bits")
-    if before:
-        folder, name = before
-        mean = tool_probability(read_jsonl(Path(folder) / "rows.jsonl", Row), name, reworded_tools(rows, originals))
-        print(f"mean probability of the tool before it is reworded, in the list {name} of {folder}: {mean:.3f}")
-
-
-def print_run(folder: Path, before: list[str] | None) -> None:
+def print_run(folder: Path) -> None:
     """Print the input tokens of one run and their price, then the figures of each of its test files."""
     config = RunConfig.model_validate_json((folder / "config.json").read_text())
     rows = read_jsonl(folder / "rows.jsonl", Row)
@@ -128,15 +105,15 @@ def print_run(folder: Path, before: list[str] | None) -> None:
             # Adding 0.0 turns a rounded -0.0 into 0.0.
             print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points, 95% interval {low:.1f} to {high:.1f}")
     if REWORDED_LIST in list_names(rows):
-        print_rewordings(config, rows, before)
+        ranked = ", ".join(f"{value:.3f}" for value in ranked_means(rows, REWORDED_LIST))
+        print(f"\nmean probability of the rewordings, from the highest of an answer to the lowest: {ranked}")
     print()
 
 
 def main() -> None:
     """Print the figures of each named results folder."""
-    args = parse_args()
-    for folder in args.folders:
-        print_run(folder, args.before)
+    for folder in parse_args().folders:
+        print_run(folder)
 
 
 if __name__ == "__main__":

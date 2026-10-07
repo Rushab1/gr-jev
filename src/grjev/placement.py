@@ -85,11 +85,6 @@ def reworded_tool(example: Example, seed: int) -> str:
     return random.Random(f"{seed}/{example.id}/reworded").choice(example.labels or [])
 
 
-def reworded_order(order: list[Option], original: str, rewordings: list[Option]) -> list[Option]:
-    """Return the tool list with the tool named `original` taken out and its rewordings in its place."""
-    return [tool for listed in order for tool in (rewordings if listed.name == original else [listed])]
-
-
 def grown_orders(
     example: Example, tools: list[Option], size: int, lengths: Iterable[int], seed: int
 ) -> dict[str, list[Option]]:

@@ -261,7 +261,7 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # with its correct tools at each placement. "length" sends each different one-tool query with lists of several lengths.
 # "wording" sends every example with one tool list and each wording of the instruction for several correct tools.
 # "growth" sends every example with its tool list and with random other tools added up to several list lengths.
-# "reworded" sends every example with its tool list, in which rewordings of one correct tool take its place.
+# "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
@@ -308,10 +308,10 @@ GROWTH_LENGTHS = {"stabletoolbench": (20, 50, 100, 199)}
 GROWTH_WORDINGS = ("all", "every")
 # The name of the padded list of an example before it is grown.
 OWN_LIST = "own"
-# The "reworded" experiment. One correct tool of a query, chosen with the seed, is taken out of the padded list, and
-# rewordings of its name and description take its place. Dataset -> the file of rewordings: the name of a tool -> its
-# 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06. A rewording of a StableToolBench API keeps the category and
-# the tool of the name, and rewords the API name and the description. A blank description stays blank.
+# The "reworded" experiment. One correct tool of a query is chosen with the seed, and the list that is sent holds only
+# rewordings of its name and description. Dataset -> the file of rewordings: the name of a tool -> its 5 rewordings.
+# Claude Opus 5.5 wrote them on 2026-10-06. A rewording of a StableToolBench API keeps the category and the tool of
+# the name, and rewords the API name and the description. A blank description stays blank.
 REWORDINGS_FILES = {"stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json"}
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.

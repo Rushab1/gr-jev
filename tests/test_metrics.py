@@ -5,18 +5,15 @@ import pytest
 from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
 from grjev.metrics import (
-    bits,
     compared_groups,
     difference,
     entropy,
     figures,
-    group_figures,
     interval,
     list_groups,
     list_names,
-    reworded_tools,
+    ranked_means,
     row_groups,
-    tool_probability,
     top_gap,
 )
 from grjev.placement import length_orders, orders_of
@@ -215,35 +212,9 @@ def test_a_wording_run_is_pooled_over_its_test_files_and_grouped_by_the_number_o
     assert groups["2 correct tools"] == [two_apis] and groups["G1_tool"] == [one_api, two_apis]
 
 
-def test_the_figures_of_a_group_rank_its_probabilities_and_leave_an_empty_group_out_of_the_shares() -> None:
-    group = ["a_1", "a_2"]
+def test_ranked_means_average_the_highest_probability_of_each_answer_then_the_second_and_so_on() -> None:
     rows = [
-        row("G1_tool", ["b", *group], {"reworded": answer("b", False, {"a_1": 0.1, "b": 0.6, "a_2": 0.3})}),
-        row("G1_tool", ["b", *group], {"reworded": answer("a_1", False, {"a_1": 0.5, "b": 0.0, "a_2": 0.5})}),
-        row("G1_tool", ["b", *group], {"reworded": answer("b", False, {"a_1": 0.0, "b": 1.0, "a_2": 0.0})}),
+        row("G1_tool", ["a", "b", "c"], {"reworded": answer("b", True, {"a": 0.1, "b": 0.6, "c": 0.3})}),
+        row("G1_tool", ["a", "b", "c"], {"reworded": answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})}),
     ]
-    found = group_figures(rows, "reworded", group)
-    assert (found.answers, found.empty) == (3, 1)
-    assert found.ranked == (pytest.approx(0.8 / 3), pytest.approx(0.6 / 3))
-    assert found.total == pytest.approx(1.4 / 3)
-    # The top tool of the group has 0.3 of 0.4 in the first answer and 0.5 of 1.0 in the second.
-    assert found.top_share == pytest.approx(100 * (0.75 + 0.5) / 2)
-    assert found.entropy == pytest.approx((bits([0.75, 0.25]) + 1.0) / 2)
-
-
-def test_the_reworded_tool_is_read_from_the_labels_and_its_probability_from_the_answers_of_another_run() -> None:
-    originals = {"a_1": "a", "a_2": "a", "c_1": "c", "c_2": "c"}
-    reworded = [
-        row("G1_tool", ["b", "a_1", "a_2"], {}).model_copy(update={"id": "set/file/1"}),
-        row("G1_tool", ["c_1", "c_2"], {}).model_copy(update={"id": "set/file/2"}),
-    ]
-    tools = reworded_tools(reworded, originals)
-    assert tools == {"set/file/1": "a", "set/file/2": "c"}
-    before = [
-        row("G1_tool", ["c"], {"own": answer("c", True, {"c": 0.9, "d": 0.1})}).model_copy(update={"id": "set/file/2"}),
-        row("G1_tool", ["a", "b"], {"own": answer("b", False, {"a": 0.2, "b": 0.8})}).model_copy(
-            update={"id": "set/file/1"}
-        ),
-        row("G1_tool", ["e"], {"own": answer("e", True, {"e": 1.0, "f": 0.0})}).model_copy(update={"id": "set/file/3"}),
-    ]
-    assert tool_probability(before, "own", tools) == pytest.approx(0.55)
+    assert ranked_means(rows, "reworded") == (pytest.approx(0.55), pytest.approx(0.4), pytest.approx(0.05))
