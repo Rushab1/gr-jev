@@ -267,6 +267,7 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "growth" sends every example with its tool list and with random other tools added up to several list lengths.
 # "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
 # "rotated" sends that list in every rotation of the order in which the rewordings are written.
+# "copied" sends every example with a list of copies of one of its correct tools, in every rotation.
 # The MetaTool test files whose examples have a correct tool to reword.
 METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
@@ -276,6 +277,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "copied": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -325,8 +327,11 @@ REWORDINGS_FILES = {
     "metatool": Path(__file__).parent / "rewordings" / "metatool.json",
     "stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json",
 }
-# The experiments whose lists hold only rewordings of one tool. Every entry is correct, and "None" is not offered.
-REWORDING_EXPERIMENTS = ("reworded", "rotated")
+# The experiments whose lists hold only rewordings or copies of one tool. Every entry is correct, and "None" is not
+# offered.
+REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied")
+# The "copied" experiment lists one correct tool this many times. The names of the copies differ only by extra spaces.
+COPIED_TOOLS = 5
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
 REWORDED_LIST = "reworded"

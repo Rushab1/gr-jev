@@ -1,6 +1,7 @@
 """The orders of an example's tool list: the released order, and the correct tools placed at fixed positions."""
 
 import random
+import re
 from collections.abc import Iterable
 from fractions import Fraction
 from math import ceil
@@ -91,6 +92,20 @@ def reworded_order(example: Example, rewordings: list[Option], seed: int) -> lis
     order = list(rewordings)
     random.Random(f"{seed}/{example.id}/reworded/order").shuffle(order)
     return order
+
+
+def spaced_copies(tool: Option, copies: int, seed: str) -> list[Option]:
+    """Return copies of a tool whose names differ only by extra spaces, at places chosen with the seed.
+
+    A copy has extra spaces after one run of spaces of the name, or at the end of a name that has no space. The
+    copies have 1 extra space each where the name has enough runs of spaces, and up to as many as it takes otherwise.
+    """
+    places = [match.end() for match in re.finditer(" +", tool.name)] or [len(tool.name)]
+    variants = [(place, extra) for extra in range(1, ceil(copies / len(places)) + 1) for place in places]
+    chosen = random.Random(seed).sample(variants, copies)
+    return [
+        tool.model_copy(update={"name": tool.name[:place] + " " * extra + tool.name[place:]}) for place, extra in chosen
+    ]
 
 
 def rotated_orders(tools: list[Option]) -> dict[str, list[Option]]:

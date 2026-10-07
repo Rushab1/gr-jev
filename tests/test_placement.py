@@ -12,6 +12,7 @@ from grjev.placement import (
     reworded_order,
     reworded_tool,
     rotated_orders,
+    spaced_copies,
     start_positions,
 )
 
@@ -165,6 +166,20 @@ def test_the_rotations_of_a_list_put_each_tool_at_each_place_once() -> None:
     assert names(orders["rotated_4"]) == ["tool_5", "tool_1", "tool_2", "tool_3", "tool_4"]
     for place in range(5):
         assert sorted(names([order[place] for order in orders.values()])) == names(tools)
+
+
+@pytest.mark.parametrize(
+    ("name", "most_extra"),
+    [("Travel / Flight Fare Search / Flight Search V2", 1), ("Monitoring / OTP / sms", 2), ("WebRewind", 5)],
+)
+def test_the_copies_of_a_tool_differ_only_by_extra_spaces_in_the_name(name: str, most_extra: int) -> None:
+    tool = Option(name=name, description="Does the thing.")
+    copies = spaced_copies(tool, 5, "seed")
+    assert len({copy.name for copy in copies}) == 5 and name not in names(copies)
+    assert all(copy.name.split() == name.split() and copy.description == tool.description for copy in copies)
+    assert max(len(copy.name) for copy in copies) == len(name) + most_extra
+    assert copies == spaced_copies(tool, 5, "seed") and names(copies) != names(spaced_copies(tool, 5, "other"))
+    assert tool.name == name
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

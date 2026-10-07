@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 
 from grjev.constants import (
+    COPIED_TOOLS,
     COUNTED_WORDINGS,
     GROWTH_LENGTHS,
     GROWTH_WORDINGS,
@@ -52,6 +53,7 @@ from grjev.placement import (
     reworded_order,
     reworded_tool,
     rotated_orders,
+    spaced_copies,
 )
 
 logger = logging.getLogger(__name__)
@@ -220,6 +222,22 @@ def rotated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
         yield test_file, example, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
 
 
+def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with copies of one of its correct tools as its tool list, in every rotation.
+
+    The correct tool is chosen with the seed. The names of the copies differ only by extra spaces, and the labels of
+    the yielded example are the copies.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            original = reworded_tool(example, config.seed)
+            tool = next(option for option in example.options if option.name == original)
+            copies = spaced_copies(tool, COPIED_TOOLS, f"{config.seed}/{example.id}/copied")
+            lists = rotated_orders(copies)
+            relabelled = example.model_copy(update={"labels": [copy.name for copy in copies]})
+            yield test_file, relabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
+
+
 # Experiment -> the function that yields the tool lists of its examples.
 LISTS = {
     "position": position_lists,
@@ -228,6 +246,7 @@ LISTS = {
     "growth": growth_lists,
     "reworded": reworded_lists,
     "rotated": rotated_lists,
+    "copied": copied_lists,
 }
 
 

@@ -253,6 +253,24 @@ def test_a_rotated_run_asks_the_rewordings_in_every_rotation_as_questions_of_one
     assert item.example.labels == [tool.name for tool in written]
 
 
+def test_a_copied_run_asks_five_copies_of_one_correct_tool_in_every_rotation() -> None:
+    two_correct = Example(
+        id="set/multi_tool/0", query="Do two things.", options=TOOLS[:4], labels=["tool_1", "tool_3"], raw={}
+    )
+    run_config = config("copied", "multi_tool")
+    (item,) = plan(run_config, {"multi_tool": [two_correct]}, TOOLS)
+    (request,) = item.requests
+    assert list(request.questions) == [f"rotated_{moved}" for moved in range(5)]
+    copies = item.lists["rotated_0"]
+    original = reworded_tool(two_correct, run_config.seed)
+    assert len({copy.name for copy in copies}) == 5 and {copy.name.strip() for copy in copies} == {original}
+    assert {copy.description for copy in copies} == {f"Does thing {original.removeprefix('tool_')}."}
+    assert item.lists["rotated_3"] == copies[3:] + copies[:3]
+    assert item.example.labels == [copy.name for copy in copies]
+    for question in request.questions.values():
+        assert isinstance(question, jev.ChoiceQuestion) and sorted(question.criteria) == sorted(item.example.labels)
+
+
 def test_a_list_of_rewordings_offers_no_none_and_every_entry_is_correct() -> None:
     rotated = config("rotated", "similar_tools")
     assert list(criteria_of(rotated, "similar_tools", TOOLS[:2])) == ["tool_1", "tool_2"]
@@ -613,3 +631,23 @@ def test_fifty_rotated_metatool_queries_send_five_rewordings_of_a_correct_tool_a
                 assert set(question.criteria) == set(item.example.labels or [])
     # The 50 queries reword 38 different tools, and the file holds no other.
     assert reworded == set(rewordings) and len(reworded) == 38
+
+
+@pytest.mark.parametrize("dataset", ["metatool", "stabletoolbench"])
+def test_fifty_copied_queries_send_one_request_with_five_copies_of_a_correct_tool(
+    dataset: str, request: pytest.FixtureRequest
+) -> None:
+    examples, tools = request.getfixturevalue(dataset)
+    run_config = config("copied", dataset=dataset, examples=50)
+    planned = plan(run_config, examples, tools)
+    counts = call_counts(run_config, planned)
+    assert sum(count["calls"] for count in counts.values()) == len(planned) == 50
+    assert sum(count["questions"] for count in counts.values()) == 250
+    correct = {example.id: example.labels or [] for own in examples.values() for example in own}
+    for item in planned:
+        copies = item.lists["rotated_0"]
+        (original,) = {tuple(copy.name.split()) for copy in copies}
+        assert len({copy.name for copy in copies}) == 5 and len({copy.description for copy in copies}) == 1
+        assert original in {tuple(label.split()) for label in correct[item.example.id]}
+        for question in item.requests[0].questions.values():
+            assert isinstance(question, jev.ChoiceQuestion) and len(question.criteria) == 5

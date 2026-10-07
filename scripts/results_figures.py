@@ -18,10 +18,10 @@ wording of the instruction. Its columns:
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 
-A reworded run and a rotated run also get the mean probability of the rewordings from the highest of an answer to the
-lowest, the mean probability at each place of the list, and the answers that select each place. A rotated run gets
-the last two by rewording too, in the order as written, and the examples by the number of orders that select their
-most selected rewording.
+A run whose lists hold rewordings or copies of one tool also gets the mean probability of the entries from the highest
+of an answer to the lowest, the mean probability at each place of the list, and the answers that select each place.
+A run with rotated orders gets the last two by entry too, in the order of the first list, and the examples by the
+number of orders that select their most selected entry.
 """
 
 import argparse
@@ -89,20 +89,18 @@ def print_table(table: list[list[str]]) -> None:
 
 
 def print_rewordings(rows: list[Row], lists: list[str]) -> None:
-    """Print the figures of lists that hold the rewordings of one tool: by rank, by place, and by rewording."""
+    """Print the figures of lists that hold rewordings or copies of one tool: by rank, by place, and by entry."""
     ranked = ", ".join(f"{value:.3f}" for value in ranked_means(rows, lists))
-    print(f"\nmean probability of the rewordings, from the highest of an answer to the lowest: {ranked}")
+    print(f"\nmean probability of the entries, from the highest of an answer to the lowest: {ranked}")
     by_place = {"at each place of the list": placed(rows, lists)}
     if len(lists) > 1:
-        # The first rotation lists the rewordings in the order as written.
-        by_place["for each rewording, in the order as written"] = placed(rows, lists, lists[0])
+        # The first rotation lists the entries in the order in which they are written or made.
+        by_place["for each entry, in the order of the first list"] = placed(rows, lists, lists[0])
     for label, (means, selected) in by_place.items():
         print(f"mean probability {label}: {', '.join(f'{value:.3f}' for value in means)}")
         print(f"answers that select it, {label}: {', '.join(map(str, selected))}")
     if len(lists) > 1:
-        print(
-            f"examples by the number of orders that select their most selected rewording: {most_selected(rows, lists)}"
-        )
+        print(f"examples by the number of orders that select their most selected entry: {most_selected(rows, lists)}")
 
 
 def print_run(folder: Path) -> None:
