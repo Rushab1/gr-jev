@@ -177,32 +177,34 @@ A first look at the saved answers gave the figures below. The figures script doe
 
 ### How many tools are similar to a given tool
 
-Rushab asked on 2026-10-06 how many tools or APIs are similar to a given one in each benchmark. This is a first look. The name and description of each of the 199 MetaTool tools and of the 2,490 StableToolBench APIs were embedded with `sentence-transformers/all-MiniLM-L6-v2`, and two entries count as similar when the cosine similarity of their embeddings is 0.32 or more. At 0.32 a MetaTool tool has 9 similar tools on average, which is the size of MetaTool's own lists of closest tools. The code and the model are not in the repo.
+Rushab asked on 2026-10-06 how many tools or APIs are similar to a given one in each benchmark. This is a first look, and the code and the model are not in the repo. The name and description of each of the 199 MetaTool tools and of the 2,490 StableToolBench APIs were embedded with `Qwen/Qwen3-Embedding-0.6B`, revision `97b0c61`. Rushab asked for a recent and highly cited model: its paper, arXiv 2506.05176 of June 2025, has 1,549 citations on Semantic Scholar on 2026-10-06. Two entries count as similar when the cosine similarity of their embeddings reaches a bar. The first bar, 0.752, is where a MetaTool tool has 9 similar tools on average, which is the size of MetaTool's own lists of closest tools. The second bar, 0.835, is where it has 1.
 
 | | MetaTool | StableToolBench |
 |---|---|---|
 | Entries | 199 tools | 2,490 APIs in 819 tools and 47 categories |
-| Similar entries per entry at 0.32, mean | 9.0 of 198 (4.5%) | 120.8 of 2,489 (4.9%) |
-| Similar entries per entry at 0.60, mean | 0.1 | 5.5, of which 3.0 are APIs of the same tool |
-| Wrong entries in the list of 199 that are similar to a correct one, mean | 9.9 | 19.8, of which 17.0 were added by growing the list |
+| Similar entries per entry at the first bar, mean | 9.0 of 198 (4.5%) | 29.9 of 2,489 (1.2%), of which 4.4 are APIs of the same tool |
+| Similar entries per entry at the second bar, mean | 1.0 of 198 (0.5%) | 10.3 of 2,489 (0.4%), of which 4.1 are APIs of the same tool |
+| Wrong entries similar to a correct one at the first bar, in the shortest list that was sent, mean | 0.14, in a list of 5 tools | 2.32, in the list of the wording run |
+| The same in the list of 199, mean | 7.80 | 5.78, of which 3.46 were added by growing the list |
 
+- A StableToolBench API has 4.6 other APIs in its own tool on average, and 96% of the pairs of APIs of one tool are similar at the first bar.
+- As the list grows to 199, a MetaTool list gains 7.66 wrong tools that are similar to the correct one, and a StableToolBench list gains 3.46. The StableToolBench list has 2.32 from the start.
 - The measure agrees in part with MetaTool's own lists, which come from OpenAI's `text-embedding-ada-002`: of the 9 closest tools of a tool, 3.8 are among its 9 nearest by this measure.
-- A StableToolBench API has 4.6 other APIs in its own tool on average, and 97% of the pairs of APIs of one tool are similar at 0.32.
-- The grown StableToolBench lists hold more similar wrong entries than the MetaTool lists, and Jev's score does not fall on StableToolBench. The similarity of the added entries does not explain the difference between the two benchmarks.
+- The count depends on the embedding model. With `sentence-transformers/all-MiniLM-L6-v2`, the first model tried, the list of 199 held 19.8 similar wrong APIs on StableToolBench and 9.9 similar wrong tools on MetaTool.
 
 A rule with no model call was scored on the same lists: it selects the entries whose embedding is closest to the embedding of the query, as many as the query has correct entries.
 
 | Tools in the list | MetaTool: Jev correct, 50 queries | MetaTool: embedding rule correct | StableToolBench: Jev correct, 50 queries | StableToolBench: embedding rule correct |
 |---|---|---|---|---|
-| 5 on MetaTool, 5 to 11 on StableToolBench | 43 | 48 | 33 | 25 |
-| 10 | 42 | 45 | not sent | not sent |
-| 20 | 39 | 43 | 34 | 22 |
-| 50 | 41 | 39 | 33 | 21 |
-| 100 | 38 | 37 | 30 | 21 |
-| 199 | 34 | 35 | 32 | 19 |
+| 5 on MetaTool, 5 to 11 on StableToolBench | 43 | 49 | 33 | 28 |
+| 10 | 42 | 47 | not sent | not sent |
+| 20 | 39 | 44 | 34 | 27 |
+| 50 | 41 | 41 | 33 | 26 |
+| 100 | 38 | 38 | 30 | 26 |
+| 199 | 34 | 36 | 32 | 24 |
 
 - The MetaTool columns use the lists with the correct tool first. Jev's lists on MetaTool hold a "None" candidate, and the rule cannot answer "None". The StableToolBench columns use the wording `every`.
-- On MetaTool the rule scores within 5 queries of Jev at every list length, and both fall as the list grows. On StableToolBench the rule falls from 25 to 19 of 50 and Jev stays between 30 and 34.
+- On MetaTool the rule scores as many queries as Jev or more at every list length, and both fall as the list grows. On StableToolBench Jev scores 5 to 8 queries more than the rule, and the rule falls from 28 to 24 of 50 while Jev stays between 30 and 34.
 
 ## How runs are staged
 
@@ -462,8 +464,8 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 
 - Confirm Mind2Web and AndroidControl.
 - Decide when the limit of 710 Jev calls is raised, and for which runs.
-- Find why CSR falls with the list length on MetaTool and not on StableToolBench. The similarity of the added tools does not explain it.
-- Decide whether the rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 35 of 50 with 199 tools, and Jev 34 of 50.
+- Find why CSR falls with the list length on MetaTool and not on StableToolBench. A first look counts 7.66 similar wrong tools gained by a MetaTool list as it grows to 199, and 3.46 by a StableToolBench list.
+- Decide whether the rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 36 of 50 with 199 tools, and Jev 34 of 50.
 - Decide how the number of correct tools is read from one answer of Jev, when the instruction does not state it.
 - Confirm the instruction for one tool and the description of the "None" candidate.
 - Decide the list lengths of the later runs.

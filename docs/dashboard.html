@@ -1661,8 +1661,8 @@
     <section role="tabpanel" data-panel="open" hidden>
       <ul class="marks" data-marks="todo">
         <li><span class="txt">How the number of correct tools is read from one answer of Jev, when the instruction does not state it</span></li>
-        <li><span class="txt">Why CSR falls with the list length on MetaTool and not on StableToolBench. A first look with an embedding model finds 19.8 wrong APIs that are similar to a relevant one in a StableToolBench list of 199, and 9.9 such tools in a MetaTool list of 199.</span></li>
-        <li><span class="txt">Whether a rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 35 of 50 with 199 tools, and Jev 34 of 50.</span></li>
+        <li><span class="txt">Why CSR falls with the list length on MetaTool and not on StableToolBench. A first look with an embedding model counts the wrong entries that are similar to a correct one: a MetaTool list has 0.14 with 5 tools and 7.80 with 199, and a StableToolBench list has 2.32 at the start and 5.78 with 199 APIs.</span></li>
+        <li><span class="txt">Whether a rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 36 of 50 with 199 tools, and Jev 34 of 50.</span></li>
         <li><span class="txt">When the limit of 710 Jev calls is raised, and for which runs. 710 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
