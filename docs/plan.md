@@ -1,25 +1,123 @@
 # Jev study: plan
 
-Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 699 calls, and runs on subsets of StableToolBench, 911 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, and a run with copies of one correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
+Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 749 calls, and runs on subsets of StableToolBench, 911 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, and a run with the correct tool removed with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated` and `copied` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied` and `absent` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
 The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench". A second run of the wording run was made the same day, and is under "A second run of the same requests". The runs with rewordings were made on 2026-10-06 and 2026-10-07, and are under "Rewordings of one relevant API".
 
-Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool".
+Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together.
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,612, and 1,611 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,625. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,662, and 1,661 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,675. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
 The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/check_jev.py` uses 1 Jev call of the limit.
+
+## Two results so far
+
+Rushab, 2026-10-07: the runs give two results. Jev exaggerates its probabilities, as the rewordings and the drop from its highest probability show. The place of an entry in the list affects Jev's probabilities.
+
+Terms of this section:
+
+- An answer is Jev's response to one query, one list and one instruction. The top entry has the highest probability of an answer, and the second entry the second-highest.
+- A normal list is the list that the benchmark gives for the query: different tools under their own names and descriptions.
+- A rewording is a rewritten name and description of one tool. A copy is the same tool again with the same description, under a name that differs only by extra spaces.
+- The place of an entry is where it stands in the list that is sent. Rotated orders are 5 orders of the same 5 entries, each moved by one place, with each entry at each place once.
+- An even split gives every entry the same probability: 0.20 with 5 entries.
+
+Every figure is the mean of a seeded sample: 50 queries for the rewordings, the copies and the list-length run, 300 queries for the StableToolBench wording run, and 50 queries of a test file for the MetaTool position subset. No margin of error is given.
+
+### Result 1: Jev gives most of its probability to one entry
+
+| The list holds | StableToolBench | MetaTool |
+|---|---|---|
+| 5 copies of one tool: mean probability from the highest of an answer to the lowest | 0.34, 0.24, 0.18, 0.14, 0.10 | 0.32, 0.23, 0.19, 0.15, 0.11 |
+| 5 rewordings of one tool: the same | 0.43, 0.24, 0.16, 0.10, 0.06 | 0.45, 0.25, 0.16, 0.09, 0.05 |
+| A normal list: the highest, second-highest and third-highest probability | 0.84, 0.12, 0.03 | 0.85, 0.14, 0.01 for the two-tool queries |
+| A normal list: highest probability minus second-highest | 0.55 to 0.64 over the 4 instructions | 0.70 to 0.80 over the 4 test files |
+| Queries with 2 or more correct tools: the top entry is a correct tool | 276 or 277 of 294 queries | 446 of 450 answers |
+| The same queries: every correct tool is found | 203 to 218 of 294 | 314 of 450 with "Choose one of them.", 378 with "Choose both." |
+| The same request sent twice: the selected entry is the same | 1,158 of 1,182 answers | 1,526 of 1,550 answers |
+
+For a query with several correct tools, the table below gives the correct tool with the highest probability and the one with the lowest. In a list of rewordings or of copies every entry is correct. `python scripts/results_figures.py <folder>` prints the three columns of probabilities for each list.
+
+| Run | Correct entries of the list | Answers | Highest correct, mean probability | Lowest correct, mean probability | Highest minus lowest | All correct entries together | An even split over the correct entries |
+|---|---|---|---|---|---|---|---|
+| MetaTool multi-tool, "Choose one of them." | 2 different tools | 450 | 0.85 | 0.12 | 0.73 | 0.97 | 0.50 |
+| MetaTool multi-tool, "Choose both." | 2 different tools | 450 | 0.84 | 0.13 | 0.71 | 0.97 | 0.50 |
+| StableToolBench wording run, `one` | 2 different APIs | 205 | 0.81 | 0.13 | 0.67 | 0.94 | 0.50 |
+| StableToolBench wording run, `all` | 2 different APIs | 205 | 0.80 | 0.14 | 0.66 | 0.94 | 0.50 |
+| StableToolBench wording run, `equal` | 2 different APIs | 205 | 0.77 | 0.16 | 0.61 | 0.93 | 0.50 |
+| StableToolBench wording run, `every` | 2 different APIs | 205 | 0.81 | 0.13 | 0.68 | 0.93 | 0.50 |
+| StableToolBench wording run, `all` | 3 different APIs | 63 | 0.64 | 0.06 | 0.58 | 0.86 | 0.33 |
+| StableToolBench wording run, `all` | 4 to 6 different APIs | 26 | 0.58 | 0.04 | 0.54 | 0.93 | 0.17 to 0.25 |
+| StableToolBench, rotated orders | 5 rewordings of one API | 250 | 0.43 | 0.06 | 0.37 | 1.00 | 0.20 |
+| MetaTool, rotated orders | 5 rewordings of one tool | 250 | 0.45 | 0.05 | 0.40 | 1.00 | 0.20 |
+| StableToolBench, rotated orders | 5 copies of one API | 250 | 0.34 | 0.10 | 0.24 | 1.00 | 0.20 |
+| MetaTool, rotated orders | 5 copies of one tool | 250 | 0.32 | 0.11 | 0.20 | 1.00 | 0.20 |
+
+- With 2 correct tools the two hold 0.93 to 0.97 of the probability together, and the lower one has 0.12 to 0.16.
+- The instruction changes the difference by at most 0.07: it is 0.68 with `every` and 0.61 with `equal`, which asks for equal probabilities.
+- The difference is 0.61 to 0.73 for 2 different tools, 0.37 to 0.40 for 5 rewordings of one tool, and 0.20 to 0.24 for 5 copies of one tool.
+
+Other runs show the same difference:
+
+| Run | Answers | Highest correct, mean probability | Lowest correct, mean probability | Highest minus lowest |
+|---|---|---|---|---|
+| StableToolBench list-length run, `all`, the list of the wording run with 5 to 11 APIs | 47 | 0.78 | 0.10 | 0.69 |
+| The same with 20 APIs | 47 | 0.76 | 0.11 | 0.65 |
+| The same with 50 APIs | 47 | 0.75 | 0.11 | 0.64 |
+| The same with 100 APIs | 47 | 0.74 | 0.12 | 0.62 |
+| The same with 199 APIs | 47 | 0.70 | 0.12 | 0.58 |
+| MetaTool multi-tool, released order | 50 | 0.86 | 0.11 | 0.74 |
+| MetaTool multi-tool, the 2 correct tools next to each other, 5 orders | 250 | 0.85 | 0.12 | 0.73 |
+| MetaTool multi-tool, the 2 correct tools apart, 3 orders | 150 | 0.85 | 0.12 | 0.73 |
+| MetaTool multi-tool, second run, "Choose one of them." | 450 | 0.85 | 0.12 | 0.72 |
+| MetaTool multi-tool, second run, "Choose both." | 450 | 0.84 | 0.13 | 0.71 |
+| StableToolBench wording run, second run, `all`, 2 or more relevant APIs | 294 | 0.74 | 0.11 | 0.63 |
+
+### Result 2: the place of an entry changes Jev's probabilities
+
+| Run | StableToolBench | MetaTool |
+|---|---|---|
+| 5 copies: answers that select the entry at the first, second, third, fourth and fifth place, of 250 | 12, 8, 21, 47, 162 | 77, 0, 4, 67, 102 |
+| 5 copies: mean probability at the five places | 0.14, 0.13, 0.19, 0.23, 0.31 | 0.22, 0.12, 0.17, 0.24, 0.26 |
+| 5 copies: answers that select each of the 5 copies, of 250 | 42 to 60 | 46 to 57 |
+| 5 rewordings: answers that select the entry at the five places, of 250 | 30, 44, 47, 51, 78 | 51, 46, 36, 56, 61 |
+| 5 rewordings: queries whose selected entry differs between the 5 orders | 37 of 50 | 28 of 50 |
+| A normal list with one correct tool: correct answers with it first and with it last, of 50 | Not run | 39 and 38 on `similar_tools`, 41 and 41 on `scenario` |
+| The same request sent twice: the largest change of one probability | 0.10 | 0.10 |
+
+- A copy is selected about as often as every other copy, and the place is not: the 5 copies of a query sit at each place once, and the count by copy is 42 to 60 where the count by place is 8 to 162. Jev does not follow the extra spaces of a name.
+- In the MetaTool position subset the probability of the correct tool differs by 0.08 on average between its 5 places on `similar_tools` and by 0.05 on `scenario`. Jev's highest probability is 0.72 and 0.78 above its second-highest there, and Jev selects the same tool at all 5 places for 44 and 48 of the 50 queries. The figures script does not print the 0.08 and the 0.05.
+- TypeSafe's documentation says that `jev-1.13` "leans toward the option that comes first". In the copied runs the last place is selected most often.
+
+### How the two results fit together
+
+Claude Code's reading, 2026-10-07: the place decides Jev's selection when the entries are close, and not when one entry is far ahead.
+
+| The list holds | Highest probability, mean | Jev's selection follows |
+|---|---|---|
+| 5 copies of one tool | 0.32 to 0.34 | The place: the last place is selected in 162 and in 102 of 250 answers |
+| 5 rewordings of one tool | 0.43 to 0.45 | The rewording and the place: the same rewording is selected in all 5 orders for 13 and for 22 of 50 queries |
+| Different tools with one correct tool | 0.84 to 0.88 on MetaTool | The tool: 39 and 38 correct answers with the correct tool first and last |
+
+Rushab, 2026-10-07: the normal lists show no effect of the place because their tools are not similar enough. The run under "The correct tool removed" tests this with a list of tools that are similar to the correct tool, and it finds "None" selected 34 to 37 times of 50 at each of the 5 places.
+
+### Towards the paper
+
+- Rushab, 2026-10-07, after two single requests with 5 copies of one API: "There is our paper." His proposal for the claim: decision models exaggerate probabilities.
+- Claude Code's view of the claim: the copies show the exaggeration with a known answer, 0.34 against 0.20 for an even split, and they show that the place decides the selection. For different tools, Jev's question asks for one choice, and a high probability for one tool is a possible reading of the question. A claim that the runs support: Jev's probabilities follow how the list is written, and they do not state how relevant each tool is.
+- Missing for a paper, in Claude Code's view: a second model, since no open-weight decision model has been run; a consequence for a user of Jev; and runs on every query, of which the copied run costs about $0.25 on both datasets.
+- `docs/findings/review_prompt_2026-10-07.md` holds a prompt that asks a reviewer with no context to check the two results.
 
 ## Subset of 2026-10-05
 
@@ -426,6 +524,35 @@ A first look at the saved answers gave the figures below. The figures script doe
 - The highest probability of an answer is 0.50 or more in 7 of the 250 StableToolBench answers and in 3 of the 250 MetaTool answers.
 - The mean probability of a copy is 0.203 with 1 extra space and 0.173 with 2 on StableToolBench, and 0.216, 0.202, 0.212, 0.190 and 0.180 with 1 to 5 spaces at the end on MetaTool.
 
+## The correct tool removed
+
+Decided by Rushab on 2026-10-07: remove the correct tool of a MetaTool query, add the "None" candidate, and move "None" through the 5 places. His reason: the tools of a normal list are not similar enough for the place to show.
+
+- Examples. A seeded sample of 50 queries of the `similar_tools` file.
+- List. 4 of the 9 other tools of the query's list, chosen with the seed, and "None". The 9 are the tools most similar to the correct tool, and the correct tool is not in the list. "None" is the correct answer.
+- Orders. The 5 rotations of the list as 5 questions of one request. "None" is at the fifth place in the first and at the first place in the last.
+- Instruction. The instruction of the MetaTool runs for one tool: "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+- Size and cost. 50 requests with 5 questions each, 63,569 input tokens, under $0.01. The results folder is `results/metatool_absent/2026-10-07_01`, written at commit `ac73272`. The code names the experiment `absent`. `python scripts/results_figures.py` prints the answers of "None" for each order. No margin of error is given.
+
+| Place of "None" in the list | Answers of "None", of 50 | Highest probability minus second-highest, mean |
+|---|---|---|
+| First | 35 | 0.71 |
+| Second | 35 | 0.73 |
+| Third | 34 | 0.71 |
+| Fourth | 37 | 0.74 |
+| Fifth | 37 | 0.74 |
+
+- Jev answers "None" in 178 of the 250 answers and selects one of the 4 tools in 72.
+- Jev selects the same entry in all 5 orders for 42 of the 50 queries: "None" for 32 and one tool for 10.
+- The entries at the five places are selected in 49, 50, 45, 54 and 52 of the 250 answers.
+- In MetaTool's own `reliability` file the list holds 10 tools that are unrelated to the query, and Jev answers "None" for 43 of 50 queries with "None" last.
+
+A first look at the saved answers gave the figures below. The figures script does not print them.
+
+- The mean probability of "None" is 0.66, 0.68, 0.65, 0.70 and 0.69 with "None" at the first to the fifth place.
+- The probability of "None" differs by 0.09 on average between its 5 places, by more than 0.10 for 15 of the 50 queries and by more than 0.20 for 6.
+- 12 of the 50 queries get no answer of "None" in any order.
+
 ## How runs are staged
 
 Decided by Rushab on 2026-10-04.
@@ -470,7 +597,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,612 on 2026-10-07, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,662 on 2026-10-07, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -683,7 +810,9 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 1,612 Jev calls is raised, and for which runs.
+- Decide when the limit of 1,662 Jev calls is raised, and for which runs.
+- Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.
+- Find a consequence of the two results for a user of Jev, such as reading several tools from one answer.
 - Find why the entry at the last place of a list of 5 copies of one tool is selected in 162 of 250 answers on StableToolBench and in 102 on MetaTool, and the entry at the second place in 8 and in 0. In MetaTool's `similar_tools` file the first place is selected in 50 of 85 answers.
 - Run the copied experiment on open-weight decision models.
 - Decide whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.

@@ -1096,6 +1096,7 @@
             <tr><th>Second run of the wording run and of the MetaTool position subset</th><td>Nothing: the 300 and the 250 requests are sent again</td><td>Whether Jev's selected tool changes between two runs of one request</td><td>Run on 2026-10-06 and 2026-10-07</td></tr>
             <tr><th>Rewordings of one relevant API</th><td>The list holds only 5 rewordings of one relevant API of the query, in the written order, in a shuffled order and in 5 rotated orders</td><td>Whether Jev gives most of its probability to one entry when all 5 are equally correct, and whether the order of the entries changes its selection</td><td>Three runs of 50 StableToolBench queries were made on 2026-10-06 and 2026-10-07, and one run of 50 MetaTool queries on 2026-10-07</td></tr>
             <tr><th>Copies of one correct tool</th><td>The list holds one correct tool of the query five times, under names that differ only by extra spaces, in 5 rotated orders</td><td>How Jev divides its probability over entries that are the same, and whether the place in the list decides its selection</td><td>One run of 50 queries on each of MetaTool and StableToolBench on 2026-10-07</td></tr>
+            <tr><th>The correct tool removed</th><td>The list holds 4 tools that are similar to the correct tool and "None", without the correct tool, in 5 rotated orders</td><td>Whether Jev answers "None" more often at some places of the list</td><td>One run of 50 MetaTool queries on 2026-10-07</td></tr>
             <tr><th>Spare runs</th><td>The most similar tools as distractors, a second run of identical requests, prompt formats</td><td>Listed under Spare runs</td><td>When a result calls for one</td></tr>
           </tbody>
         </table>
@@ -1116,7 +1117,7 @@
         </table>
       </div>
       <p>Tool awareness has no tool list and is not in the run.</p>
-      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 1,612 until Rushab raises the limit, and 1,611 calls have been made.</p>
+      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 1,662 until Rushab raises the limit, and 1,661 calls have been made.</p>
       <p>The cost for Jev is about $0.50, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with "Choose both."</p>
       <p>The runner sends these texts to Jev. Rushab has not confirmed the first two. Both wordings of the instruction for two tools are kept, and each multi-tool example is sent with both. The state of a request is the query, and each candidate is a tool name with the tool's description.</p>
       <div class="tablewrap">
@@ -1308,6 +1309,9 @@
       <h2>Copies of one correct tool</h2>
       <p>These runs list one correct tool of the query five times, with its description, and no other entry. Jev's API takes each entry under a name of its own, and the names of the 5 copies differ only by extra spaces at places chosen with the seed: 1 or 2 extra spaces inside a StableToolBench name, and 1 to 5 spaces at the end of a MetaTool name. The 5 rotated orders go as 5 questions of one request, with the instruction of the rewording runs. The runs use the 50 queries of the rotated run of each dataset.</p>
 
+      <h2>The correct tool removed</h2>
+      <p>Rushab, 2026-10-07: the tools of a normal list are not similar enough for the place to show. This run takes 50 queries of MetaTool's similar-tools file, whose list holds the correct tool and the 9 tools most similar to it. It keeps 4 of the 9, chosen with the seed, adds "None", and leaves the correct tool out. The 5 rotated orders go as 5 questions of one request, with the instruction "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."</p>
+
       <h2>Spare runs</h2>
       <div class="tablewrap">
         <table>
@@ -1429,6 +1433,99 @@
 
     <!-- ============================== Results ============================== -->
     <section role="tabpanel" data-panel="results" hidden>
+      <p>The runs give two results. Jev gives most of its probability to one entry of the list, also when several entries are correct and when all entries are the same tool. The place of an entry in the list changes Jev's probabilities, and it decides Jev's selection when the entries are close.</p>
+      <p>A normal list is the list that the benchmark gives for a query: different tools under their own names and descriptions. A rewording is a rewritten name and description of one tool. A copy is the same tool again with the same description, under a name that differs only by extra spaces. Rotated orders are 5 orders of the same 5 entries, each moved by one place. An even split gives each of 5 entries 0.20.</p>
+
+      <h2>Probability on one entry</h2>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>The list holds</th><th class="num">StableToolBench</th><th class="num">MetaTool</th></tr></thead>
+          <tbody>
+            <tr><th>5 copies of one tool: mean probability from the highest of an answer to the lowest</th><td class="num">0.34, 0.24, 0.18, 0.14, 0.10</td><td class="num">0.32, 0.23, 0.19, 0.15, 0.11</td></tr>
+            <tr><th>5 rewordings of one tool: the same</th><td class="num">0.43, 0.24, 0.16, 0.10, 0.06</td><td class="num">0.45, 0.25, 0.16, 0.09, 0.05</td></tr>
+            <tr><th>A normal list: the highest, second-highest and third-highest probability</th><td class="num">0.84, 0.12, 0.03</td><td class="num">0.85, 0.14, 0.01 for the two-tool queries</td></tr>
+            <tr><th>A normal list: highest probability minus second-highest</th><td class="num">0.55 to 0.64 over the 4 instructions</td><td class="num">0.70 to 0.80 over the 4 test files</td></tr>
+            <tr><th>Queries with 2 or more correct tools: the top entry is a correct tool</th><td class="num">276 or 277 of 294 queries</td><td class="num">446 of 450 answers</td></tr>
+            <tr><th>The same queries: every correct tool is found</th><td class="num">203 to 218 of 294</td><td class="num">314 of 450 with "Choose one of them.", 378 with "Choose both."</td></tr>
+            <tr><th>The same request sent twice: the selected entry is the same</th><td class="num">1,158 of 1,182 answers</td><td class="num">1,526 of 1,550 answers</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>For a query with several correct tools, the correct tool with the highest probability stands against the one with the lowest. In a list of rewordings or of copies every entry is correct.</p>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Run</th><th class="num">Correct entries of the list</th><th class="num">Answers</th><th class="num">Highest correct, mean probability</th><th class="num">Lowest correct, mean probability</th><th class="num">Highest minus lowest</th><th class="num">All correct entries together</th><th class="num">An even split over the correct entries</th></tr></thead>
+          <tbody>
+            <tr><th>MetaTool multi-tool, "Choose one of them."</th><td class="num">2 different tools</td><td class="num">450</td><td class="num">0.85</td><td class="num">0.12</td><td class="num">0.73</td><td class="num">0.97</td><td class="num">0.50</td></tr>
+            <tr><th>MetaTool multi-tool, "Choose both."</th><td class="num">2 different tools</td><td class="num">450</td><td class="num">0.84</td><td class="num">0.13</td><td class="num">0.71</td><td class="num">0.97</td><td class="num">0.50</td></tr>
+            <tr><th>StableToolBench, "… Choose one of them."</th><td class="num">2 different APIs</td><td class="num">205</td><td class="num">0.81</td><td class="num">0.13</td><td class="num">0.67</td><td class="num">0.94</td><td class="num">0.50</td></tr>
+            <tr><th>StableToolBench, "… Choose all of them."</th><td class="num">2 different APIs</td><td class="num">205</td><td class="num">0.80</td><td class="num">0.14</td><td class="num">0.66</td><td class="num">0.94</td><td class="num">0.50</td></tr>
+            <tr><th>StableToolBench, "… Choose all of them with equal probability."</th><td class="num">2 different APIs</td><td class="num">205</td><td class="num">0.77</td><td class="num">0.16</td><td class="num">0.61</td><td class="num">0.93</td><td class="num">0.50</td></tr>
+            <tr><th>StableToolBench, "Choose every tool … that is needed"</th><td class="num">2 different APIs</td><td class="num">205</td><td class="num">0.81</td><td class="num">0.13</td><td class="num">0.68</td><td class="num">0.93</td><td class="num">0.50</td></tr>
+            <tr><th>StableToolBench, "… Choose all of them."</th><td class="num">3 different APIs</td><td class="num">63</td><td class="num">0.64</td><td class="num">0.06</td><td class="num">0.58</td><td class="num">0.86</td><td class="num">0.33</td></tr>
+            <tr><th>StableToolBench, "… Choose all of them."</th><td class="num">4 to 6 different APIs</td><td class="num">26</td><td class="num">0.58</td><td class="num">0.04</td><td class="num">0.54</td><td class="num">0.93</td><td class="num">0.17 to 0.25</td></tr>
+            <tr><th>StableToolBench, rotated orders</th><td class="num">5 rewordings of one API</td><td class="num">250</td><td class="num">0.43</td><td class="num">0.06</td><td class="num">0.37</td><td class="num">1.00</td><td class="num">0.20</td></tr>
+            <tr><th>MetaTool, rotated orders</th><td class="num">5 rewordings of one tool</td><td class="num">250</td><td class="num">0.45</td><td class="num">0.05</td><td class="num">0.40</td><td class="num">1.00</td><td class="num">0.20</td></tr>
+            <tr><th>StableToolBench, rotated orders</th><td class="num">5 copies of one API</td><td class="num">250</td><td class="num">0.34</td><td class="num">0.10</td><td class="num">0.24</td><td class="num">1.00</td><td class="num">0.20</td></tr>
+            <tr><th>MetaTool, rotated orders</th><td class="num">5 copies of one tool</td><td class="num">250</td><td class="num">0.32</td><td class="num">0.11</td><td class="num">0.20</td><td class="num">1.00</td><td class="num">0.20</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>With 2 correct tools the two hold 0.93 to 0.97 of the probability together, and the lower one has 0.12 to 0.16.</li>
+        <li>The instruction changes the difference by at most 0.07: it is 0.68 with "Choose every tool … that is needed" and 0.61 with "… Choose all of them with equal probability."</li>
+        <li>The difference is 0.61 to 0.73 for 2 different tools, 0.37 to 0.40 for 5 rewordings of one tool, and 0.20 to 0.24 for 5 copies of one tool.</li>
+      </ul>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Run</th><th class="num">Answers</th><th class="num">Highest correct, mean probability</th><th class="num">Lowest correct, mean probability</th><th class="num">Highest minus lowest</th></tr></thead>
+          <tbody>
+            <tr><th>StableToolBench list-length run, "… Choose all of them.", 5 to 11 APIs</th><td class="num">47</td><td class="num">0.78</td><td class="num">0.10</td><td class="num">0.69</td></tr>
+            <tr><th>The same with 20 APIs</th><td class="num">47</td><td class="num">0.76</td><td class="num">0.11</td><td class="num">0.65</td></tr>
+            <tr><th>The same with 50 APIs</th><td class="num">47</td><td class="num">0.75</td><td class="num">0.11</td><td class="num">0.64</td></tr>
+            <tr><th>The same with 100 APIs</th><td class="num">47</td><td class="num">0.74</td><td class="num">0.12</td><td class="num">0.62</td></tr>
+            <tr><th>The same with 199 APIs</th><td class="num">47</td><td class="num">0.70</td><td class="num">0.12</td><td class="num">0.58</td></tr>
+            <tr><th>MetaTool multi-tool, the 2 correct tools next to each other, 5 orders</th><td class="num">250</td><td class="num">0.85</td><td class="num">0.12</td><td class="num">0.73</td></tr>
+            <tr><th>MetaTool multi-tool, the 2 correct tools apart, 3 orders</th><td class="num">150</td><td class="num">0.85</td><td class="num">0.12</td><td class="num">0.73</td></tr>
+            <tr><th>MetaTool multi-tool, second run, "Choose one of them."</th><td class="num">450</td><td class="num">0.85</td><td class="num">0.12</td><td class="num">0.72</td></tr>
+            <tr><th>StableToolBench, second run, "… Choose all of them.", 2 or more relevant APIs</th><td class="num">294</td><td class="num">0.74</td><td class="num">0.11</td><td class="num">0.63</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Place in the list</h2>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Run</th><th class="num">StableToolBench</th><th class="num">MetaTool</th></tr></thead>
+          <tbody>
+            <tr><th>5 copies: answers that select the entry at the first, second, third, fourth and fifth place, of 250</th><td class="num">12, 8, 21, 47, 162</td><td class="num">77, 0, 4, 67, 102</td></tr>
+            <tr><th>5 copies: mean probability at the five places</th><td class="num">0.14, 0.13, 0.19, 0.23, 0.31</td><td class="num">0.22, 0.12, 0.17, 0.24, 0.26</td></tr>
+            <tr><th>5 copies: answers that select each of the 5 copies, of 250</th><td class="num">42 to 60</td><td class="num">46 to 57</td></tr>
+            <tr><th>5 rewordings: answers that select the entry at the five places, of 250</th><td class="num">30, 44, 47, 51, 78</td><td class="num">51, 46, 36, 56, 61</td></tr>
+            <tr><th>5 rewordings: queries whose selected entry differs between the 5 orders</th><td class="num">37 of 50</td><td class="num">28 of 50</td></tr>
+            <tr><th>A normal list with one correct tool: correct answers with it first and with it last, of 50</th><td class="num">Not run</td><td class="num">39 and 38 on similar tools, 41 and 41 on scenario</td></tr>
+            <tr><th>The same request sent twice: the largest change of one probability</th><td class="num">0.10</td><td class="num">0.10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>The 5 copies of a query sit at each place once. The count by copy is 42 to 60, and the count by place is 8 to 162: Jev does not follow the extra spaces of a name.</li>
+        <li>In the MetaTool position sample the probability of the correct tool differs by 0.08 on average between its 5 places on similar tools and by 0.05 on scenario. Jev's highest probability is 0.72 and 0.78 above its second-highest there, and Jev selects the same tool at all 5 places for 44 and 48 of the 50 queries.</li>
+        <li>TypeSafe's documentation says that <code>jev-1.13</code> "leans toward the option that comes first". In the runs with copies the last place is selected most often.</li>
+      </ul>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>The list holds</th><th class="num">Highest probability, mean</th><th class="num">Jev's selection follows</th></tr></thead>
+          <tbody>
+            <tr><th>5 copies of one tool</th><td class="num">0.32 to 0.34</td><td class="num">The place: the last place is selected in 162 and in 102 of 250 answers</td></tr>
+            <tr><th>5 rewordings of one tool</th><td class="num">0.43 to 0.45</td><td class="num">The rewording and the place: the same rewording is selected in all 5 orders for 13 and for 22 of 50 queries</td></tr>
+            <tr><th>Different tools with one correct tool</th><td class="num">0.84 to 0.88 on MetaTool</td><td class="num">The tool: 39 and 38 correct answers with the correct tool first and last</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Rushab, 2026-10-07, after two single requests with 5 copies of one API: "There is our paper." His proposal for the claim is that decision models exaggerate probabilities. No open-weight decision model has been run.</p>
+
+      <h2>MetaTool sample of 2026-10-05</h2>
       <p>On 2026-10-05 Jev answered a sample of MetaTool: 50 examples from each of the four test files with a tool list, and 50 queries with lists of 5 to 199 tools. The sample took 350 calls and cost $0.16.</p>
       <p>The position of the correct tool did not change Jev's score. The length of the list did: CSR fell from 85.6% with 5 tools to 72.8% with 199 tools. For a query that needs two tools, the wording of the instruction changed CSR by 14.2 points.</p>
       <p>Each figure comes from 50 examples of a test file, or from 50 queries, and is given without a margin of error.</p>
@@ -1747,6 +1844,27 @@
         <li>Two single requests were sent first, with the API "Travel / Flight Fare Search / Flight Search V2" five times. With names that end in "(1)" to "(5)" Jev gave 0.92, 0.04, 0.01, 0.01 and 0.02 from the first place to the last. With one extra space at a random place of each name it gave 0.04, 0.07, 0.16, 0.34 and 0.39.</li>
       </ul>
 
+      <h2>The correct tool removed</h2>
+      <p>On 2026-10-07 Jev answered 50 queries of MetaTool's similar-tools file with a list of 4 tools that are similar to the correct tool, and "None". The correct tool is not in the list, and "None" is the correct answer. The 5 rotated orders put "None" at each place once. The run took 50 calls and cost under $0.01.</p>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>Place of "None" in the list</th><th class="num">Answers of "None", of 50</th><th class="num">Highest probability minus second-highest, mean</th></tr></thead>
+          <tbody>
+            <tr><th>First</th><td class="num">35</td><td class="num">0.71</td></tr>
+            <tr><th>Second</th><td class="num">35</td><td class="num">0.73</td></tr>
+            <tr><th>Third</th><td class="num">34</td><td class="num">0.71</td></tr>
+            <tr><th>Fourth</th><td class="num">37</td><td class="num">0.74</td></tr>
+            <tr><th>Fifth</th><td class="num">37</td><td class="num">0.74</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>Jev answers "None" in 178 of the 250 answers and selects one of the 4 tools in 72.</li>
+        <li>Jev selects the same entry in all 5 orders for 42 of the 50 queries: "None" for 32 and one tool for 10.</li>
+        <li>The entries at the five places are selected in 49, 50, 45, 54 and 52 of the 250 answers.</li>
+        <li>In MetaTool's own reliability file the list holds 10 tools that are unrelated to the query, and Jev answers "None" for 43 of 50 queries with "None" last.</li>
+      </ul>
+
       <h2>Runs and cost</h2>
       <div class="tablewrap">
         <table>
@@ -1768,12 +1886,13 @@
             <tr><th>Copies on StableToolBench, rotated orders</th><td class="num">50</td><td class="num">250</td><td class="num">50</td><td class="num">72,174</td><td><code>results/stabletoolbench_copied/2026-10-07_01</code></td></tr>
             <tr><th>Copies on MetaTool, rotated orders</th><td class="num">50</td><td class="num">250</td><td class="num">50</td><td class="num">65,753</td><td><code>results/metatool_copied/2026-10-07_01</code></td></tr>
             <tr><th>Two single requests with 5 copies of one API</th><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">1,044</td><td>No folder. The answers are in the saved responses.</td></tr>
-            <tr><th>Total</th><td class="num">1,552</td><td class="num">6,602</td><td class="num">1,610</td><td class="num">7,570,759</td><td></td></tr>
+            <tr><th>The correct tool removed, on MetaTool</th><td class="num">50</td><td class="num">250</td><td class="num">50</td><td class="num">63,569</td><td><code>results/metatool_absent/2026-10-07_01</code></td></tr>
+            <tr><th>Total</th><td class="num">1,602</td><td class="num">6,852</td><td class="num">1,660</td><td class="num">7,634,328</td><td></td></tr>
           </tbody>
         </table>
       </div>
       <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
-      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, the folder of the wording run at commit <code>2e5e4ad</code>, the folder of the list-length run on StableToolBench at commit <code>2343b01</code>, the folder of the second run of the wording run at commit <code>ac8fd1d</code>, the folders of the rewordings in the written and in the shuffled order at commits <code>a5d5eaa</code> and <code>e0b630d</code>, and the folder of the rotated orders at commit <code>42dbd0d</code>. The two folders of the second run on MetaTool were written at commit <code>8fceb0a</code> and the folder of the rewordings on MetaTool at commit <code>93f6128</code>. Two of its 50 queries are the same query with the same tool and share one request. The two folders of the copies were written at commit <code>22b5c83</code>. <code>python scripts/compare_runs.py</code> compares the answers of two results folders. Each list of the wording run is sent with up to four instructions, 1,182 questions in all, and each list of the list-length run on StableToolBench with up to two, 485 questions. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
+      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, the folder of the wording run at commit <code>2e5e4ad</code>, the folder of the list-length run on StableToolBench at commit <code>2343b01</code>, the folder of the second run of the wording run at commit <code>ac8fd1d</code>, the folders of the rewordings in the written and in the shuffled order at commits <code>a5d5eaa</code> and <code>e0b630d</code>, and the folder of the rotated orders at commit <code>42dbd0d</code>. The two folders of the second run on MetaTool were written at commit <code>8fceb0a</code> and the folder of the rewordings on MetaTool at commit <code>93f6128</code>. Two of its 50 queries are the same query with the same tool and share one request. The two folders of the copies were written at commit <code>22b5c83</code>, and the folder of the run with the correct tool removed at commit <code>ac73272</code>. <code>python scripts/compare_runs.py</code> compares the answers of two results folders. Each list of the wording run is sent with up to four instructions, 1,182 questions in all, and each list of the list-length run on StableToolBench with up to two, 485 questions. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
     <!-- ============================== Decisions ============================== -->
@@ -1820,8 +1939,10 @@
         <li><span class="txt">StableToolBench stays in the study. 43.9% of its queries name a relevant API or its tool, and Jev gives one relevant API its highest probability and the others a low one in those queries.</span></li>
         <li><span class="txt">The second run and the rewordings in rotated orders are repeated on MetaTool, on the 250 requests of the position subset and on 50 queries. Rushab decided this on 2026-10-07.</span></li>
         <li><span class="txt">One correct tool is sent five times, under names that differ only by extra spaces and not by numbers, in 5 rotated orders, on 50 queries of each dataset. Rushab, 2026-10-07, after two single requests of this kind: "There is our paper."</span></li>
+        <li><span class="txt">The correct tool of a MetaTool query is removed, "None" is added, and "None" is moved through the 5 places of a list with 4 similar tools, on 50 queries of the similar-tools file.</span></li>
+        <li><span class="txt">The results are stated as two: Jev gives most of its probability to one entry, and the place of an entry changes Jev's probabilities.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
-        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 1,612 since 2026-10-07.</span></li>
+        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 1,662 since 2026-10-07.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
@@ -1846,9 +1967,11 @@
         <li><span class="txt">Whether a rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 36 of 50 with 199 tools, and Jev 34 of 50.</span></li>
         <li><span class="txt">Why the entry at the last place of a list of 5 copies of one tool is selected in 162 of 250 answers on StableToolBench and in 102 on MetaTool, and the entry at the second place in 8 and in 0</span></li>
         <li><span class="txt">The copied run on open-weight decision models</span></li>
+        <li><span class="txt">The claim of the paper. Rushab's proposal is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.</span></li>
+        <li><span class="txt">A consequence of the two results for a user of Jev, such as reading several tools from one answer</span></li>
         <li><span class="txt">Whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.</span></li>
         <li><span class="txt">Whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench</span></li>
-        <li><span class="txt">When the limit of 1,612 Jev calls is raised, and for which runs. 1,611 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
+        <li><span class="txt">When the limit of 1,662 Jev calls is raised, and for which runs. 1,661 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>
