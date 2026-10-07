@@ -1,9 +1,12 @@
-"""Figures of a run, computed from its rows: CSR with a bootstrap interval over the examples, and counts of answers."""
+"""Figures of a run, computed from its rows: CSR with a bootstrap interval over the examples, and counts of answers.
+
+A run that rewords a tool also has the figures of the rewordings as a group.
+"""
 
 import random
 import statistics
 from collections import Counter
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from itertools import pairwise
 from math import log2
@@ -22,6 +25,25 @@ from grjev.runs import ListAnswer, Row, top_tools
 
 # The name of a group of tool lists -> the names of the lists whose answers it pools.
 type Groups = dict[str, list[str]]
+
+
+@dataclass(frozen=True)
+class GroupFigures:
+    """The figures of a group of tools, such as the rewordings of one tool, in the answers to one tool list.
+
+    `ranked` holds the mean probability of the tool of the group with the highest probability, then of the one with
+    the second-highest, and so on. `total` is the mean of the summed probability of the group, and `empty` the number
+    of answers that give every tool of the group 0. `top_share` is the mean percentage of the group's probability that
+    its top tool has, and `entropy` the mean entropy in bits of the group's probabilities divided by their sum. Both
+    leave out the empty answers.
+    """
+
+    answers: int
+    ranked: tuple[float, ...]
+    total: float
+    empty: int
+    top_share: float
+    entropy: float
 
 
 @dataclass(frozen=True)
@@ -61,9 +83,14 @@ def interval(values: Sequence[float], seed: int) -> tuple[float, float]:
     return means[tail], means[-tail]
 
 
+def bits(probabilities: Iterable[float]) -> float:
+    """Return the entropy of probabilities in bits: 0 for one probability of 1.00, 1 for two of 0.50."""
+    return sum(-value * log2(value) for value in probabilities if value > 0)
+
+
 def entropy(answer: ListAnswer) -> float:
     """Return the entropy of the probabilities of an answer in bits: 0 for one tool at 1.00, 1 for two tools at 0.50."""
-    return sum(-value * log2(value) for value in answer.probabilities.values() if value > 0)
+    return bits(answer.probabilities.values())
 
 
 def top_gap(answer: ListAnswer) -> float:
@@ -129,6 +156,34 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         second_tied=misses["second_tied"],
         top_wrong=misses["top_wrong"],
     )
+
+
+def group_figures(rows: Sequence[Row], name: str, group: Collection[str]) -> GroupFigures:
+    """Return the figures of the tools of `group` in each example's answer to the named tool list."""
+    ranked = [
+        sorted((value for tool, value in row.answers[name].probabilities.items() if tool in group), reverse=True)
+        for row in rows
+    ]
+    shares = [[value / sum(values) for value in values] for values in ranked if sum(values) > 0]
+    return GroupFigures(
+        answers=len(ranked),
+        ranked=tuple(statistics.fmean(values) for values in zip(*ranked, strict=True)),
+        total=statistics.fmean(sum(values) for values in ranked),
+        empty=len(ranked) - len(shares),
+        top_share=100 * statistics.fmean(values[0] for values in shares),
+        entropy=statistics.fmean(bits(values) for values in shares),
+    )
+
+
+def reworded_tools(rows: Sequence[Row], originals: Mapping[str, str]) -> dict[str, str]:
+    """Return, by example id, the tool whose rewordings are among the labels. `originals` names it by rewording."""
+    return {row.id: next(originals[label] for label in row.labels if label in originals) for row in rows}
+
+
+def tool_probability(rows: Sequence[Row], name: str, tools: Mapping[str, str]) -> float:
+    """Return the mean probability, in the answers to the named tool list, of the tool named for each example id."""
+    by_id = {row.id: row for row in rows}
+    return statistics.fmean(by_id[example].answers[name].probabilities[tool] for example, tool in tools.items())
 
 
 def difference(
