@@ -4,7 +4,17 @@ import pytest
 
 from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
-from grjev.metrics import compared_groups, difference, figures, interval, list_groups, list_names, row_groups
+from grjev.metrics import (
+    compared_groups,
+    difference,
+    entropy,
+    figures,
+    interval,
+    list_groups,
+    list_names,
+    row_groups,
+    top_gap,
+)
 from grjev.placement import length_orders, orders_of
 from grjev.runs import ListAnswer, Row
 
@@ -13,7 +23,7 @@ TOOLS = [Option(name=f"tool_{tool}", description=f"Does thing {tool}.") for tool
 
 
 def answer(choice: str, correct: bool, probabilities: dict[str, float] | None = None) -> ListAnswer:
-    probabilities = probabilities or {choice: 1.0}
+    probabilities = probabilities or {choice: 1.0, "other": 0.0}
     candidates = list(probabilities)
     return ListAnswer(
         candidates=candidates, choice=choice, probabilities=probabilities, confidence=1.0, correct=correct
@@ -36,6 +46,17 @@ def test_an_interval_cuts_the_resampled_means_at_both_ends_and_depends_only_on_t
     assert interval(correct_in_38_of_50, seed=1) == pytest.approx((0.64, 0.88))
     assert interval(correct_in_38_of_50, seed=1) == interval(correct_in_38_of_50, seed=1)
     assert interval([0.5] * 10, seed=1) == (0.5, 0.5)
+
+
+def test_entropy_is_in_bits_and_the_gap_is_between_the_two_highest_probabilities() -> None:
+    assert entropy(answer("a", True, {"a": 1.0, "b": 0.0, "c": 0.0})) == 0.0
+    assert entropy(answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})) == 1.0
+    assert entropy(answer("a", True, {"a": 0.25, "b": 0.25, "c": 0.25, "d": 0.25})) == 2.0
+    assert top_gap(answer("b", True, {"a": 0.2, "b": 0.7, "c": 0.1})) == pytest.approx(0.5)
+    rows = [row("G1_tool", ["a", "b"], {"all": answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})})] * 2
+    rows.append(row("G1_tool", ["a", "b"], {"all": answer("a", False, {"a": 1.0, "b": 0.0, "c": 0.0})}))
+    found = figures(rows, ["all"], BOOTSTRAP_SEED, confident_from=0.9)
+    assert (found.entropy, found.gap) == (pytest.approx(2 / 3), pytest.approx(1 / 3))
 
 
 def test_figures_count_the_answers_to_the_named_lists() -> None:
@@ -160,3 +181,21 @@ def test_examples_are_grouped_by_test_file_and_pooled_when_all_have_the_same_lis
     assert list(row_groups([similar, reliability])) == ["similar_tools", "reliability"]
     assert list(row_groups([similar])) == ["similar_tools"]
     assert list_names([similar, reliability]) == ["5_first", RELEASED_ORDER]
+
+
+def test_a_wording_run_is_pooled_over_its_test_files_and_grouped_by_the_number_of_correct_tools() -> None:
+    every = {"every": answer("a", True)}
+    counted = {name: answer("a", True) for name in ("one", "all", "equal", "every")}
+    one_api = row("G1_tool", ["a"], every)
+    two_apis = row("G1_tool", ["a", "b"], counted)
+    three_apis = row("G2_category", ["a", "b", "c"], counted)
+    groups = row_groups([one_api, two_apis, three_apis])
+    assert list(groups) == [
+        "every test file",
+        "G1_tool",
+        "G2_category",
+        "1 correct tool",
+        "2 correct tools",
+        "3 correct tools",
+    ]
+    assert groups["2 correct tools"] == [two_apis] and groups["G1_tool"] == [one_api, two_apis]

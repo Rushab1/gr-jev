@@ -6,6 +6,7 @@ from collections import Counter
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from itertools import pairwise
+from math import log2
 
 from grjev.constants import (
     BOOTSTRAP_RESAMPLES,
@@ -27,8 +28,9 @@ type Groups = dict[str, list[str]]
 class Figures:
     """The figures of the answers to some tool lists. `csr`, `low`, `high` and `zero_probabilities` are percentages.
 
-    `second_wrong`, `second_tied` and `top_wrong` count the answers that miss the correct tools of a query with
-    several correct tools, each answer once.
+    `entropy` is the mean entropy of an answer's probabilities in bits, and `gap` the mean of its highest probability
+    minus its second-highest. `second_wrong`, `second_tied` and `top_wrong` count the answers that miss the correct
+    tools of a query with several correct tools, each answer once.
     """
 
     examples: int
@@ -41,6 +43,8 @@ class Figures:
     confident: int
     confident_wrong: int
     zero_probabilities: float
+    entropy: float
+    gap: float
     one_choice: int
     all_correct: int
     none_correct: int
@@ -55,6 +59,17 @@ def interval(values: Sequence[float], seed: int) -> tuple[float, float]:
     means = sorted(statistics.fmean(rng.choices(values, k=len(values))) for _ in range(BOOTSTRAP_RESAMPLES))
     tail = round(BOOTSTRAP_RESAMPLES * INTERVAL_TAIL)
     return means[tail], means[-tail]
+
+
+def entropy(answer: ListAnswer) -> float:
+    """Return the entropy of the probabilities of an answer in bits: 0 for one tool at 1.00, 1 for two tools at 0.50."""
+    return sum(-value * log2(value) for value in answer.probabilities.values() if value > 0)
+
+
+def top_gap(answer: ListAnswer) -> float:
+    """Return the highest probability of an answer minus its second-highest."""
+    first, second = sorted(answer.probabilities.values(), reverse=True)[:2]
+    return first - second
 
 
 def having(rows: Sequence[Row], lists: Collection[str]) -> list[Row]:
@@ -105,6 +120,8 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         confident=len(confident),
         confident_wrong=sum(not answer.correct for answer in confident),
         zero_probabilities=100 * statistics.fmean(value == 0 for value in probabilities),
+        entropy=statistics.fmean(entropy(answer) for _, answer in answers),
+        gap=statistics.fmean(top_gap(answer) for _, answer in answers),
         one_choice=sum(len({row.answers[name].choice for name in lists}) == 1 for row in rows),
         all_correct=sum(share == 1 for share in shares),
         none_correct=sum(share == 0 for share in shares),
@@ -176,10 +193,17 @@ def compared_groups(groups: Groups, lengths: Sequence[int]) -> dict[str, tuple[s
 def row_groups(rows: Sequence[Row]) -> dict[str, list[Row]]:
     """Return the examples that have figures together, by name: those of each test file.
 
-    When every example has the same tool lists, as in a length run, all the examples come first as one more group.
+    When every test file has the same tool lists, as in a length run or a wording run, all the examples come first
+    as one more group. When the number of correct tools differs within a test file, the examples with each number
+    of correct tools are groups too.
     """
     by_file: dict[str, list[Row]] = {}
+    by_number: dict[int, list[Row]] = {}
     for row in rows:
         by_file.setdefault(row.test_file, []).append(row)
-    same_lists = len({tuple(row.answers) for row in rows}) == 1
-    return ({"every test file": list(rows)} if same_lists and len(by_file) > 1 else {}) | by_file
+        by_number.setdefault(len(row.labels), []).append(row)
+    same_lists = all(set(list_names(own)) == set(list_names(rows)) for own in by_file.values())
+    mixed = any(len({len(row.labels) for row in own}) > 1 for own in by_file.values())
+    every = {"every test file": list(rows)} if same_lists and len(by_file) > 1 else {}
+    numbers = {f"{number} correct tool{'' if number == 1 else 's'}": by_number[number] for number in sorted(by_number)}
+    return every | by_file | (numbers if mixed else {})

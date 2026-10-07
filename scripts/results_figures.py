@@ -9,6 +9,8 @@ wording of the instruction. Its columns:
 - "None": the answers of "None"
 - confident, confident and wrong: the answers whose highest probability is at least CONFIDENT_PROBABILITY
 - probabilities at 0: the share of the returned probabilities that are 0.00
+- entropy: the mean entropy of an answer's probabilities, in bits
+- top minus second: the mean of an answer's highest probability minus its second-highest
 - one choice, all correct, none correct: the examples with the same choice in every list of the group, and those
   answered correctly in every list and in none
 - second tool wrong, second place tied, top tool wrong: for a query with two correct tools, the answers that miss
@@ -37,6 +39,8 @@ COLUMNS: dict[str, Callable[[Figures], str]] = {
     "confident": lambda found: f"{found.confident:,}",
     "confident and wrong": lambda found: f"{found.confident_wrong:,}",
     "probabilities at 0": lambda found: f"{found.zero_probabilities:.1f}%",
+    "entropy": lambda found: f"{found.entropy:.2f}",
+    "top minus second": lambda found: f"{found.gap:.2f}",
     "one choice": lambda found: f"{found.one_choice:,}",
     "all correct": lambda found: f"{found.all_correct:,}",
     "none correct": lambda found: f"{found.none_correct:,}",
