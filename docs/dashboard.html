@@ -1091,6 +1091,7 @@
             <tr><th>First run</th><td>The position of the correct tool in MetaTool's own tool lists, next to the released order</td><td>Whether CSR depends on the position, and how much the fixed positions of the released files change a score</td><td>A subset of 200 examples was run on 2026-10-05. Every example needs a higher limit on Jev calls.</td></tr>
             <tr><th>List length</th><td>Random distractors are added to the list, up to 199 tools</td><td>CSR and the position effect as the list grows</td><td>A subset of 50 queries was run on 2026-10-05</td></tr>
             <tr><th>Wording run</th><td>The instruction, for StableToolBench queries with several relevant APIs</td><td>Whether Jev spreads its probability over all the correct tools, and how several tools are read from one answer</td><td>A subset of 300 examples was run on 2026-10-06</td></tr>
+            <tr><th>List length on StableToolBench</th><td>Random other APIs are added to the list of a query, up to 199 APIs</td><td>Whether the fall of CSR with the list length on MetaTool holds on a second benchmark</td><td>A subset of 48 queries was run on 2026-10-06</td></tr>
             <tr><th>Spare runs</th><td>The most similar tools as distractors, a second run of identical requests, prompt formats</td><td>Listed under Spare runs</td><td>When a result calls for one</td></tr>
           </tbody>
         </table>
@@ -1111,7 +1112,7 @@
         </table>
       </div>
       <p>Tool awareness has no tool list and is not in the run.</p>
-      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 651 until Rushab raises the limit, and 651 calls have been made.</p>
+      <p>The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests. Jev calls are limited to 708 until Rushab raises the limit, and 708 calls have been made.</p>
       <p>The cost for Jev is about $0.50, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with "Choose both."</p>
       <p>The runner sends these texts to Jev. Rushab has not confirmed the first two. Both wordings of the instruction for two tools are kept, and each multi-tool example is sent with both. The state of a request is the query, and each candidate is a tool name with the tool's description.</p>
       <div class="tablewrap">
@@ -1276,6 +1277,10 @@
         </table>
       </div>
       <p>The number word follows the query, from Two to Six. The texts say "tools", as on MetaTool. For a query with k relevant APIs, an answer is correct when Jev's k highest probabilities are the k relevant APIs.</p>
+
+      <h2>List length on StableToolBench</h2>
+      <p>The list that the wording run sends for a query has 5 to 13 APIs, and 5 to 11 for the 48 queries of this run. This run grows it to 20, 50, 100 and 199 APIs with random other APIs of the 2,490. Each longer list contains the shorter ones, and each list is in a seeded random order of its own.</p>
+      <p>It uses 8 examples from each of the six test files, 48 queries. Two instructions go with every list: "Choose all of them." after the number of relevant APIs, for the queries with 2 or more, and "Choose every tool in the list that is needed to solve the user's query." for all 48.</p>
 
       <h2>Spare runs</h2>
       <div class="tablewrap">
@@ -1556,6 +1561,27 @@
         <li>The 6 queries with 1 relevant API are all correct, with an entropy of 0.00. Their released list holds 1 API, and the other 4 APIs of their list are random.</li>
       </ul>
 
+      <h2>List length on StableToolBench</h2>
+      <p>On 2026-10-06 Jev answered 48 StableToolBench queries, 8 from each test file, with the list of the wording run and with that list grown to 20, 50, 100 and 199 APIs by random other APIs. 3 of the queries have 1 relevant API, 33 have 2, 8 have 3 and 4 have 4 to 6. The run took 57 calls and cost $0.07.</p>
+      <div class="tablewrap wrap">
+        <table>
+          <thead><tr><th>APIs in the list</th><th class="num">Correct with "Choose all of them.", 45 queries</th><th class="num">Correct with "Choose every tool … that is needed", 48 queries</th><th class="num">Mean entropy with "Choose every tool … that is needed"</th><th class="num">Highest probability minus second-highest, mean, same instruction</th><th class="num">Probabilities at 0.00, same instruction</th></tr></thead>
+          <tbody>
+            <tr><th>5 to 11, the list of the wording run</th><td class="num">29 (64.4%)</td><td class="num">31 (64.6%)</td><td class="num">0.63</td><td class="num">0.72</td><td class="num">58.3%</td></tr>
+            <tr><th>20</th><td class="num">29 (64.4%)</td><td class="num">32 (66.7%)</td><td class="num">0.68</td><td class="num">0.70</td><td class="num">85.2%</td></tr>
+            <tr><th>50</th><td class="num">27 (60.0%)</td><td class="num">31 (64.6%)</td><td class="num">0.72</td><td class="num">0.69</td><td class="num">93.8%</td></tr>
+            <tr><th>100</th><td class="num">26 (57.8%)</td><td class="num">28 (58.3%)</td><td class="num">0.75</td><td class="num">0.68</td><td class="num">96.8%</td></tr>
+            <tr><th>199</th><td class="num">28 (62.2%)</td><td class="num">30 (62.5%)</td><td class="num">0.85</td><td class="num">0.62</td><td class="num">98.3%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="plain">
+        <li>From the list of the wording run to 199 APIs the score changes by 2.2 points with "Choose all of them." and by 2.1 points with the other instruction. That is 1 query. On MetaTool, CSR falls from 85.6% with 5 tools to 72.8% with 199.</li>
+        <li>The 33 queries with 2 relevant APIs score 75.8% with the list of the wording run and 75.8% with 199 APIs, with both instructions.</li>
+        <li>The mean entropy rises with the list length, from 0.63 to 0.85.</li>
+        <li>The added APIs are random among 2,490, and the wrong APIs of the same tool are in the list from the start. On MetaTool a longer list brings in the tools closest to the correct one.</li>
+      </ul>
+
       <h2>Runs and cost</h2>
       <div class="tablewrap">
         <table>
@@ -1565,12 +1591,13 @@
             <tr><th>Position, multi-tool with "Choose both."</th><td class="num">50</td><td class="num">450</td><td class="num">50</td><td class="num">180,798</td><td><code>results/metatool_position/2026-10-05_05</code></td></tr>
             <tr><th>List length</th><td class="num">50</td><td class="num">1,500</td><td class="num">100</td><td class="num">3,193,788</td><td><code>results/metatool_length/2026-10-05_02</code></td></tr>
             <tr><th>Wording run on StableToolBench</th><td class="num">300</td><td class="num">300</td><td class="num">300</td><td class="num">487,714</td><td><code>results/stabletoolbench_wording/2026-10-06_01</code></td></tr>
-            <tr><th>Total</th><td class="num">600</td><td class="num">3,350</td><td class="num">650</td><td class="num">4,365,149</td><td></td></tr>
+            <tr><th>List length on StableToolBench</th><td class="num">48</td><td class="num">240</td><td class="num">57</td><td class="num">1,599,055</td><td><code>results/stabletoolbench_growth/2026-10-06_01</code></td></tr>
+            <tr><th>Total</th><td class="num">648</td><td class="num">3,590</td><td class="num">707</td><td class="num">5,964,204</td><td></td></tr>
           </tbody>
         </table>
       </div>
       <p>A tool list of the position run took 457 input tokens. The position run on all 4,287 examples would cost about $0.43. A tool list of the multi-tool run with "Choose both." took 402 input tokens, and that run on all 497 multi-tool examples would add about $0.08. A query of the length run took 63,876 input tokens. The length run on all 1,790 queries would cost about $4.80.</p>
-      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, and the folder of the wording run at commit <code>2e5e4ad</code>. Each list of the wording run is sent with up to four instructions, 1,182 questions in all. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
+      <p>The examples of each sample are drawn with seed 2026. <code>python scripts/results_figures.py</code> prints the figures from a results folder. The three MetaTool folders were written from the saved responses at commit <code>fc0b930</code>, the folder of the wording run at commit <code>2e5e4ad</code> and the folder of the list-length run on StableToolBench at commit <code>f3c3e23</code>. Each list of the wording run is sent with up to four instructions, 1,182 questions in all, and each list of the list-length run on StableToolBench with up to two, 465 questions. The results folders and the saved Jev responses are not in git. Jev can answer the same request differently on another call.</p>
     </section>
 
     <!-- ============================== Decisions ============================== -->
@@ -1611,8 +1638,9 @@
         <li><span class="txt">The wording run asks Jev for several tools on StableToolBench with four instructions. Three follow the number of relevant APIs: "Choose one of them.", "Choose all of them." and "Choose all of them with equal probability." The fourth states no number: "Choose every tool in the list that is needed to solve the user's query."</span></li>
         <li><span class="txt">In the wording run a list under 5 APIs gets random other APIs added until it has 5, every list is in a seeded random order, and the relevant APIs are not placed at fixed positions.</span></li>
         <li><span class="txt">The wording run sends 50 examples per test file, as the MetaTool subset did, with one request per example and the four instructions as separate questions.</span></li>
+        <li><span class="txt">List length is tested on StableToolBench on about 50 queries: the list of the wording run is grown to 20, 50, 100 and 199 APIs with random other APIs, and sent with two instructions.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
-        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 651 since 2026-10-06.</span></li>
+        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 708 since 2026-10-06.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
@@ -1633,7 +1661,8 @@
     <section role="tabpanel" data-panel="open" hidden>
       <ul class="marks" data-marks="todo">
         <li><span class="txt">How the number of correct tools is read from one answer of Jev, when the instruction does not state it</span></li>
-        <li><span class="txt">When the limit of 651 Jev calls is raised, and for which runs. 651 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
+        <li><span class="txt">Whether a list is grown with tools that are similar to the correct one. With random APIs the list-length run on StableToolBench shows no fall.</span></li>
+        <li><span class="txt">When the limit of 708 Jev calls is raised, and for which runs. 708 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>
