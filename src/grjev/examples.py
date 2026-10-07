@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 
 from grjev.constants import TOOLS_FILE_NAME
 
@@ -54,3 +54,8 @@ def read_dataset(processed_dir: Path, test_files: Iterable[str]) -> tuple[dict[s
     """Return the examples of each named test file of a processed dataset, and its tool list."""
     examples = {name: read_jsonl(processed_dir / f"{name}.jsonl", Example) for name in test_files}
     return examples, read_jsonl(processed_dir / TOOLS_FILE_NAME, Option)
+
+
+def read_rewordings(path: Path) -> dict[str, list[Option]]:
+    """Return the rewordings of each tool in a rewordings file, by the name of the tool."""
+    return TypeAdapter(dict[str, list[Option]]).validate_json(path.read_bytes())

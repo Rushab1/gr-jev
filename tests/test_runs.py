@@ -26,10 +26,13 @@ from grjev.constants import (
     PLACEMENTS,
     PROCESSED_DIRS,
     RELEASED_ORDER,
+    REWORDED_LIST,
+    REWORDINGS_FILES,
     TWO_TOOL_INSTRUCTIONS,
     UNCOUNTED_WORDINGS,
 )
-from grjev.examples import Example, Option, read_dataset
+from grjev.examples import Example, Option, read_dataset, read_rewordings
+from grjev.placement import reworded_tool
 from grjev.runs import (
     ListAnswer,
     Planned,
@@ -204,6 +207,43 @@ def test_a_growth_run_asks_the_padded_list_and_every_grown_list_with_both_wordin
     assert asked["own_every"] == UNCOUNTED_WORDINGS["every"]
     (single,) = plan(run_config, {"G1_tool": [two_correct.model_copy(update={"labels": ["api_1"]})]}, apis)
     assert list(single.lists) == [f"{size}_every" for size in sizes]
+
+
+def test_a_reworded_run_asks_the_padded_list_with_the_rewordings_of_one_correct_tool_in_its_place(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    two_correct = Example(
+        id="set/G1_tool/0", query="Do two things.", options=TOOLS[:3], labels=["tool_1", "tool_3"], raw={}
+    )
+    rewordings = {
+        name: [Option(name=f"{name}_reworded_{number}", description=f"Said way {number}.") for number in range(1, 6)]
+        for name in ("tool_1", "tool_3")
+    }
+    saved = {name: [tool.model_dump() for tool in tools] for name, tools in rewordings.items()}
+    (tmp_path / "rewordings.json").write_text(json.dumps(saved))
+    monkeypatch.setitem(REWORDINGS_FILES, "stabletoolbench", tmp_path / "rewordings.json")
+    run_config = config("reworded", "G1_tool", dataset="stabletoolbench")
+    (item,) = plan(run_config, {"G1_tool": [two_correct]}, TOOLS)
+    (request,) = item.requests
+    (question,) = request.questions.values()
+    assert list(request.questions) == [REWORDED_LIST]
+    assert question.instructions == "Pick all the tools in the list that are relevant to the task at hand."
+    original = reworded_tool(two_correct, run_config.seed)
+    (other,) = {"tool_1", "tool_3"} - {original}
+    (padded,) = plan(wording_config(), {"G1_tool": [two_correct]}, TOOLS)
+    own = padded.lists["every"]
+    place = [tool.name for tool in own].index(original)
+    assert item.lists[REWORDED_LIST] == own[:place] + rewordings[original] + own[place + 1 :]
+    assert item.example.labels == [other, *(tool.name for tool in rewordings[original])]
+    assert two_correct.labels == ["tool_1", "tool_3"]
+
+
+def test_every_tool_in_the_stabletoolbench_rewordings_file_has_five_rewordings_with_its_category_and_tool() -> None:
+    rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
+    for original, tools in rewordings.items():
+        names = [tool.name for tool in tools]
+        assert len(names) == len(set(names)) == 5 and original not in names
+        assert all(name.split(" / ")[:2] == original.split(" / ")[:2] for name in names)
 
 
 def test_a_wording_answer_is_correct_when_the_highest_probabilities_are_the_correct_tools() -> None:
@@ -470,3 +510,33 @@ def test_fifty_stabletoolbench_queries_hold_the_eight_of_each_test_file(
     eight_per_file = plan(config("growth", dataset="stabletoolbench", examples_per_file=8), *stabletoolbench)
     assert len(fifty) == 50
     assert {item.example.id for item in eight_per_file} < {item.example.id for item in fifty}
+
+
+def test_fifty_reworded_stabletoolbench_lists_are_the_padded_lists_with_one_relevant_api_reworded(
+    stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    examples, apis = stabletoolbench
+    run_config = config("reworded", dataset="stabletoolbench", examples=50)
+    planned = plan(run_config, examples, apis)
+    growth = plan(config("growth", dataset="stabletoolbench", examples=50), examples, apis)
+    rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
+    described = {api.name: bool(api.description.strip()) for api in apis}
+    assert sum(count["calls"] for count in call_counts(run_config, planned).values()) == len(planned) == 50
+    reworded = set()
+    for item, grown in zip(planned, growth, strict=True):
+        own = grown.lists[f"{OWN_LIST}_every"]
+        relevant = set(grown.example.labels or [])
+        (original,) = {tool.name for tool in own} - {tool.name for tool in item.lists[REWORDED_LIST]}
+        reworded.add(original)
+        copies = rewordings[original]
+        assert item.example.id == grown.example.id and original in relevant
+        assert [tool for tool in item.lists[REWORDED_LIST] if tool not in copies] == [
+            tool for tool in own if tool.name != original
+        ]
+        assert len(item.lists[REWORDED_LIST]) == len(own) + 4
+        assert set(item.example.labels or []) == relevant - {original} | {tool.name for tool in copies}
+        # A rewording has no name of the dataset, and a description exactly when the API it rewords has one.
+        assert all(tool.name not in described for tool in copies)
+        assert all(bool(tool.description.strip()) == described[original] for tool in copies)
+    # The 50 queries reword 45 different APIs, and the file holds no other.
+    assert reworded == set(rewordings) and len(reworded) == 45
