@@ -553,6 +553,13 @@ A first look at the saved answers gave the figures below. The figures script doe
 - The probability of "None" differs by 0.09 on average between its 5 places, by more than 0.10 for 15 of the 50 queries and by more than 0.20 for 6.
 - 12 of the 50 queries get no answer of "None" in any order.
 
+The label "None" of this run is not verified. Claude Code read the 50 queries and the descriptions of their 4 kept tools on 2026-10-07, as one reader:
+
+- For the 10 queries where Jev selects one tool in all 5 orders, that tool can do the task of the query in 5, can do part of it in 4, and cannot do it in 1. The 5 are a web search or a tool with the same function as the removed tool: `jini` for news on whiskey releases, `SEOTool` for an SEO assessment, `MixerBox_WebSearchG_web_search` for a recipe on a named website and for a platform that lists startups, and `storybird_stories` for a story with images. The 1 is `WebsiteTool` for a feedback form.
+- For the 8 queries whose selected entry differs between the orders, a selected tool can do the task in 3, part of it in 2, and cannot do it in 3.
+- For the 32 queries where Jev answers "None" in all 5 orders, no kept tool can do the task in 28. In 2 a search tool can, and in 2 a kept tool can do part of it.
+- MetaTool labels one tool per query, and its lists hold tools for web search and tools with the same function. A second reader has not checked these readings.
+
 ## How runs are staged
 
 Decided by Rushab on 2026-10-04.

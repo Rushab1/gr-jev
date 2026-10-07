@@ -130,6 +130,7 @@ Do not report these back.
 - Two of the 50 MetaTool queries of the rewording run are the same query with the same tool.
 - The result for names that end in "(1)" to "(5)" is one query.
 - The place of the correct tool was never varied on StableToolBench with normal lists.
+- In experiment G the label "None" is not verified. One reader found that, for the 10 queries where Jev selects one tool in all 5 orders, that tool can do the task of the query in 5 and part of it in 4. MetaTool labels one tool per query, and its lists hold web-search tools and tools with the same function.
 
 ## 8. What we need from you
 
