@@ -1,19 +1,21 @@
 # Jev study: plan
 
-Last updated 2026-10-06. Two sets of runs have been made on Jev: a subset of the position and length experiments on MetaTool, 350 calls, and three runs on subsets of StableToolBench: the wording run with 300 calls, the list-length run with 59 calls and the reworded run with 50 calls.
+Last updated 2026-10-07. Two sets of runs have been made on Jev: a subset of the position and length experiments on MetaTool, 350 calls, and runs on subsets of StableToolBench, 859 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, and four runs with rewordings of one relevant API with 50 calls each.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth` and `reworded` on a dataset in the common format, and `--examples` takes a seeded sample of an exact number of examples over all the test files. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded` and `rotated` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
-The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench". The reworded run was made the same day, and is under "Rewordings of one relevant API".
+The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench". A second run of the wording run was made the same day, and is under "A second run of the same requests". The runs with rewordings were made on 2026-10-06 and 2026-10-07, and are under "Rewordings of one relevant API".
+
+Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They are not run yet.
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 760, and 760 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,774. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,210, and 1,210 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,224. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -130,12 +132,28 @@ Mean entropy by number of relevant APIs:
 - `all` scores 5.1 points above `one`. On MetaTool's multi-tool file "Choose both." scores 14.2 points above "Choose one of them."
 - The score falls with the number of relevant APIs: with `all` it is 81.0% for 2 and 58.7% for 3.
 - The 6 queries with 1 relevant API are all correct, with an entropy of 0.00. Their released list holds 1 API, and the other 4 APIs of their list are random.
+- For the 294 queries with 2 or more relevant APIs, Jev's highest probability is on a relevant API in 277 answers with `one`, 276 with `all`, 277 with `equal` and 277 with `every`. All the relevant APIs are found in 203, 218, 212 and 209 of the 294. Rushab, 2026-10-06: Jev selects one relevant API and gives the others a low probability, in queries of which 44% name an API or its tool.
 
 Not decided: how the number of relevant APIs is read from an answer when the instruction does not state it. A first look at the saved answers of the wording `every` gave the three figures below. The figures script does not print them.
 
 - The largest drop between two neighbouring probabilities comes right after the top API in 250 of the 300 answers. The APIs above the drop are exactly the relevant APIs in 28 of 300.
 - Selecting every API with a probability of 0.03 or more gives exactly the relevant APIs in 155 of 300. The cut of 0.03 was chosen on these same answers.
 - With the number of relevant APIs given to the scoring rule, the highest probabilities are the relevant APIs in 215 of 300.
+
+### A second run of the same requests
+
+Rushab asked on 2026-10-06 whether Jev's top API changes between two runs of one request while its highest probability stays far above its second-highest. The 300 requests of the wording run were sent a second time on 2026-10-06: 300 calls, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_02`, written at commit `ac8fd1d` with `--run 2`. `python scripts/compare_runs.py results/stabletoolbench_wording/2026-10-06_01 results/stabletoolbench_wording/2026-10-06_02` prints the first four columns of figures.
+
+| Wording | Answers | Same selected API in both runs | Answers with every probability the same | Largest change of one probability | Correct answers, first run | Correct answers, second run | Highest probability minus second-highest, mean, first run | The same, second run |
+|---|---|---|---|---|---|---|---|---|
+| `one` | 294 | 291 | 78 | 0.09 | 203 | 203 | 0.62 | 0.62 |
+| `all` | 294 | 285 | 64 | 0.10 | 218 | 218 | 0.59 | 0.59 |
+| `equal` | 294 | 289 | 53 | 0.10 | 212 | 214 | 0.55 | 0.55 |
+| `every` | 300 | 293 | 65 | 0.08 | 215 | 216 | 0.64 | 0.64 |
+
+- The selected API differs in 24 of the 1,182 answers. In each of the 24, the first run gave the API that the second run selects at most 0.10 less than the API it selected.
+- In 20 of the 24 both selected APIs are relevant APIs. The figures script does not print this count.
+- TypeSafe's page "TypeSafe in action" says that "TypeSafe returns stable noul probabilities" while "LLM answers vary run to run". Rushab sent a screenshot of the page on 2026-10-06.
 
 ## List length on StableToolBench
 
@@ -208,37 +226,88 @@ A rule with no model call was scored on the same lists: it selects the entries w
 
 ## Rewordings of one relevant API
 
-Decided by Rushab on 2026-10-06. Question: is the drop from Jev's highest probability to its second-highest still steep when several entries of the list are equally correct? In the runs above the correct entries of a query are different APIs.
+Decided by Rushab on 2026-10-06. Question: when every entry of a list is equally correct, does Jev still give most of its probability to one entry? In the runs above the correct entries of a query are different APIs.
 
 - Examples. The 50 queries of the list-length run.
 - Reworded API. One relevant API of each query is chosen with the seed. The 50 queries give 45 different APIs: "Advertising / URL Link Shortener / Get a list of domains" is chosen for 4 queries, 2 APIs for 2 queries each, and 42 APIs for 1 query.
-- Rewordings. Each of the 45 APIs has 5 rewordings of its name and description, 225 in all, in `src/grjev/rewordings/stabletoolbench.json`. Claude Opus 5.5 wrote them in a Claude Code session on 2026-10-06, on Rushab's instruction. A rewording keeps the category and the tool of the name and rewords the API name and the description. 5 of the 45 APIs have a blank description, and so do their rewordings. "Media / Shazam / Track Recommendations", with the description "This endpoint will return the recommendation or similar songs of the given track.", has the rewording "Media / Shazam / Recommended Tracks", "Returns recommended or similar songs for the given track."
-- Similarity. Rushab set a bar of 0.80 for the cosine similarity between a rewording and the API it rewords, on embeddings of the name and description from `Qwen/Qwen3-Embedding-0.6B`. The lowest of the 225 is 0.932, and the mean is 0.992. With the category and the tool left out of the text, the lowest is 0.856 and the mean 0.974. The embedding code is not in the repo.
-- List. The list that the wording run sends for the query, with the chosen API taken out and its 5 rewordings in its place, in the order of the file. 30 of the 50 lists have 9 entries, and the longest has 15. Rushab, 2026-10-06: the API before rewording is not in the list, and position is not studied in this run.
+- List. The 5 rewordings of the chosen API and no other entry. Rushab, 2026-10-06: "exactly 5 options are passed to jev".
 - Instruction. "Pick all the tools in the list that are relevant to the task at hand." It states no number.
-- Size and cost. 50 requests with one question each, 37,544 input tokens, under $0.01. The results folder is `results/stabletoolbench_reworded/2026-10-06_01`, written at commit `82a46c2`. `python scripts/results_figures.py results/stabletoolbench_reworded/2026-10-06_01 --before results/stabletoolbench_growth/2026-10-06_02 own_every` prints the figures of the table. No margin of error is given.
+- Rewordings. Each of the 45 APIs has 5 rewordings of its name and description, 225 in all, in `src/grjev/rewordings/stabletoolbench.json`. Claude Opus 5.5 wrote them in a Claude Code session on 2026-10-06, on Rushab's instruction. A rewording keeps the category and the tool of the name and rewords the API name and the description. 5 of the 45 APIs have a blank description, and so do their rewordings. Rushab found a first set of rewordings "too similar" to each other, and the file holds a second set.
+- Order of the rewordings in the file. The first rewording has the shortest description of the 5 for 37 of the 40 APIs with a description, and the second starts with "Use" for 35. The mean length of a description is 61 characters for the first rewording and 90 to 106 for the other four.
+- Similarity. Rushab set a bar of 0.80 for the cosine similarity between a rewording and the API it rewords, on embeddings of the name and description from `Qwen/Qwen3-Embedding-0.6B`. The lowest of the 225 is 0.932, and the mean is 0.985. With the category and the tool left out of the text, the lowest is 0.812 and the mean 0.958. The embedding code is not in the repo.
 
-| Entry of the list | Probability from Jev, mean of 50 queries |
+"Travel / Flight Fare Search / Flight Search V2", with the description "A faster, more agile Endpoint that's used to search flights.", has these 5 rewordings:
+
+| Name | Description |
 |---|---|
-| The rewording with the highest probability of the 5 | 0.164 |
-| The rewording with the second-highest | 0.101 |
-| The third | 0.067 |
-| The fourth | 0.044 |
-| The rewording with the lowest | 0.025 |
-| The 5 rewordings together | 0.401 |
-| The same API before rewording, in the list-length run with `every` | 0.432 |
+| Travel / Flight Fare Search / Find Flights (v2) | Looks up flights. Built to be quicker and more agile. |
+| Travel / Flight Fare Search / Flight Lookup 2 | Quick, nimble flight search. |
+| Travel / Flight Fare Search / Search Available Flights, Version 2 | Use this endpoint to search for flights when you want a faster and more agile option. |
+| Travel / Flight Fare Search / V2 Flight Finder | Searches flights with greater speed and agility. |
+| Travel / Flight Fare Search / Flights Query v2 | An agile, high-speed endpoint for querying flights. |
 
-- The rewording with the highest probability has 42.5% of the summed probability of the 5, on average over the 45 answers that give them any. An even split is 20%. 5 answers give every rewording 0.00.
-- The highest rewording is 0.06 above the second-highest. In the list before rewording, Jev's highest probability is 0.72 above its second-highest, for the same 50 queries with `every`.
-- The entropy of the 5 probabilities, divided by their sum, is 1.89 bits on average. It is 2.32 bits for an even split over 5 entries and 0 when one entry has all of it.
-- The 5 rewordings have 0.401 together, and the API had 0.432 before rewording. The two runs use different instructions.
+Three runs were made, each with one request per query. The code names the first two `reworded` and the third `rotated`.
+
+| Run | Order of the 5 rewordings | Questions | Input tokens | Results folder | Commit |
+|---|---|---|---|---|---|
+| Written order, 2026-10-06 | The order of the file | 50 | 26,945 | `results/stabletoolbench_reworded/2026-10-06_02` | `a5d5eaa` |
+| Shuffled order, 2026-10-07 | A seeded random order for each query | 50 | 26,945 | `results/stabletoolbench_reworded/2026-10-07_01` | `e0b630d` |
+| Rotated orders, 2026-10-07 | The order of the file moved by 0, 1, 2, 3 and 4 places, as 5 questions of one request | 250 | 71,929 | `results/stabletoolbench_rotated/2026-10-07_01` | `42dbd0d` |
+
+Each run cost under $0.01. `python scripts/results_figures.py <folder>` prints the figures of the two tables below, and `python scripts/compare_runs.py` compares two folders. No margin of error is given.
+
+A first run on 2026-10-06 kept the other APIs of the query's list and put the 5 rewordings in the place of the chosen API, which gave lists of 9 to 15 entries. Rushab rejected that design the same day. Its 50 calls count towards the limit, its folder is `results/stabletoolbench_reworded/2026-10-06_01`, and its figures are not used.
+
+| Rewording, by Jev's probability within an answer | Written order, mean of 50 answers | Shuffled order, mean of 50 answers | Rotated orders, mean of 250 answers |
+|---|---|---|---|
+| Highest | 0.437 | 0.444 | 0.434 |
+| Second-highest | 0.235 | 0.238 | 0.241 |
+| Third | 0.155 | 0.150 | 0.159 |
+| Fourth | 0.105 | 0.102 | 0.102 |
+| Lowest | 0.068 | 0.067 | 0.064 |
+| Entropy, mean | 1.97 | 1.96 | 1.96 |
+| Highest minus second-highest, mean | 0.20 | 0.21 | 0.19 |
+
+- An even split gives each rewording 0.20 and an entropy of 2.32 bits.
+- Rushab, 2026-10-07: the probability falls from the highest rewording to the lowest, and the fall is not at the second place. The highest is 0.33 above the fourth and 0.37 above the lowest in the written order.
+
+The rotated run puts each rewording at each place of the list in one of the 5 orders of a query:
+
+| | First | Second | Third | Fourth | Fifth |
+|---|---|---|---|---|---|
+| Mean probability of the entry at this place of the list | 0.179 | 0.186 | 0.188 | 0.204 | 0.241 |
+| Answers that select the entry at this place, of 250 | 30 | 44 | 47 | 51 | 78 |
+| Mean probability of this rewording, by its place in the file | 0.214 | 0.261 | 0.171 | 0.211 | 0.142 |
+| Answers that select this rewording, of 250 | 60 | 82 | 28 | 60 | 20 |
+
+- The entry at the last place is selected in 78 of the 250 answers and the entry at the first place in 30. TypeSafe's documentation says that `jev-1.13` "leans toward the option that comes first" (`docs.typesafe.ai/model-jaggedness/jev-1.13`, read on 2026-10-04).
+- Jev selects the same rewording in all 5 orders for 13 of the 50 queries, in 4 orders for 19, in 3 for 12 and in 2 for 6.
+- The written order was sent twice: in the written-order run, and as the first question of the rotated run. Jev selects the same rewording in 47 of the 50 queries, and no probability differs by more than 0.08.
+- Between the written order and the shuffled order Jev selects the same rewording in 33 of the 50 queries, and the largest change of one probability is 0.58.
 
 A first look at the saved answers gave the figures below. The figures script does not print them.
 
-- In 21 of the 50 queries the API had Jev's highest probability before rewording, 0.917 on average. Its 5 rewordings have 0.783 together: 0.322, 0.200, 0.130, 0.083 and 0.048 from the highest to the lowest. In the other 29 queries the API had 0.080, and its rewordings have 0.124 together.
-- Jev's selected entry is a rewording in 14 of the 50 answers.
-- The 3 queries with 1 relevant API give 1.00 to their 5 rewordings together. From the highest to the lowest: 0.38, 0.33, 0.13, 0.13 and 0.03; 0.31, 0.23, 0.19, 0.18 and 0.09; 0.74, 0.11, 0.07, 0.04 and 0.04.
-- In 8 answers two or more rewordings share the highest probability of the 5.
+- In the list of the list-length run, with different APIs and the wording `every`, the 5 highest probabilities of the same 50 queries are 0.840, 0.117, 0.031, 0.009 and 0.003 on average.
+- In the rotated run the probability of one rewording differs by more than 0.10 between its highest and its lowest place in 167 of the 250 cases of a query and a rewording, and by more than 0.20 in 71.
+- For the query that names "Flight Search V2", Jev selects "Search Available Flights, Version 2" in all 5 orders, with 0.87 at the first place, 0.80 at the second, 0.47 at the third, 0.65 at the fourth and 0.75 at the fifth.
+
+## Queries that name their APIs
+
+Rushab, 2026-10-06, after reading one request of StableToolBench: "the tool is exctly specified in the query. not representative of the real wold at all". Its query: "I need to book a flight from London to Dubai for a business trip. Can you provide me with the flight options available on a specific date using the Flight Search V2 API? Additionally, I would like to search for airports using a specific query using the Airport Search API."
+
+A count on the processed files, with the names and the queries in lower case and without punctuation:
+
+| Dataset | Queries | Queries that contain the name of a relevant API or of its tool | Queries that contain neither |
+|---|---|---|---|
+| StableToolBench, the six test files | 765 | 336 (43.9%) | 429 |
+| The 50 queries of the list-length run | 50 | 23 | 27 |
+| MetaTool, the test files `similar_tools`, `scenario` and `multi_tool` | 3,292 | 170 (5.2%), the name of a correct tool | 3,122 |
+
+- 221 of the 765 StableToolBench queries contain the name of a relevant API, 180 the name of the tool of a relevant API, and 49 the name of every relevant API.
+- `G2_category` has the highest share, 72 of 124 queries, and `G1_instruction` the lowest, 56 of 163.
+- The count takes exact names. "Can you provide me with the channel clips and the channel details?" is counted as naming neither "Get Channel Clips" nor "Get Channel Details".
+- Rushab dropped StableToolBench on 2026-10-06 and kept it the same day: Jev gives one relevant API its highest probability and the others a low one in queries that name them.
+- The code of this count is not in the repo.
 
 ## How runs are staged
 
@@ -284,7 +353,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 760 on 2026-10-06, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,210 on 2026-10-07, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -497,8 +566,10 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 760 Jev calls is raised, and for which runs.
-- Decide whether the requests of the 50 StableToolBench queries are sent again, to see whether Jev's top API changes between two calls of one request. Rushab proposed it on 2026-10-06. Sending the 59 requests of the list-length run 4 more times is 236 calls and about $0.28. The 94 questions that the wording run and the list-length run both sent give a first figure: Jev selects the same API in 93.
+- Decide when the limit of 1,210 Jev calls is raised, and for which runs.
+- Repeat the second run and the runs with rewordings on MetaTool. Rushab decided this on 2026-10-07.
+- Find why the entry at the last place of a list of 5 rewordings is selected in 78 of 250 answers and the entry at the first place in 30.
+- Check whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench.
 - Find why CSR falls with the list length on MetaTool and not on StableToolBench. A first look counts 7.66 similar wrong tools gained by a MetaTool list as it grows to 199, and 3.46 by a StableToolBench list.
 - Decide whether the rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 36 of 50 with 199 tools, and Jev 34 of 50.
 - Decide how the number of correct tools is read from one answer of Jev, when the instruction does not state it.
