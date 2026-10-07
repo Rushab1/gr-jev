@@ -21,7 +21,7 @@ from grjev.runs import Planned, Row, RunConfig, call_counts, csr, plan, run, tie
 
 
 def parse_args() -> argparse.Namespace:
-    """Read the experiment, the dataset, the sample size and the dry-run switch from the command line."""
+    """Read the experiment, the dataset, the sample size, the run number and the dry-run switch."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("experiment", choices=sorted(EXPERIMENT_TEST_FILES))
     parser.add_argument("--dataset", default="metatool", choices=sorted(PROCESSED_DIRS))
@@ -30,6 +30,7 @@ def parse_args() -> argparse.Namespace:
     sample.add_argument("--examples-per-file", type=int, help="run a seeded sample of this many examples per file")
     sample.add_argument("--examples", type=int, help="run a seeded sample of this many examples over all the files")
     parser.add_argument("--two-tool-wording", choices=sorted(TWO_TOOL_INSTRUCTIONS), default=TWO_TOOL_WORDING)
+    parser.add_argument("--run", type=int, default=1, help="run number: a new number asks Jev the same requests again")
     parser.add_argument("--dry-run", action="store_true", help="print the number of Jev calls and send nothing")
     return parser.parse_args()
 
@@ -74,6 +75,7 @@ def main() -> None:
         examples_per_file=args.examples_per_file,
         examples=args.examples,
         two_tool_wording=args.two_tool_wording,
+        run=args.run,
     )
     examples, tools = read_dataset(PROCESSED_DIRS[config.dataset], config.test_files)
     planned = plan(config, examples, tools)
