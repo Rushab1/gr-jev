@@ -266,13 +266,15 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "growth" sends every example with its tool list and with random other tools added up to several list lengths.
 # "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
 # "rotated" sends that list in every rotation of the order in which the rewordings are written.
+# The MetaTool test files whose examples have a correct tool to reword.
+METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
     "wording": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
-    "reworded": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
-    "rotated": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -315,9 +317,15 @@ GROWTH_WORDINGS = ("all", "every")
 OWN_LIST = "own"
 # The "reworded" experiment. One correct tool of a query is chosen with the seed, and the list that is sent holds only
 # rewordings of its name and description, in a seeded order. Dataset -> the file of rewordings: the name of a tool ->
-# its 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06. A rewording of a StableToolBench API keeps the category
-# and the tool of the name, and rewords the API name and the description. A blank description stays blank.
-REWORDINGS_FILES = {"stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json"}
+# its 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06 and 2026-10-07. A rewording of a StableToolBench API
+# keeps the category and the tool of the name, and rewords the API name and the description. A blank description stays
+# blank. A rewording of a MetaTool tool rewords the name and the description.
+REWORDINGS_FILES = {
+    "metatool": Path(__file__).parent / "rewordings" / "metatool.json",
+    "stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json",
+}
+# The experiments whose lists hold only rewordings of one tool. Every entry is correct, and "None" is not offered.
+REWORDING_EXPERIMENTS = ("reworded", "rotated")
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
 REWORDED_LIST = "reworded"

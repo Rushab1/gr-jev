@@ -26,6 +26,7 @@ from grjev.constants import (
     PROGRESS_EVERY,
     REWORDED_INSTRUCTIONS,
     REWORDED_LIST,
+    REWORDING_EXPERIMENTS,
     REWORDINGS_FILES,
     SEVERAL_TOOL_TEST_FILES,
     TWO_TOOL_INSTRUCTIONS,
@@ -233,12 +234,12 @@ LISTS = {
 def criteria_of(config: RunConfig, test_file: str, tools: list[Option]) -> dict[str, str | None]:
     """Return the candidates of a question in the order of the list, with "None" last where it is offered.
 
-    A tool with a blank description is sent without one.
+    A tool with a blank description is sent without one. A list of rewordings offers no "None".
     """
     criteria: dict[str, str | None] = {
         tool.name: tool.description if tool.description.strip() else None for tool in tools
     }
-    if test_file in NONE_TEST_FILES[config.dataset]:
+    if test_file in NONE_TEST_FILES[config.dataset] and config.experiment not in REWORDING_EXPERIMENTS:
         criteria[NONE_NAME] = NONE_DESCRIPTION
     return criteria
 
@@ -299,10 +300,10 @@ def top_tools(probabilities: dict[str, float], count: int) -> list[str] | None:
 def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: ChoiceAnswer) -> bool:
     """Say whether Jev's answer matches the labels.
 
-    In a test file with several correct tools, its k highest-probability tools are the k correct tools. Elsewhere its
-    choice is the correct tool, or "None" when no tool is correct.
+    In a test file with several correct tools, and for a list of rewordings, its k highest-probability tools are the k
+    correct tools. Elsewhere its choice is the correct tool, or "None" when no tool is correct.
     """
-    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]:
+    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset] or config.experiment in REWORDING_EXPERIMENTS:
         top = top_tools(answer.probabilities, len(labels))
         return top is not None and set(top) == set(labels)
     return answer.choice == (labels[0] if labels else NONE_NAME)

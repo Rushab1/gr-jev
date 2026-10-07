@@ -253,6 +253,21 @@ def test_a_rotated_run_asks_the_rewordings_in_every_rotation_as_questions_of_one
     assert item.example.labels == [tool.name for tool in written]
 
 
+def test_a_list_of_rewordings_offers_no_none_and_every_entry_is_correct() -> None:
+    rotated = config("rotated", "similar_tools")
+    assert list(criteria_of(rotated, "similar_tools", TOOLS[:2])) == ["tool_1", "tool_2"]
+    assert list(criteria_of(config(), "similar_tools", TOOLS[:2])) == ["tool_1", "tool_2", NONE_NAME]
+    assert is_correct(rotated, "similar_tools", ["a", "b"], choice({"a": 0.2, "b": 0.8}))
+    assert not is_correct(config(), "similar_tools", ["a"], choice({"a": 0.2, "b": 0.8}))
+
+
+def test_every_tool_in_the_metatool_rewordings_file_has_five_rewordings_with_names_of_their_own() -> None:
+    rewordings = read_rewordings(REWORDINGS_FILES["metatool"])
+    names = [tool.name for tools in rewordings.values() for tool in tools]
+    assert len(names) == len(set(names)) == 5 * len(rewordings) and not set(names) & set(rewordings)
+    assert all(tool.description.strip() for tools in rewordings.values() for tool in tools)
+
+
 def test_every_tool_in_the_stabletoolbench_rewordings_file_has_five_rewordings_with_its_category_and_tool() -> None:
     rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
     for original, tools in rewordings.items():
@@ -568,3 +583,33 @@ def test_fifty_rotated_stabletoolbench_queries_send_one_request_with_five_orders
             sorted(tool.name for tool in tools) == sorted(tool.name for tool in written)
             for tools in item.lists.values()
         )
+
+
+def test_fifty_rotated_metatool_queries_send_five_rewordings_of_a_correct_tool_and_no_none(
+    metatool: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    examples, tools = metatool
+    run_config = config("rotated", examples=50)
+    planned = plan(run_config, examples, tools)
+    counts = call_counts(run_config, planned)
+    assert {name: count["examples"] for name, count in counts.items()} == {
+        "similar_tools": 17,
+        "scenario": 17,
+        "multi_tool": 16,
+    }
+    assert sum(count["calls"] for count in counts.values()) == 50
+    rewordings = read_rewordings(REWORDINGS_FILES["metatool"])
+    by_names = {frozenset(tool.name for tool in written): original for original, written in rewordings.items()}
+    known = {tool.name for tool in tools}
+    correct = {example.id: example.labels or [] for own in examples.values() for example in own}
+    reworded = set()
+    for item in planned:
+        original = by_names[frozenset(item.example.labels or [])]
+        reworded.add(original)
+        assert original in correct[item.example.id] and not set(item.example.labels or []) & known
+        for request in item.requests:
+            for question in request.questions.values():
+                assert isinstance(question, jev.ChoiceQuestion) and len(question.criteria) == 5
+                assert set(question.criteria) == set(item.example.labels or [])
+    # The 50 queries reword 38 different tools, and the file holds no other.
+    assert reworded == set(rewordings) and len(reworded) == 38
