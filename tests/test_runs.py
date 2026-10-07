@@ -41,6 +41,7 @@ from grjev.runs import (
     is_correct,
     plan,
     run,
+    sample_size,
     sampled,
     tied_answers,
     top_tools,
@@ -289,11 +290,20 @@ def test_a_run_past_the_call_limit_does_not_start(fake: FakeJev, monkeypatch: py
 
 def test_a_sample_is_seeded_and_keeps_the_order_given() -> None:
     examples = [example(number, ["tool_1"]) for number in range(10)]
-    assert sampled(examples, config()) == examples
-    sample = sampled(examples, config(examples_per_file=3))
-    assert len(sample) == 3 and sample == sampled(examples, config(examples_per_file=3))
+    assert sampled(examples, None, seed=7) == examples
+    sample = sampled(examples, 3, seed=7)
+    assert len(sample) == 3 and sample == sampled(examples, 3, seed=7)
     assert [item.id for item in sample] == sorted(item.id for item in sample)
-    assert sampled(examples, config(examples_per_file=50)) == examples
+    assert sampled(examples, 50, seed=7) == examples
+    assert set(item.id for item in sample) <= set(item.id for item in sampled(examples, 4, seed=7))
+
+
+def test_a_total_number_of_examples_is_spread_over_the_test_files_and_the_first_files_get_one_more() -> None:
+    files = ("a", "b", "c", "d", "e", "f")
+    total = config("position", *files, examples=50)
+    assert [sample_size(total, name) for name in files] == [9, 9, 8, 8, 8, 8]
+    assert [sample_size(config("position", *files, examples_per_file=8), name) for name in files] == [8] * 6
+    assert [sample_size(config("position", *files), name) for name in files] == [None] * 6
 
 
 def row(test_file: str, labels: list[str], answers: dict[str, tuple[dict[str, float], bool]]) -> Row:
@@ -451,3 +461,12 @@ def test_the_stabletoolbench_growth_subset_grows_the_list_that_the_wording_run_s
         for size in GROWTH_LENGTHS["stabletoolbench"]:
             apis = [tool.name for tool in item.lists[f"{size}_every"]]
             assert len(apis) == len(set(apis)) == size and set(labels) <= set(apis)
+
+
+def test_fifty_stabletoolbench_queries_hold_the_eight_of_each_test_file(
+    stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    fifty = plan(config("growth", dataset="stabletoolbench", examples=50), *stabletoolbench)
+    eight_per_file = plan(config("growth", dataset="stabletoolbench", examples_per_file=8), *stabletoolbench)
+    assert len(fifty) == 50
+    assert {item.example.id for item in eight_per_file} < {item.example.id for item in fifty}

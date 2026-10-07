@@ -26,7 +26,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("experiment", choices=sorted(EXPERIMENT_TEST_FILES))
     parser.add_argument("--dataset", default="metatool", choices=sorted(PROCESSED_DIRS))
     parser.add_argument("--test-files", nargs="+", help="default: every test file of the experiment")
-    parser.add_argument("--examples-per-file", type=int, help="run a seeded sample of this many examples per file")
+    sample = parser.add_mutually_exclusive_group()
+    sample.add_argument("--examples-per-file", type=int, help="run a seeded sample of this many examples per file")
+    sample.add_argument("--examples", type=int, help="run a seeded sample of this many examples over all the files")
     parser.add_argument("--two-tool-wording", choices=sorted(TWO_TOOL_INSTRUCTIONS), default=TWO_TOOL_WORDING)
     parser.add_argument("--dry-run", action="store_true", help="print the number of Jev calls and send nothing")
     return parser.parse_args()
@@ -70,6 +72,7 @@ def main() -> None:
         dataset=args.dataset,
         test_files=tuple(args.test_files or EXPERIMENT_TEST_FILES[args.experiment][args.dataset]),
         examples_per_file=args.examples_per_file,
+        examples=args.examples,
         two_tool_wording=args.two_tool_wording,
     )
     examples, tools = read_dataset(PROCESSED_DIRS[config.dataset], config.test_files)

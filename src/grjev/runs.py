@@ -49,12 +49,17 @@ type ExampleLists = Iterator[tuple[str, Example, dict[str, list[Option]], dict[s
 
 
 class RunConfig(BaseModel):
-    """What a run sends. `examples_per_file` is None for every example, or the size of a seeded sample."""
+    """What a run sends.
+
+    A run sends every example, or a seeded sample: `examples_per_file` examples of each test file, or `examples`
+    examples over all the test files.
+    """
 
     experiment: str
     dataset: str
     test_files: tuple[str, ...]
     examples_per_file: int | None = None
+    examples: int | None = None
     two_tool_wording: str = TWO_TOOL_WORDING
     seed: int = ORDER_SEED
     model: str = JEV_MODEL
@@ -91,12 +96,22 @@ class Planned:
     requests: list[JevRequest]
 
 
-def sampled(examples: list[Example], config: RunConfig) -> list[Example]:
-    """Return every example, or a seeded sample of the configured size in the order given."""
-    if config.examples_per_file is None:
+def sample_size(config: RunConfig, test_file: str) -> int | None:
+    """Return the number of examples that are sampled from a test file, or None for every example.
+
+    A total of `examples` is spread over the test files as evenly as possible, and the first files get one more.
+    """
+    if config.examples is None:
+        return config.examples_per_file
+    share, extra = divmod(config.examples, len(config.test_files))
+    return share + (config.test_files.index(test_file) < extra)
+
+
+def sampled(examples: list[Example], size: int | None, seed: int) -> list[Example]:
+    """Return every example, or a seeded sample of the given size in the order given."""
+    if size is None:
         return examples
-    size = min(config.examples_per_file, len(examples))
-    kept = set(random.Random(config.seed).sample(range(len(examples)), size))
+    kept = set(random.Random(seed).sample(range(len(examples)), min(size, len(examples))))
     return [example for index, example in enumerate(examples) if index in kept]
 
 
@@ -110,7 +125,7 @@ def file_instructions(config: RunConfig, test_file: str) -> str:
 def position_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with its list in the released order and with its correct tools at each placement."""
     for test_file in config.test_files:
-        for example in sampled(examples[test_file], config):
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             lists = orders_of(example, config.seed)
             yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
 
@@ -123,7 +138,7 @@ def length_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             first.setdefault(example.query, (test_file, example))
     for test_file in config.test_files:
         own = [example for name, example in first.values() if name == test_file]
-        for example in sampled(own, config):
+        for example in sampled(own, sample_size(config, test_file), config.seed):
             lists = length_orders(example, tools, LIST_LENGTHS[config.dataset], config.seed)
             yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
 
@@ -145,7 +160,7 @@ def wording_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
     The list holds the example's tools in a seeded order, with random other tools added to a short list.
     """
     for test_file in config.test_files:
-        for example in sampled(examples[test_file], config):
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             instructions = wording_instructions(example, [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS])
             order = padded_order(example, tools, PADDED_LIST_TOOLS, config.seed)
             yield test_file, example, dict.fromkeys(instructions, order), instructions
@@ -157,7 +172,7 @@ def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
     A list is named by its length, or by OWN_LIST before it is grown, and by the wording of its instruction.
     """
     for test_file in config.test_files:
-        for example in sampled(examples[test_file], config):
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             orders = grown_orders(example, tools, PADDED_LIST_TOOLS, GROWTH_LENGTHS[config.dataset], config.seed)
             wordings = wording_instructions(example, GROWTH_WORDINGS)
             lists = {f"{size}_{wording}": order for size, order in orders.items() for wording in wordings}
