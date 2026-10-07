@@ -69,6 +69,16 @@ def orders_of(example: Example, seed: int) -> dict[str, list[Option]]:
     return orders | two_tool_orders(distractors, correct[0], correct[1])
 
 
+def padded_order(example: Example, tools: list[Option], size: int, seed: int) -> list[Option]:
+    """Return the example's tools in a seeded order, with random other tools of the dataset added up to `size` tools."""
+    rng = random.Random(f"{seed}/{example.id}")
+    listed = {option.name for option in example.options}
+    others = [tool for tool in tools if tool.name not in listed]
+    order = example.options + rng.sample(others, max(0, size - len(example.options)))
+    rng.shuffle(order)
+    return order
+
+
 def length_orders(example: Example, tools: list[Option], lengths: Iterable[int], seed: int) -> dict[str, list[Option]]:
     """Return, for each list length and placement, the example's one correct tool among other tools of the dataset.
 

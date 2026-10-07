@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 
 from grjev.constants import (
+    COUNTED_WORDINGS,
     JEV_MODEL,
     JEV_REQUEST_CHARACTERS,
     JEV_WORKERS,
@@ -16,12 +17,15 @@ from grjev.constants import (
     NONE_DESCRIPTION,
     NONE_NAME,
     NONE_TEST_FILES,
+    NUMBER_WORDS,
     ONE_TOOL_INSTRUCTIONS,
     ORDER_SEED,
+    PADDED_LIST_TOOLS,
     PROGRESS_EVERY,
+    SEVERAL_TOOL_TEST_FILES,
     TWO_TOOL_INSTRUCTIONS,
-    TWO_TOOL_TEST_FILES,
     TWO_TOOL_WORDING,
+    UNCOUNTED_WORDINGS,
 )
 from grjev.examples import Example, Option
 from grjev.jev import (
@@ -34,12 +38,12 @@ from grjev.jev import (
     check_call_limit,
     response_path,
 )
-from grjev.placement import length_orders, orders_of
+from grjev.placement import length_orders, orders_of, padded_order
 
 logger = logging.getLogger(__name__)
 
-# The test file of an example, the example, and its tool lists by name.
-type ExampleLists = Iterator[tuple[str, Example, dict[str, list[Option]]]]
+# The test file of an example, the example, its tool lists by name, and the instruction sent with each list.
+type ExampleLists = Iterator[tuple[str, Example, dict[str, list[Option]], dict[str, str]]]
 
 
 class RunConfig(BaseModel):
@@ -94,11 +98,19 @@ def sampled(examples: list[Example], config: RunConfig) -> list[Example]:
     return [example for index, example in enumerate(examples) if index in kept]
 
 
+def file_instructions(config: RunConfig, test_file: str) -> str:
+    """Return the instruction of a test file: for one tool, or for two tools in the wording of the config."""
+    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]:
+        return TWO_TOOL_INSTRUCTIONS[config.two_tool_wording]
+    return ONE_TOOL_INSTRUCTIONS
+
+
 def position_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with its list in the released order and with its correct tools at each placement."""
     for test_file in config.test_files:
         for example in sampled(examples[test_file], config):
-            yield test_file, example, orders_of(example, config.seed)
+            lists = orders_of(example, config.seed)
+            yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
 
 
 def length_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
@@ -110,27 +122,49 @@ def length_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
     for test_file in config.test_files:
         own = [example for name, example in first.values() if name == test_file]
         for example in sampled(own, config):
-            yield test_file, example, length_orders(example, tools, LIST_LENGTHS[config.dataset], config.seed)
+            lists = length_orders(example, tools, LIST_LENGTHS[config.dataset], config.seed)
+            yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
+
+
+def wording_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with one tool list, under the name of each wording of the instruction it is sent with.
+
+    The list holds the example's tools in a seeded order, with random other tools added to a short list. A wording
+    that states the number of correct tools is sent only for a query with two or more of them.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], config):
+            correct = len(example.labels or [])
+            counted = COUNTED_WORDINGS if correct > 1 else {}
+            instructions = {name: text.format(number=NUMBER_WORDS[correct]) for name, text in counted.items()}
+            instructions |= UNCOUNTED_WORDINGS
+            order = padded_order(example, tools, PADDED_LIST_TOOLS, config.seed)
+            yield test_file, example, dict.fromkeys(instructions, order), instructions
 
 
 # Experiment -> the function that yields the tool lists of its examples.
-LISTS = {"position": position_lists, "length": length_lists}
+LISTS = {"position": position_lists, "length": length_lists, "wording": wording_lists}
 
 
 def criteria_of(config: RunConfig, test_file: str, tools: list[Option]) -> dict[str, str | None]:
-    """Return the candidates of a question in the order of the list, with "None" last where it is offered."""
-    criteria: dict[str, str | None] = {tool.name: tool.description for tool in tools}
+    """Return the candidates of a question in the order of the list, with "None" last where it is offered.
+
+    A tool with a blank description is sent without one.
+    """
+    criteria: dict[str, str | None] = {
+        tool.name: tool.description if tool.description.strip() else None for tool in tools
+    }
     if test_file in NONE_TEST_FILES[config.dataset]:
         criteria[NONE_NAME] = NONE_DESCRIPTION
     return criteria
 
 
-def questions_of(config: RunConfig, test_file: str, lists: dict[str, list[Option]]) -> dict[str, ChoiceQuestion]:
-    """Return one choice question per tool list, with the instruction of the test file."""
-    two_tools = test_file in TWO_TOOL_TEST_FILES[config.dataset]
-    instructions = TWO_TOOL_INSTRUCTIONS[config.two_tool_wording] if two_tools else ONE_TOOL_INSTRUCTIONS
+def questions_of(
+    config: RunConfig, test_file: str, lists: dict[str, list[Option]], instructions: dict[str, str]
+) -> dict[str, ChoiceQuestion]:
+    """Return one choice question per tool list, with the instruction of that list."""
     return {
-        name: ChoiceQuestion(instructions=instructions, criteria=criteria_of(config, test_file, tools))
+        name: ChoiceQuestion(instructions=instructions[name], criteria=criteria_of(config, test_file, tools))
         for name, tools in lists.items()
     }
 
@@ -152,19 +186,19 @@ def requests_of(config: RunConfig, query: str, questions: dict[str, ChoiceQuesti
 def plan(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> list[Planned]:
     """Return every example of the run with its tool lists and requests."""
     planned = []
-    for test_file, example, lists in LISTS[config.experiment](config, examples, tools):
-        requests = requests_of(config, example.query, questions_of(config, test_file, lists))
+    for test_file, example, lists, instructions in LISTS[config.experiment](config, examples, tools):
+        requests = requests_of(config, example.query, questions_of(config, test_file, lists, instructions))
         planned.append(Planned(test_file, example, lists, requests))
     return planned
 
 
 def call_counts(config: RunConfig, planned: Iterable[Planned]) -> dict[str, dict[str, int]]:
-    """Return, for each test file, its examples, tool lists and Jev calls, and the calls with no saved response."""
+    """Return, for each test file, its examples, questions and Jev calls, and the calls with no saved response."""
     counts: dict[str, dict[str, int]] = {}
     for item in planned:
-        count = counts.setdefault(item.test_file, {"examples": 0, "tool_lists": 0, "calls": 0, "new_calls": 0})
+        count = counts.setdefault(item.test_file, {"examples": 0, "questions": 0, "calls": 0, "new_calls": 0})
         count["examples"] += 1
-        count["tool_lists"] += len(item.lists)
+        count["questions"] += len(item.lists)
         count["calls"] += len(item.requests)
         count["new_calls"] += sum(not response_path(request, config.run).exists() for request in item.requests)
     return counts
@@ -179,8 +213,12 @@ def top_tools(probabilities: dict[str, float], count: int) -> list[str] | None:
 
 
 def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: ChoiceAnswer) -> bool:
-    """Say whether Jev's answer matches the labels: one tool, two tools, or "None" when no tool is correct."""
-    if test_file in TWO_TOOL_TEST_FILES[config.dataset]:
+    """Say whether Jev's answer matches the labels.
+
+    In a test file with several correct tools, its k highest-probability tools are the k correct tools. Elsewhere its
+    choice is the correct tool, or "None" when no tool is correct.
+    """
+    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]:
         top = top_tools(answer.probabilities, len(labels))
         return top is not None and set(top) == set(labels)
     return answer.choice == (labels[0] if labels else NONE_NAME)
@@ -237,6 +275,6 @@ def tied_answers(config: RunConfig, rows: Iterable[Row]) -> int:
     return sum(
         top_tools(answer.probabilities, len(row.labels)) is None
         for row in rows
-        if row.test_file in TWO_TOOL_TEST_FILES[config.dataset]
+        if row.test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]
         for answer in row.answers.values()
     )

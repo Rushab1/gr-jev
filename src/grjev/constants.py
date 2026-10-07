@@ -256,16 +256,22 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 
 # Experiment -> dataset -> the test files it sends, in order. "position" sends every example in the released order and
 # with its correct tools at each placement. "length" sends each different one-tool query with lists of several lengths.
+# "wording" sends every example with one tool list and each wording of the instruction for several correct tools.
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
+    "wording": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
-NONE_TEST_FILES = {"metatool": ("similar_tools", "scenario", "reliability")}
+NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
+    "metatool": ("similar_tools", "scenario", "reliability"),
+    "stabletoolbench": (),
+}
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
-# Dataset -> test files whose benchmark asks for two tools. Jev's answer is its two highest-probability tools.
-TWO_TOOL_TEST_FILES = {"metatool": ("multi_tool",)}
+# Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
+# its k highest-probability tools.
+SEVERAL_TOOL_TEST_FILES = {"metatool": ("multi_tool",), "stabletoolbench": STABLETOOLBENCH_TEST_FILES}
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
 )
@@ -275,6 +281,19 @@ TWO_TOOL_INSTRUCTIONS = {
     "both": "Two tools in the list are appropriate to solve the user's query. Choose both.",
 }
 TWO_TOOL_WORDING = "one"
+# The "wording" experiment. Name of a wording -> an instruction that states the number of correct tools, written as a
+# word in place of {number}. These wordings are sent for a query with two or more correct tools.
+COUNTED_OPENING = "{number} tools in the list are appropriate to solve the user's query."
+COUNTED_WORDINGS = {
+    "one": f"{COUNTED_OPENING} Choose one of them.",
+    "all": f"{COUNTED_OPENING} Choose all of them.",
+    "equal": f"{COUNTED_OPENING} Choose all of them with equal probability.",
+}
+# Name of a wording -> an instruction that does not state the number of correct tools. It is sent for every query.
+UNCOUNTED_WORDINGS = {"every": "Choose every tool in the list that is needed to solve the user's query."}
+NUMBER_WORDS = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six"}
+# In the "wording" experiment a list with fewer tools than this gets random other tools of the dataset added.
+PADDED_LIST_TOOLS = 5
 # Dataset -> the list lengths of the "length" experiment. MetaTool has 199 tools, so its last list holds every tool.
 LIST_LENGTHS = {"metatool": (5, 10, 20, 50, 100, 199)}
 # The name of the order in which a test file lists the tools.

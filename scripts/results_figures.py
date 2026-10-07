@@ -1,6 +1,7 @@
 """Print the figures of runs from their results folders.
 
-Each test file gets a table with one row per tool list and per group of tool lists. Its columns:
+Each test file gets a table with one row per tool list and per group of tool lists. In a wording run a row is one
+wording of the instruction. Its columns:
 
 - examples: the examples that have every list of the group
 - answers, correct, CSR: one answer per example and list, and the percentage that is correct
@@ -64,12 +65,12 @@ def print_run(folder: Path) -> None:
     """Print the input tokens of one run and their price, then the figures of each of its test files."""
     config = RunConfig.model_validate_json((folder / "config.json").read_text())
     rows = read_jsonl(folder / "rows.jsonl", Row)
-    lengths = LIST_LENGTHS[config.dataset]
+    lengths = LIST_LENGTHS.get(config.dataset, ())
     tokens = sum(row.input_tokens for row in rows)
-    tool_lists = sum(len(row.answers) for row in rows)
+    questions = sum(len(row.answers) for row in rows)
     dollars = tokens / 1e6 * JEV_DOLLARS_PER_MILLION_INPUT_TOKENS
-    print(f"{folder}: {len(rows):,} examples, {tool_lists:,} tool lists, {tokens:,} input tokens, ${dollars:.2f}")
-    print(f"{tokens / tool_lists:,.0f} input tokens per tool list, {tokens / len(rows):,.0f} per example")
+    print(f"{folder}: {len(rows):,} examples, {questions:,} questions, {tokens:,} input tokens, ${dollars:.2f}")
+    print(f"{tokens / questions:,.0f} input tokens per question, {tokens / len(rows):,.0f} per example")
     for name, own in row_groups(rows).items():
         groups = list_groups(list_names(own), lengths)
         table = [["tool lists", *COLUMNS]]

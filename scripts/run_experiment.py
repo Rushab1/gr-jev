@@ -33,27 +33,29 @@ def parse_args() -> argparse.Namespace:
 
 
 def print_calls(config: RunConfig, planned: list[Planned]) -> None:
-    """Print the examples, tool lists and Jev calls of each test file, next to the saved calls and the limit."""
+    """Print the examples, questions and Jev calls of each test file, next to the saved calls and the limit."""
     counts = call_counts(config, planned)
     total = {
-        key: sum(count[key] for count in counts.values()) for key in ("examples", "tool_lists", "calls", "new_calls")
+        key: sum(count[key] for count in counts.values()) for key in ("examples", "questions", "calls", "new_calls")
     }
-    print(f"{'test file':<16}{'examples':>10}{'tool lists':>12}{'Jev calls':>11}{'not saved':>11}")
+    print(f"{'test file':<16}{'examples':>10}{'questions':>12}{'Jev calls':>11}{'not saved':>11}")
     for name, count in (counts | {"total": total}).items():
         print(
-            f"{name:<16}{count['examples']:>10,}{count['tool_lists']:>12,}{count['calls']:>11,}{count['new_calls']:>11,}"
+            f"{name:<16}{count['examples']:>10,}{count['questions']:>12,}{count['calls']:>11,}{count['new_calls']:>11,}"
         )
     print(f"Saved Jev calls: {calls_saved():,}. Limit: {JEV_CALL_LIMIT:,}.")
 
 
 def print_summary(config: RunConfig, rows: list[Row]) -> None:
-    """Print the CSR of each test file and tool list, the tied two-tool answers, and the price of the input tokens."""
+    """Print the CSR of each test file and question, the answers a tie leaves open, and the price of the tokens."""
     for test_file, by_list in csr(rows).items():
         print(test_file)
         for name, percent in by_list.items():
             print(f"  {name:<28}{percent:6.1f}%")
     tokens = sum(row.input_tokens for row in rows)
-    print(f"Two-tool answers with a tie for second place: {tied_answers(config, rows):,}")
+    print(
+        f"Answers to a query with several correct tools where a tie leaves a place open: {tied_answers(config, rows):,}"
+    )
     print(f"Input tokens: {tokens:,}, ${tokens / 1e6 * JEV_DOLLARS_PER_MILLION_INPUT_TOKENS:.2f}")
 
 

@@ -5,14 +5,17 @@ import statistics
 from collections import Counter
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 
 from grjev.constants import (
     BOOTSTRAP_RESAMPLES,
+    COUNTED_WORDINGS,
     INTERVAL_TAIL,
     NONE_NAME,
     PLACEMENTS,
     RELEASED_ORDER,
     SEPARATED_PLACEMENTS,
+    UNCOUNTED_WORDINGS,
 )
 from grjev.runs import ListAnswer, Row, top_tools
 
@@ -133,7 +136,8 @@ def list_groups(names: Sequence[str], lengths: Sequence[int]) -> Groups:
     """Return the groups of tool lists that have figures: each list, then the groups that pool lists, then every list.
 
     A position run pools the placements of one correct tool, and the adjacent and the separated orders of two. A
-    length run pools the placements of each list length, and the list lengths of each placement.
+    length run pools the placements of each list length, and the list lengths of each placement. The wordings of a
+    wording run are not pooled.
     """
     placements = list(PLACEMENTS)
     pooled = {
@@ -143,22 +147,29 @@ def list_groups(names: Sequence[str], lengths: Sequence[int]) -> Groups:
     }
     pooled |= {f"{length} tools": [f"{length}_{name}" for name in placements] for length in lengths}
     pooled |= {f"{name}, every length": [f"{length}_{name}" for length in lengths] for name in placements}
-    present = {group: lists for group, lists in pooled.items() if set(lists) <= set(names)}
-    every = {"every list": list(names)} if len(names) > 1 else {}
+    present = {group: lists for group, lists in pooled.items() if lists and set(lists) <= set(names)}
+    wordings = {*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS}
+    every = {"every list": list(names)} if len(names) > 1 and not set(names) <= wordings else {}
     return {name: [name] for name in names} | present | every
 
 
 def compared_groups(groups: Groups, lengths: Sequence[int]) -> dict[str, tuple[str, str]]:
-    """Return the pairs of groups whose CSR is compared, by name of the comparison: the first group minus the second."""
+    """Return the pairs of groups whose CSR is compared, by name of the comparison: the first group minus the second.
+
+    A wording run compares each wording with the one before it.
+    """
     placed = f"{len(PLACEMENTS)} placements"
-    shortest, longest = f"{lengths[0]} tools", f"{lengths[-1]} tools"
     pairs = {
         "first minus last": ("first", "last"),
         f"{RELEASED_ORDER} minus {placed}": (RELEASED_ORDER, placed),
         "adjacent minus separated": ("adjacent", "separated"),
-        f"{shortest} minus {longest}": (shortest, longest),
         "first minus last, every length": ("first, every length", "last, every length"),
     }
+    if lengths:
+        shortest, longest = f"{lengths[0]} tools", f"{lengths[-1]} tools"
+        pairs[f"{shortest} minus {longest}"] = (shortest, longest)
+    wordings = [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS]
+    pairs |= {f"{later} minus {earlier}": (later, earlier) for earlier, later in pairwise(wordings)}
     return {name: pair for name, pair in pairs.items() if set(pair) <= set(groups)}
 
 

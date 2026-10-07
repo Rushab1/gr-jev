@@ -140,6 +140,17 @@ def test_a_length_run_has_a_group_for_each_list_length_and_for_each_placement() 
     }
 
 
+def test_the_wordings_of_a_wording_run_are_not_pooled_and_each_is_compared_with_the_one_before() -> None:
+    groups = list_groups(["one", "all", "equal", "every"], [])
+    assert groups == {"one": ["one"], "all": ["all"], "equal": ["equal"], "every": ["every"]}
+    assert compared_groups(groups, []) == {
+        "all minus one": ("all", "one"),
+        "equal minus all": ("equal", "all"),
+        "every minus equal": ("every", "equal"),
+    }
+    assert compared_groups(list_groups(["every"], []), []) == {}
+
+
 def test_examples_are_grouped_by_test_file_and_pooled_when_all_have_the_same_lists() -> None:
     similar = row("similar_tools", ["a"], {"5_first": answer("a", True)})
     scenario = row("scenario", ["a"], {"5_first": answer("a", True)})

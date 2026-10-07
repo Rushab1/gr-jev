@@ -13,15 +13,18 @@ import pytest
 
 from grjev import jev, results, runs
 from grjev.constants import (
+    COUNTED_WORDINGS,
     EXPERIMENT_TEST_FILES,
     JEV_MAX_OPTIONS,
     LIST_LENGTHS,
     NONE_NAME,
     ONE_TOOL_INSTRUCTIONS,
+    PADDED_LIST_TOOLS,
     PLACEMENTS,
     PROCESSED_DIRS,
     RELEASED_ORDER,
     TWO_TOOL_INSTRUCTIONS,
+    UNCOUNTED_WORDINGS,
 )
 from grjev.examples import Example, Option, read_dataset
 from grjev.runs import (
@@ -70,9 +73,9 @@ def fake(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeJev:
     return fake_jev
 
 
-def config(experiment: str = "position", *test_files: str, **changes: object) -> RunConfig:
-    files = test_files or EXPERIMENT_TEST_FILES[experiment]["metatool"]
-    return RunConfig.model_validate({"experiment": experiment, "dataset": "metatool", "test_files": files} | changes)
+def config(experiment: str = "position", *test_files: str, dataset: str = "metatool", **changes: object) -> RunConfig:
+    files = test_files or EXPERIMENT_TEST_FILES[experiment][dataset]
+    return RunConfig.model_validate({"experiment": experiment, "dataset": dataset, "test_files": files} | changes)
 
 
 def example(number: int, labels: list[str], query: str | None = None) -> Example:
@@ -148,6 +151,53 @@ def test_a_length_run_sends_each_different_query_once_from_the_first_file_that_h
     )
 
 
+def wording_config() -> RunConfig:
+    return config("wording", "G1_tool", dataset="stabletoolbench")
+
+
+def test_a_wording_run_asks_one_padded_list_with_each_wording_and_names_the_number_of_correct_tools() -> None:
+    three_correct = Example(
+        id="set/G1_tool/0", query="Do three things.", options=TOOLS[:4], labels=["tool_1", "tool_3", "tool_4"], raw={}
+    )
+    (item,) = plan(wording_config(), {"G1_tool": [three_correct]}, TOOLS)
+    (request,) = item.requests
+    assert request.state == "Do three things."
+    assert list(request.questions) == [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS] == ["one", "all", "equal", "every"]
+    opening = "Three tools in the list are appropriate to solve the user's query."
+    assert [question.instructions for question in request.questions.values()] == [
+        f"{opening} Choose one of them.",
+        f"{opening} Choose all of them.",
+        f"{opening} Choose all of them with equal probability.",
+        "Choose every tool in the list that is needed to solve the user's query.",
+    ]
+    lists = [[tool.name for tool in tools] for tools in item.lists.values()]
+    assert all(candidates == lists[0] for candidates in lists)
+    assert lists[0] == list(criteria_of(wording_config(), "G1_tool", item.lists["one"]))
+    assert len(lists[0]) == PADDED_LIST_TOOLS and NONE_NAME not in lists[0]
+    assert {"tool_1", "tool_2", "tool_3", "tool_4"} < set(lists[0]) <= {tool.name for tool in TOOLS}
+
+
+def test_a_wording_run_asks_a_query_with_one_correct_tool_only_without_the_number() -> None:
+    one_correct = Example(id="set/G1_tool/1", query="Do one thing.", options=TOOLS[:7], labels=["tool_2"], raw={})
+    (item,) = plan(wording_config(), {"G1_tool": [one_correct]}, TOOLS)
+    assert list(item.requests[0].questions) == list(UNCOUNTED_WORDINGS)
+    assert sorted(tool.name for tool in item.lists["every"]) == sorted(tool.name for tool in TOOLS[:7])
+
+
+def test_a_wording_answer_is_correct_when_the_highest_probabilities_are_the_correct_tools() -> None:
+    run_config = wording_config()
+    three = choice({"a": 0.4, "b": 0.3, "c": 0.2, "d": 0.1})
+    assert is_correct(run_config, "G1_tool", ["a", "b", "c"], three)
+    assert not is_correct(run_config, "G1_tool", ["a", "b", "d"], three)
+    assert is_correct(run_config, "G1_tool", ["a"], three)
+    assert not is_correct(run_config, "G1_tool", ["a", "b", "c"], choice({"a": 0.8, "b": 0.1, "c": 0.05, "d": 0.05}))
+
+
+def test_a_tool_with_a_blank_description_is_sent_without_one() -> None:
+    blank = [Option(name="tool_a", description=" "), Option(name="tool_b", description="Does thing b.")]
+    assert criteria_of(wording_config(), "G1_tool", blank) == {"tool_a": None, "tool_b": "Does thing b."}
+
+
 def test_top_tools_are_the_highest_probabilities_unless_a_tie_leaves_the_last_place_open() -> None:
     assert top_tools({"a": 0.3, "b": 0.6, "c": 0.1}, 2) == ["b", "a"]
     assert top_tools({"a": 0.5, "b": 0.5, "c": 0.0}, 2) == ["a", "b"]
@@ -174,8 +224,8 @@ def planned_examples() -> tuple[RunConfig, list[Planned]]:
 def test_a_run_asks_once_per_request_and_scores_every_list(fake: FakeJev) -> None:
     run_config, planned = planned_examples()
     assert call_counts(run_config, planned) == {
-        "similar_tools": {"examples": 2, "tool_lists": 12, "calls": 2, "new_calls": 2},
-        "reliability": {"examples": 1, "tool_lists": 1, "calls": 1, "new_calls": 1},
+        "similar_tools": {"examples": 2, "questions": 12, "calls": 2, "new_calls": 2},
+        "reliability": {"examples": 1, "questions": 1, "calls": 1, "new_calls": 1},
     }
     first, _, none_correct = run(run_config, planned)
     assert len(fake.calls) == 3
@@ -291,7 +341,7 @@ def test_the_metatool_position_run_has_the_planned_requests_and_tool_lists(
         "multi_tool": 497,
         "reliability": 995,
     }
-    assert Counter({name: count["tool_lists"] for name, count in call_counts(config(), planned).items()}) == {
+    assert Counter({name: count["questions"] for name, count in call_counts(config(), planned).items()}) == {
         "similar_tools": 5970,
         "scenario": 10800,
         "multi_tool": 4473,
@@ -326,7 +376,7 @@ def test_the_metatool_length_run_sends_1790_queries_in_two_requests_each(
     planned = plan(config("length"), *metatool)
     counts = call_counts(config("length"), planned)
     assert {name: count["examples"] for name, count in counts.items()} == {"similar_tools": 995, "scenario": 795}
-    assert sum(count["tool_lists"] for count in counts.values()) == 53700
+    assert sum(count["questions"] for count in counts.values()) == 53700
     assert {len(item.requests) for item in planned} == {2}
     assert len({item.example.query for item in planned}) == 1790
     for item in planned[:: len(planned) // 20]:
@@ -336,3 +386,33 @@ def test_the_metatool_length_run_sends_1790_queries_in_two_requests_each(
                 tools = [tool.name for tool in item.lists[f"{length}_{name}"]]
                 assert len(tools) == len(set(tools)) == length and label in tools
                 assert position is None or tools.index(label) + 1 == position
+
+
+@pytest.fixture(scope="module")
+def stabletoolbench() -> tuple[dict[str, list[Example]], list[Option]]:
+    """The examples of the processed StableToolBench test files, and the list of all APIs."""
+    folder = PROCESSED_DIRS["stabletoolbench"]
+    test_files = EXPERIMENT_TEST_FILES["wording"]["stabletoolbench"]
+    if not all((folder / f"{name}.jsonl").exists() for name in test_files):
+        pytest.skip("StableToolBench is not processed")
+    return read_dataset(folder, test_files)
+
+
+def test_the_stabletoolbench_wording_subset_sends_one_request_per_example(
+    stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    run_config = config("wording", dataset="stabletoolbench", examples_per_file=50)
+    planned = plan(run_config, *stabletoolbench)
+    counts = call_counts(run_config, planned)
+    assert {name: count["examples"] for name, count in counts.items()} == dict.fromkeys(run_config.test_files, 50)
+    assert sum(count["calls"] for count in counts.values()) == 300
+    # 6 of the 300 queries have one relevant API and get the one wording that does not state the number.
+    assert sum(count["questions"] for count in counts.values()) == 6 * 1 + 294 * 4
+    for item in planned:
+        labels = item.example.labels or []
+        (apis,) = {tuple(tool.name for tool in tools) for tools in item.lists.values()}
+        assert len(apis) == len(set(apis)) == max(len(item.example.options), PADDED_LIST_TOOLS)
+        assert {option.name for option in item.example.options} <= set(apis) and set(labels) <= set(apis)
+        assert list(item.lists) == (
+            [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS] if len(labels) > 1 else [*UNCOUNTED_WORDINGS]
+        )

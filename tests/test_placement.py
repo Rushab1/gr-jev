@@ -4,7 +4,7 @@ import pytest
 
 from grjev.constants import PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
-from grjev.placement import length_orders, orders_of, start_positions
+from grjev.placement import length_orders, orders_of, padded_order, start_positions
 
 SEED = 7
 
@@ -101,6 +101,20 @@ def test_three_correct_tools_or_a_list_under_five_tools_have_no_rule() -> None:
         orders_of(example(10, ["tool_1", "tool_2", "tool_3"]), SEED)
     with pytest.raises(ValueError, match="No placement rule"):
         orders_of(example(4, ["tool_1"]), SEED)
+
+
+def test_a_short_list_is_padded_with_other_tools_of_the_dataset_and_every_list_is_shuffled() -> None:
+    dataset = example(30, []).options
+    short = example(3, ["tool_1", "tool_2"])
+    padded = padded_order(short, dataset, 5, SEED)
+    assert len(padded) == 5 and len(set(names(padded))) == 5
+    assert set(names(short.options)) < set(names(padded)) <= set(names(dataset))
+    assert padded == padded_order(short, dataset, 5, SEED)
+    assert names(padded) != names(padded_order(short, dataset, 5, SEED + 1))
+    long = example(8, ["tool_1"])
+    shuffled = padded_order(long, dataset, 5, SEED)
+    assert sorted(names(shuffled)) == sorted(names(long.options)) and names(shuffled) != names(long.options)
+    assert names(long.options) == [f"tool_{number}" for number in range(1, 9)]
 
 
 def test_length_orders_place_the_correct_tool_in_lists_that_contain_the_shorter_ones() -> None:
