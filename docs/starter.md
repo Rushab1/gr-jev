@@ -20,7 +20,7 @@ Typed decision models return a probability for each option in a list supplied by
 - Not built: the runner for open-weight models.
 - Next: the first run on MetaTool, described in `docs/plan.md`. It needs a higher limit on Jev calls.
 - `docs/findings/` holds a code review and a list of proposals from 2026-10-04, with a response to each. Findings 2, 3 and 4 of the review were applied on 2026-10-05.
-- Calls made: 708 Jev calls, one to check the key, 350 for the MetaTool subset of 2026-10-05, and 300 for the wording run and 57 for the list-length run on StableToolBench of 2026-10-06. Short Claude calls checked the bridge.
+- Calls made: 710 Jev calls, one to check the key, 350 for the MetaTool subset of 2026-10-05, and 300 for the wording run and 59 for the list-length run on StableToolBench of 2026-10-06. Short Claude calls checked the bridge.
 - Venue not chosen.
 
 ## Jev

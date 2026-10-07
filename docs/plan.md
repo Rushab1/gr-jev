@@ -1,19 +1,19 @@
 # Jev study: plan
 
-Last updated 2026-10-06. Two sets of runs have been made on Jev: a subset of the position and length experiments on MetaTool, 350 calls, and two runs on subsets of StableToolBench, the wording run with 300 calls and the list-length run with 57 calls.
+Last updated 2026-10-06. Two sets of runs have been made on Jev: a subset of the position and length experiments on MetaTool, 350 calls, and two runs on subsets of StableToolBench, the wording run with 300 calls and the list-length run with 59 calls.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording` and `growth` on a dataset in the common format. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording` and `growth` on a dataset in the common format, and `--examples` takes a seeded sample of an exact number of examples over all the test files. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
 The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench".
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 708, and 708 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,722. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 710, and 710 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 8,724. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -139,28 +139,28 @@ Not decided: how the number of relevant APIs is read from an answer when the ins
 
 ## List length on StableToolBench
 
-Decided by Rushab on 2026-10-06, for about 50 queries: the fall of CSR with the list length is a main finding of the MetaTool subset, and it is tested on StableToolBench.
+Decided by Rushab on 2026-10-06, for 50 queries: the fall of CSR with the list length is a main finding of the MetaTool subset, and it is tested on StableToolBench.
 
-- Examples. A seeded sample of 8 examples from each of the six test files, 48 queries. 3 have 1 relevant API, 33 have 2, 8 have 3, 2 have 4, 1 has 5 and 1 has 6. 46 of the 48 are also in the wording run.
-- Lists. The list that the wording run sends for the example, with 5 to 11 APIs for these 48 queries, and that list grown to 20, 50, 100 and 199 APIs with random other APIs of the 2,490. Each longer list contains the shorter ones, and each list is in a seeded random order of its own.
-- Wordings. `all` for the 45 queries with 2 or more relevant APIs, and `every` for all 48.
-- Size and cost. 57 requests, since 9 queries need two requests for their 10 questions. 465 questions, 1,599,055 input tokens, $0.07. The results folder is `results/stabletoolbench_growth/2026-10-06_01`, written at commit `f3c3e23`. The code names the experiment `growth`. `python scripts/results_figures.py` prints the figures of the table. No margin of error is given.
+- Examples. A seeded sample of 50 queries over the six test files: 9 from each of the first two and 8 from each of the other four. 3 have 1 relevant API, 35 have 2, 8 have 3, 2 have 4, 1 has 5 and 1 has 6. 48 of the 50 are also in the wording run.
+- Lists. The list that the wording run sends for the example, with 5 to 11 APIs for these 50 queries, and that list grown to 20, 50, 100 and 199 APIs with random other APIs of the 2,490. Each longer list contains the shorter ones, and each list is in a seeded random order of its own.
+- Wordings. `all` for the 47 queries with 2 or more relevant APIs, and `every` for all 50.
+- Size and cost. 59 requests, since 9 queries need two requests for their 10 questions. 485 questions, 1,667,337 input tokens, $0.07. The results folder is `results/stabletoolbench_growth/2026-10-06_02`, written at commit `2343b01`. The folder `2026-10-06_01` holds 48 of the 50 queries: 8 per test file were sent first, and 2 queries were added to reach the 50 that Rushab asked for. The code names the experiment `growth`. `python scripts/results_figures.py` prints the figures of the table. No margin of error is given.
 
-| APIs in the list | Correct with `all`, 45 queries | Correct with `every`, 48 queries | Entropy with `every`, mean | Highest probability minus second-highest with `every`, mean | Probabilities at 0.00 with `every` |
+| APIs in the list | Correct with `all`, 47 queries | Correct with `every`, 50 queries | Entropy with `every`, mean | Highest probability minus second-highest with `every`, mean | Probabilities at 0.00 with `every` |
 |---|---|---|---|---|---|
-| 5 to 11, the list of the wording run | 29 (64.4%) | 31 (64.6%) | 0.63 | 0.72 | 58.3% |
-| 20 | 29 (64.4%) | 32 (66.7%) | 0.68 | 0.70 | 85.2% |
-| 50 | 27 (60.0%) | 31 (64.6%) | 0.72 | 0.69 | 93.8% |
-| 100 | 26 (57.8%) | 28 (58.3%) | 0.75 | 0.68 | 96.8% |
-| 199 | 28 (62.2%) | 30 (62.5%) | 0.85 | 0.62 | 98.3% |
+| 5 to 11, the list of the wording run | 31 (66.0%) | 33 (66.0%) | 0.63 | 0.72 | 58.5% |
+| 20 | 31 (66.0%) | 34 (68.0%) | 0.66 | 0.70 | 85.4% |
+| 50 | 29 (61.7%) | 33 (66.0%) | 0.71 | 0.70 | 93.9% |
+| 100 | 28 (59.6%) | 30 (60.0%) | 0.74 | 0.68 | 96.8% |
+| 199 | 30 (63.8%) | 32 (64.0%) | 0.83 | 0.62 | 98.3% |
 
-- From the list of the wording run to 199 APIs the score changes by 2.2 points with `all` and by 2.1 points with `every`. That is 1 query. On MetaTool, CSR falls from 85.6% with 5 tools to 72.8% with 199.
-- The 33 queries with 2 relevant APIs score 75.8% with the list of the wording run and 75.8% with 199 APIs, with both wordings.
-- The mean entropy rises with the list length, from 0.63 to 0.85 with `every`.
+- From the list of the wording run to 199 APIs the score changes by 2.1 points with `all` and by 2.0 points with `every`. That is 1 query. On MetaTool, CSR falls from 85.6% with 5 tools to 72.8% with 199.
+- The 35 queries with 2 relevant APIs score 77.1% with the list of the wording run and 77.1% with 199 APIs, with both wordings.
+- The mean entropy rises with the list length, from 0.63 to 0.83 with `every`.
 
 A first look at the saved answers gave the figures below. The figures script does not print them.
 
-- StableToolBench, wording `every`. The added APIs get 0.05 of Jev's probability in the list of 199 APIs, and an added API is Jev's top API in 2 of the 192 answers to the four grown lists.
+- StableToolBench, wording `every`. The added APIs get 0.05 of Jev's probability in the list of 199 APIs, and an added API is Jev's top API in 2 of the 200 answers to the four grown lists.
 - MetaTool length run, 250 answers at each list length. The 9 tools closest to the correct tool, which form its similar-tools list, enter the list as it grows: a list of 5 tools holds 0.22 of them on average, a list of 20 holds 0.86, a list of 100 holds 4.56, and the list of 199 holds all 9.
 
 | Tools in the list | Wrong answers of "None" | Wrong answers that select one of the 9 closest tools | Wrong answers that select another tool |
@@ -173,9 +173,36 @@ A first look at the saved answers gave the figures below. The figures script doe
 | 199 | 25 | 17 | 26 |
 
 - MetaTool, lists of 50 tools. CSR is 100% for the lists with none of the 9 closest tools (15 of 15), 86% with 1 or 2 of them (125 of 145) and 67% with 3 to 5 (60 of 90).
-- The 46 queries in both StableToolBench runs had 90 questions sent twice, with the same list and instruction. Jev selects the same API in 89 of the 90, and no probability differs by more than 0.06.
+- The 48 queries in both StableToolBench runs had 94 questions sent twice, with the same list and instruction. Jev selects the same API in 93 of the 94, and no probability differs by more than 0.06.
 
-A longer list lowers the score on MetaTool, where it brings in the tools closest to the correct one. It does not on StableToolBench, where the added APIs are random among 2,490 and the wrong APIs of the same tool are in the list from the start. The runs do not show whether the number of tools matters by itself.
+### How many tools are similar to a given tool
+
+Rushab asked on 2026-10-06 how many tools or APIs are similar to a given one in each benchmark. This is a first look. The name and description of each of the 199 MetaTool tools and of the 2,490 StableToolBench APIs were embedded with `sentence-transformers/all-MiniLM-L6-v2`, and two entries count as similar when the cosine similarity of their embeddings is 0.32 or more. At 0.32 a MetaTool tool has 9 similar tools on average, which is the size of MetaTool's own lists of closest tools. The code and the model are not in the repo.
+
+| | MetaTool | StableToolBench |
+|---|---|---|
+| Entries | 199 tools | 2,490 APIs in 819 tools and 47 categories |
+| Similar entries per entry at 0.32, mean | 9.0 of 198 (4.5%) | 120.8 of 2,489 (4.9%) |
+| Similar entries per entry at 0.60, mean | 0.1 | 5.5, of which 3.0 are APIs of the same tool |
+| Wrong entries in the list of 199 that are similar to a correct one, mean | 9.9 | 19.8, of which 17.0 were added by growing the list |
+
+- The measure agrees in part with MetaTool's own lists, which come from OpenAI's `text-embedding-ada-002`: of the 9 closest tools of a tool, 3.8 are among its 9 nearest by this measure.
+- A StableToolBench API has 4.6 other APIs in its own tool on average, and 97% of the pairs of APIs of one tool are similar at 0.32.
+- The grown StableToolBench lists hold more similar wrong entries than the MetaTool lists, and Jev's score does not fall on StableToolBench. The similarity of the added entries does not explain the difference between the two benchmarks.
+
+A rule with no model call was scored on the same lists: it selects the entries whose embedding is closest to the embedding of the query, as many as the query has correct entries.
+
+| Tools in the list | MetaTool: Jev correct, 50 queries | MetaTool: embedding rule correct | StableToolBench: Jev correct, 50 queries | StableToolBench: embedding rule correct |
+|---|---|---|---|---|
+| 5 on MetaTool, 5 to 11 on StableToolBench | 43 | 48 | 33 | 25 |
+| 10 | 42 | 45 | not sent | not sent |
+| 20 | 39 | 43 | 34 | 22 |
+| 50 | 41 | 39 | 33 | 21 |
+| 100 | 38 | 37 | 30 | 21 |
+| 199 | 34 | 35 | 32 | 19 |
+
+- The MetaTool columns use the lists with the correct tool first. Jev's lists on MetaTool hold a "None" candidate, and the rule cannot answer "None". The StableToolBench columns use the wording `every`.
+- On MetaTool the rule scores within 5 queries of Jev at every list length, and both fall as the list grows. On StableToolBench the rule falls from 25 to 19 of 50 and Jev stays between 30 and 34.
 
 ## How runs are staged
 
@@ -221,7 +248,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 708 on 2026-10-06, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 710 on 2026-10-06, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -434,8 +461,9 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 708 Jev calls is raised, and for which runs.
-- Decide whether a list is grown with tools that are similar to the correct one, after the list-length run on StableToolBench showed no fall with random APIs.
+- Decide when the limit of 710 Jev calls is raised, and for which runs.
+- Find why CSR falls with the list length on MetaTool and not on StableToolBench. The similarity of the added tools does not explain it.
+- Decide whether the rule that selects the entries closest to the query by embedding becomes a baseline in the code. On the 50 queries of the MetaTool length run it scores 35 of 50 with 199 tools, and Jev 34 of 50.
 - Decide how the number of correct tools is read from one answer of Jev, when the instruction does not state it.
 - Confirm the instruction for one tool and the description of the "None" candidate.
 - Decide the list lengths of the later runs.
