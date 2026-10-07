@@ -1,21 +1,21 @@
 # Jev study: plan
 
-Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 650 calls, and runs on subsets of StableToolBench, 859 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, and a run with rewordings of one correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, and four runs with rewordings of one relevant API with 50 calls each.
+Last updated 2026-10-07. Two sets of runs have been made on Jev: runs on subsets of MetaTool, 699 calls, and runs on subsets of StableToolBench, 911 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, and a run with copies of one correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded` and `rotated` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated` and `copied` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
 The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench". A second run of the wording run was made the same day, and is under "A second run of the same requests". The runs with rewordings were made on 2026-10-06 and 2026-10-07, and are under "Rewordings of one relevant API".
 
-Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings".
+Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool".
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,510, and 1,510 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,524. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,612, and 1,611 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,625. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -335,7 +335,7 @@ The 250 requests of the position subset of 2026-10-05 were sent a second time on
 - List and instruction. The 5 rewordings of the chosen tool and no other entry, with "Pick all the tools in the list that are relevant to the task at hand." The "None" candidate of the MetaTool runs is not offered.
 - Rewordings. Each of the 38 tools has 5 rewordings of its name and description, 190 in all, in `src/grjev/rewordings/metatool.json`. Claude Opus 5.5 wrote them in a Claude Code session on 2026-10-07. For all 38 tools the first rewording has the shortest description of the 5, the second starts with "Use" and the fourth with "Given". The mean length of a description is 46 characters for the first rewording and 116 to 129 for the other four.
 - Similarity. The lowest cosine similarity between a rewording and its tool is 0.907 and the mean 0.979, on `Qwen/Qwen3-Embedding-0.6B` embeddings of the name and description. Rushab's bar is 0.80.
-- Run. The rotated orders, as on StableToolBench: 50 requests with 5 questions each, 64,578 input tokens, under $0.01. The results folder is `results/metatool_rotated/2026-10-07_01`, written at commit `93f6128`. The written order and the shuffled order were not sent as runs of their own, and no second run of these lists was made.
+- Run. The rotated orders, as on StableToolBench: 50 queries with 5 questions each, 64,578 input tokens, under $0.01. `metatool/scenario/210` and `metatool/scenario/1230` are the same query with the same tool and give the same request, which leaves 49 requests. The results folder is `results/metatool_rotated/2026-10-07_01`, written at commit `93f6128`. The written order and the shuffled order were not sent as runs of their own, and no second run of these lists was made.
 
 "WebRewind", with the description "Get the picture of a website at a specific date.", has these 5 rewordings:
 
@@ -371,6 +371,60 @@ The 250 requests of the position subset of 2026-10-05 were sent a second time on
 A first look at the saved answers gave the figure below. The figures script does not print it.
 
 - The probability of one rewording differs by more than 0.10 between its highest and its lowest place in 144 of the 250 cases of a query and a rewording, and by more than 0.20 in 53. On StableToolBench the counts are 167 and 71.
+
+## Copies of one correct tool
+
+Rushab, 2026-10-07: "Let's send ONE query inline here with all options same". Question: how does Jev divide its probability over entries that are the same? Jev's API takes each entry under a name of its own, and the entries of these runs differ in their names only.
+
+### Two single requests
+
+Both requests use the StableToolBench query that names "Flight Search V2", the instruction "Pick all the tools in the list that are relevant to the task at hand.", and the API "Travel / Flight Fare Search / Flight Search V2" five times with its description. In the first the names end in "(1)" to "(5)". Rushab then asked for names without numbers: "add extra spaces randomly". In the second each name has one extra space at a place chosen at random.
+
+| Place in the list | Probability from Jev, names that end in "(1)" to "(5)" | Probability from Jev, names with one extra space |
+|---|---|---|
+| First | 0.92 | 0.04 |
+| Second | 0.04 | 0.07 |
+| Third | 0.01 | 0.16 |
+| Fourth | 0.01 | 0.34 |
+| Fifth | 0.02 | 0.39 |
+
+The two answers are saved under the request hashes that start with `8ae4984f` and `5b3c3e68`. They have no results folder. After the second, Rushab: "There is our paper."
+
+### The copied run
+
+- Examples. The 50 queries of the rotated run of each dataset, with the same chosen tool.
+- List. The chosen tool five times, with its description. The names of the 5 copies differ only by extra spaces, at places chosen with the seed. A StableToolBench copy has its extra spaces after one run of spaces of the name: 227 of the 250 copies have 1 extra space and 23 have 2. A MetaTool name has no space, and a copy has 1 to 5 spaces at its end. The "None" candidate is not offered.
+- Orders and instruction. The 5 rotations of the list as 5 questions of one request, with "Pick all the tools in the list that are relevant to the task at hand."
+- Size and cost. 50 requests for each dataset, 72,174 input tokens on StableToolBench and 65,753 on MetaTool, each under $0.01. The results folders are `results/stabletoolbench_copied/2026-10-07_01` and `results/metatool_copied/2026-10-07_01`, written at commit `22b5c83`. The code names the experiment `copied`. `python scripts/results_figures.py <folder>` prints the figures of the two tables. No margin of error is given.
+
+| Entry, by Jev's probability within an answer | StableToolBench, mean of 250 answers | MetaTool, mean of 250 answers |
+|---|---|---|
+| Highest | 0.340 | 0.317 |
+| Second-highest | 0.239 | 0.233 |
+| Third | 0.184 | 0.186 |
+| Fourth | 0.136 | 0.149 |
+| Lowest | 0.101 | 0.114 |
+| Entropy, mean | 2.16 | 2.21 |
+| Highest minus second-highest, mean | 0.10 | 0.08 |
+
+| Place in the list | First | Second | Third | Fourth | Fifth |
+|---|---|---|---|---|---|
+| StableToolBench: mean probability of the entry at this place | 0.140 | 0.132 | 0.193 | 0.230 | 0.306 |
+| StableToolBench: answers that select the entry at this place, of 250 | 12 | 8 | 21 | 47 | 162 |
+| MetaTool: mean probability of the entry at this place | 0.216 | 0.123 | 0.167 | 0.236 | 0.258 |
+| MetaTool: answers that select the entry at this place, of 250 | 77 | 0 | 4 | 67 | 102 |
+
+- An even split gives each entry 0.20 and an entropy of 2.32 bits.
+- The entry at the last place is selected in 162 of the 250 answers on StableToolBench and in 102 on MetaTool. The entry at the second place is selected in 8 and in 0.
+- Each of the 5 copies is selected in 42 to 60 of the 250 answers on StableToolBench and in 46 to 57 on MetaTool, and its mean probability is 0.19 to 0.21 on both.
+- On MetaTool the first place is selected in 50 of the 85 answers of `similar_tools`, in 16 of the 85 of `scenario` and in 11 of the 80 of `multi_tool`. The last place is selected in 30, 36 and 36.
+- With 5 rewordings of the tool in place of 5 copies, the highest probability is 0.434 on StableToolBench and 0.453 on MetaTool, and the entry at the last place is selected in 78 and in 61 of 250 answers.
+
+A first look at the saved answers gave the figures below. The figures script does not print them.
+
+- Jev selects the last place in all 5 orders for 9 of the 50 StableToolBench queries and 7 of the 50 MetaTool queries, and the first place in all 5 orders for 1 and for 11.
+- The highest probability of an answer is 0.50 or more in 7 of the 250 StableToolBench answers and in 3 of the 250 MetaTool answers.
+- The mean probability of a copy is 0.203 with 1 extra space and 0.173 with 2 on StableToolBench, and 0.216, 0.202, 0.212, 0.190 and 0.180 with 1 to 5 spaces at the end on MetaTool.
 
 ## How runs are staged
 
@@ -416,7 +470,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,510 on 2026-10-07, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,612 on 2026-10-07, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -629,8 +683,9 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 1,510 Jev calls is raised, and for which runs.
-- Find why the entry at the last place of a list of 5 rewordings is selected in 78 of 250 answers on StableToolBench and the entry at the first place in 30. On MetaTool the counts are 61 and 51.
+- Decide when the limit of 1,612 Jev calls is raised, and for which runs.
+- Find why the entry at the last place of a list of 5 copies of one tool is selected in 162 of 250 answers on StableToolBench and in 102 on MetaTool, and the entry at the second place in 8 and in 0. In MetaTool's `similar_tools` file the first place is selected in 50 of 85 answers.
+- Run the copied experiment on open-weight decision models.
 - Decide whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.
 - Check whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench.
 - Find why CSR falls with the list length on MetaTool and not on StableToolBench. A first look counts 7.66 similar wrong tools gained by a MetaTool list as it grows to 199, and 3.46 by a StableToolBench list.
