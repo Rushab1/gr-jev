@@ -263,12 +263,14 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "wording" sends every example with one tool list and each wording of the instruction for several correct tools.
 # "growth" sends every example with its tool list and with random other tools added up to several list lengths.
 # "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
+# "rotated" sends that list in every rotation of the order in which the rewordings are written.
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
     "wording": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "reworded": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "rotated": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -317,6 +319,8 @@ REWORDINGS_FILES = {"stabletoolbench": Path(__file__).parent / "rewordings" / "s
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
 # The name of the list that holds the rewordings.
 REWORDED_LIST = "reworded"
+# The "rotated" experiment names a list by this and the number of places its rewordings are moved towards the start.
+ROTATED_LIST = "rotated"
 # Dataset -> the list lengths of the "length" experiment. MetaTool has 199 tools, so its last list holds every tool.
 LIST_LENGTHS = {"metatool": (5, 10, 20, 50, 100, 199)}
 # The name of the order in which a test file lists the tools.

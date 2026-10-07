@@ -11,6 +11,7 @@ from grjev.constants import (
     PLACEMENT_MIN_TOOLS,
     PLACEMENTS,
     RELEASED_ORDER,
+    ROTATED_LIST,
     SEPARATED_PLACEMENTS,
 )
 from grjev.examples import Example, Option
@@ -90,6 +91,11 @@ def reworded_order(example: Example, rewordings: list[Option], seed: int) -> lis
     order = list(rewordings)
     random.Random(f"{seed}/{example.id}/reworded/order").shuffle(order)
     return order
+
+
+def rotated_orders(tools: list[Option]) -> dict[str, list[Option]]:
+    """Return the tools in every rotation of their order, by name. Each tool is at each place of one rotation."""
+    return {f"{ROTATED_LIST}_{moved}": tools[moved:] + tools[:moved] for moved in range(len(tools))}
 
 
 def grown_orders(

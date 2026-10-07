@@ -228,11 +228,29 @@ def test_a_reworded_run_asks_a_list_that_holds_only_the_rewordings_of_one_correc
     (question,) = request.questions.values()
     assert request.state == "Do two things." and list(request.questions) == [REWORDED_LIST]
     assert question.instructions == "Pick all the tools in the list that are relevant to the task at hand."
-    listed = reworded_order(two_correct, rewordings[reworded_tool(two_correct, run_config.seed)], run_config.seed)
+    written = rewordings[reworded_tool(two_correct, run_config.seed)]
+    listed = reworded_order(two_correct, written, run_config.seed)
     assert item.lists[REWORDED_LIST] == listed and len(listed) == 5
     assert list(criteria_of(run_config, "G1_tool", listed)) == [tool.name for tool in listed]
-    assert item.example.labels == [tool.name for tool in listed]
+    assert item.example.labels == [tool.name for tool in written]
     assert two_correct.labels == ["tool_1", "tool_3"]
+
+
+def test_a_rotated_run_asks_the_rewordings_in_every_rotation_as_questions_of_one_request(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    one_correct = Example(id="set/G1_tool/0", query="Do one thing.", options=TOOLS[:3], labels=["tool_2"], raw={})
+    written = [Option(name=f"tool_2_reworded_{number}", description=f"Said way {number}.") for number in range(1, 6)]
+    (tmp_path / "rewordings.json").write_text(json.dumps({"tool_2": [tool.model_dump() for tool in written]}))
+    monkeypatch.setitem(REWORDINGS_FILES, "stabletoolbench", tmp_path / "rewordings.json")
+    (item,) = plan(config("rotated", "G1_tool", dataset="stabletoolbench"), {"G1_tool": [one_correct]}, TOOLS)
+    (request,) = item.requests
+    assert list(request.questions) == [f"rotated_{moved}" for moved in range(5)]
+    assert {question.instructions for question in request.questions.values()} == {
+        "Pick all the tools in the list that are relevant to the task at hand."
+    }
+    assert item.lists["rotated_0"] == written and item.lists["rotated_2"] == written[2:] + written[:2]
+    assert item.example.labels == [tool.name for tool in written]
 
 
 def test_every_tool_in_the_stabletoolbench_rewordings_file_has_five_rewordings_with_its_category_and_tool() -> None:
@@ -526,9 +544,27 @@ def test_fifty_reworded_stabletoolbench_lists_hold_only_the_five_rewordings_of_o
         original = by_names[frozenset(tool.name for tool in listed)]
         reworded.add(original)
         assert item.example.id == grown.example.id and original in (grown.example.labels or [])
-        assert len(listed) == 5 and item.example.labels == [tool.name for tool in listed]
+        assert len(listed) == 5 and item.example.labels == [tool.name for tool in rewordings[original]]
         # A rewording has no name of the dataset, and a description exactly when the API it rewords has one.
         assert all(tool.name not in described for tool in listed)
         assert all(bool(tool.description.strip()) == described[original] for tool in listed)
     # The 50 queries reword 45 different APIs, and the file holds no other.
     assert reworded == set(rewordings) and len(reworded) == 45
+
+
+def test_fifty_rotated_stabletoolbench_queries_send_one_request_with_five_orders_each(
+    stabletoolbench: tuple[dict[str, list[Example]], list[Option]],
+) -> None:
+    run_config = config("rotated", dataset="stabletoolbench", examples=50)
+    planned = plan(run_config, *stabletoolbench)
+    counts = call_counts(run_config, planned)
+    assert sum(count["calls"] for count in counts.values()) == len(planned) == 50
+    assert sum(count["questions"] for count in counts.values()) == 250
+    rewordings = read_rewordings(REWORDINGS_FILES["stabletoolbench"])
+    for item in planned:
+        written = item.lists["rotated_0"]
+        assert written in rewordings.values() and len(item.lists) == 5
+        assert all(
+            sorted(tool.name for tool in tools) == sorted(tool.name for tool in written)
+            for tools in item.lists.values()
+        )

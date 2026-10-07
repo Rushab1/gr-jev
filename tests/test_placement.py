@@ -11,6 +11,7 @@ from grjev.placement import (
     padded_order,
     reworded_order,
     reworded_tool,
+    rotated_orders,
     start_positions,
 )
 
@@ -153,6 +154,17 @@ def test_the_rewordings_of_a_tool_are_put_in_a_seeded_order_of_the_example() -> 
     orders = {tuple(names(reworded_order(one, rewordings, seed))) for seed in range(20)}
     assert len(orders) > 10 and names(reworded_order(other, rewordings, SEED)) != names(order)
     assert names(rewordings) == [f"way_{number}" for number in range(1, 6)]
+
+
+def test_the_rotations_of_a_list_put_each_tool_at_each_place_once() -> None:
+    tools = example(5, []).options
+    orders = rotated_orders(tools)
+    assert list(orders) == [f"rotated_{moved}" for moved in range(5)]
+    assert orders["rotated_0"] == tools
+    assert names(orders["rotated_1"]) == ["tool_2", "tool_3", "tool_4", "tool_5", "tool_1"]
+    assert names(orders["rotated_4"]) == ["tool_5", "tool_1", "tool_2", "tool_3", "tool_4"]
+    for place in range(5):
+        assert sorted(names([order[place] for order in orders.values()])) == names(tools)
 
 
 def test_a_list_cannot_grow_to_fewer_tools_than_it_has_or_to_more_than_the_dataset_has() -> None:

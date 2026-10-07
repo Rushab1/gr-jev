@@ -43,7 +43,15 @@ from grjev.jev import (
     check_call_limit,
     response_path,
 )
-from grjev.placement import grown_orders, length_orders, orders_of, padded_order, reworded_order, reworded_tool
+from grjev.placement import (
+    grown_orders,
+    length_orders,
+    orders_of,
+    padded_order,
+    reworded_order,
+    reworded_tool,
+    rotated_orders,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -183,18 +191,32 @@ def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             yield test_file, example, lists, instructions
 
 
-def reworded_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
-    """Yield each example with a tool list that holds only the rewordings of one of its correct tools.
+def with_rewordings(
+    config: RunConfig, examples: dict[str, list[Example]]
+) -> Iterator[tuple[str, Example, list[Option]]]:
+    """Yield each example with the rewordings of one of its correct tools, in the order in which they are written.
 
-    The correct tool is chosen with the seed, and its rewordings are in a seeded order. The labels of the yielded
-    example are the rewordings.
+    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings.
     """
     rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
-            listed = reworded_order(example, rewordings[reworded_tool(example, config.seed)], config.seed)
-            relabelled = example.model_copy(update={"labels": [tool.name for tool in listed]})
-            yield test_file, relabelled, {REWORDED_LIST: listed}, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
+            written = rewordings[reworded_tool(example, config.seed)]
+            yield test_file, example.model_copy(update={"labels": [tool.name for tool in written]}), written
+
+
+def reworded_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with the rewordings of one of its correct tools as its tool list, in a seeded order."""
+    for test_file, example, written in with_rewordings(config, examples):
+        lists = {REWORDED_LIST: reworded_order(example, written, config.seed)}
+        yield test_file, example, lists, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
+
+
+def rotated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with the rewordings of one of its correct tools as its tool list, in every rotation."""
+    for test_file, example, written in with_rewordings(config, examples):
+        lists = rotated_orders(written)
+        yield test_file, example, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
 
 
 # Experiment -> the function that yields the tool lists of its examples.
@@ -204,6 +226,7 @@ LISTS = {
     "wording": wording_lists,
     "growth": growth_lists,
     "reworded": reworded_lists,
+    "rotated": rotated_lists,
 }
 
 
