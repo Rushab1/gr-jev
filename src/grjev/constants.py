@@ -22,7 +22,7 @@ JEV_BACKOFF_SECONDS = 2.0
 JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # Rushab's limit on the number of Jev calls. A run that would pass it does not start. Raise it only on his instruction.
 # Raised from 100 to 360 on 2026-10-05 for the first subset, to 651 on 2026-10-06 for the 300 calls of the wording
-# subset on StableToolBench, and to 710 the same day for the 59 calls of the growth subset of 50 queries on StableToolBench.
+# subset on StableToolBench, and to 710 the same day for the 59 calls of the growth subset of 50 queries.
 JEV_CALL_LIMIT = 710
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
