@@ -1,6 +1,6 @@
 # Jev study: plan
 
-Last updated 2026-10-08. Three sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, runs on subsets of StableToolBench, 911 calls, and four runs on a subset of MMLU, 200 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
+Last updated 2026-10-08. Three sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, runs on subsets of StableToolBench, 911 calls, and five runs on a subset of MMLU, 250 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
@@ -12,10 +12,10 @@ A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of
 
 The wording run on a subset of StableToolBench was made on 2026-10-06. Its design and results are under "Several correct tools: the wording run". The list-length run on StableToolBench was made the same day, and is under "List length on StableToolBench". A second run of the wording run was made the same day, and is under "A second run of the same requests". The runs with rewordings were made on 2026-10-06 and 2026-10-07, and are under "Rewordings of one relevant API".
 
-Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together. Four runs on MMLU were made on 2026-10-08, and are under "MMLU".
+Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together. Five runs on MMLU were made on 2026-10-08, and are under "MMLU".
 
 1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 1,962, and 1,961 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 9,975. A run that would pass the limit does not start.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 2,012, and 2,011 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 10,025. A run that would pass the limit does not start.
 3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
 4. Build the runner for open-weight decision models and repeat the first run on them.
 
@@ -624,7 +624,7 @@ Decided by Rushab on 2026-10-08. The runs with copies, with random options and w
 - Common format. A question is the query, its 4 choices are the options with no description, and the correct choice is the label. `test.jsonl` holds the 14,042 questions. `test_standalone.jsonl` holds the 13,096 questions whose 4 choices differ and where no choice refers to another choice. The other 946 have a choice such as "All of the above" or "Both A and B", or a repeated choice. The random choices of a run are drawn from the 42,431 different choices of the 13,096 questions.
 - Examples. A seeded sample of 50 of the 13,096 questions, from 30 subjects. `moral_scenarios` and `professional_law` have 6 questions each.
 - Instruction and "None". Every list has the instruction "Choose the correct answer to the question." The "None" candidate is named "None of the above" and has no description.
-- Size and cost. 4 runs with 50 requests each, 146,363 input tokens, under $0.01. The four results folders were written at commit `73ea17a`. No margin of error is given.
+- Size and cost. 5 runs with 50 requests each, 175,521 input tokens, under $0.01. The results folders of the first four runs were written at commit `73ea17a` and the folder of `absent` at commit `f9cde10`. No margin of error is given.
 
 | Run | The list holds | Orders | Questions sent | Input tokens | Results folder |
 |---|---|---|---|---|---|
@@ -632,6 +632,7 @@ Decided by Rushab on 2026-10-08. The runs with copies, with random options and w
 | `copied` | The correct choice 5 times, under names that differ only by extra spaces | 5 rotations | 250 | 38,816 | `results/mmlu_copied/2026-10-08_01` |
 | `unrelated` | 5 choices of other questions | 5 rotations | 250 | 39,586 | `results/mmlu_unrelated/2026-10-08_01` |
 | `absent_random` | 4 choices of other questions and "None of the above" | 5 rotations | 250 | 37,891 | `results/mmlu_absent_random/2026-10-08_01` |
+| `absent` | The 3 other choices of the question and "None of the above", without the correct choice | 4 rotations | 200 | 29,158 | `results/mmlu_absent/2026-10-08_01` |
 
 | | MMLU | MetaTool | StableToolBench |
 |---|---|---|---|
@@ -650,7 +651,23 @@ Decided by Rushab on 2026-10-08. The runs with copies, with random options and w
 - Random options. Jev's highest probability is 0.56 on average, against 0.96 for the list of the benchmark, and it is 0.50 or more in 146 of the 250 answers. On MetaTool the two means are 0.81 and 0.84 to 0.88.
 - "None of the above" is selected in all 250 answers, with 0.96 to 0.97 on average at each of the 5 places.
 - MMLU has been public since 2020. Whether Jev was trained on its questions is not known.
-- Tam et al. replace the correct choice by "None of the above" and keep the 3 other choices of the question. That list has not been sent to Jev.
+
+### The correct choice replaced by "None of the above"
+
+Rushab, 2026-10-08: run the condition of Tam et al. The list holds the 3 other choices of the question and "None of the above", which is the correct answer, in 4 rotations.
+
+| The 50 questions | Correct answers, of 200 |
+|---|---|
+| With their own 4 choices | 182 |
+| With the correct choice replaced by "None of the above" | 157 |
+
+| Place of "None of the above" in the list | First | Second | Third | Fourth |
+|---|---|---|---|---|
+| Answers of "None of the above", of 50 | 40 | 41 | 39 | 37 |
+
+- For the 45 questions that Jev answers correctly in all 4 orders with their own choices, it answers "None of the above" in 157 of the 180 answers. For the 4 questions that it answers wrongly in all 4 orders, it selects the same wrong choice again in all 16 answers.
+- Jev selects "None of the above" in all 4 orders for 34 of the 50 questions and one other choice in all 4 orders for 6. Its selection differs between the orders for 10. Its highest probability is 0.84, 0.76 and 0.55 on average in these three groups. The figures script does not print the three means.
+- An automated summary of Tam et al. gives, for their 28 LLMs, a mean accuracy of 63.2% with the original choices and 28.5% with "None of the above" as the correct answer. The two figures have not been checked against the paper. Jev's figures are 91.0% and 78.5%, on 50 questions that are not the sample of Tam et al.
 
 ## How runs are staged
 
@@ -696,7 +713,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 1,962 on 2026-10-08, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 2,012 on 2026-10-08, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -909,9 +926,9 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 1,962 Jev calls is raised, and for which runs.
+- Decide when the limit of 2,012 Jev calls is raised, and for which runs.
 - Decide whether the project is described as a study of a decision model's probabilities, with tool selection as one of its datasets. Rushab, 2026-10-08: the runs with copies and with random options are not specific to tool selection.
-- Run MMLU with the correct choice replaced by "None of the above" among the 3 other choices of the question, the condition of Tam et al. (2025).
+- Check the two accuracy figures of Tam et al. (2025), 63.2% and 28.5%, against their paper.
 - Have a second reader check whether a kept tool can do the task of the query in the two runs with the correct tool removed.
 - Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.
 - Find a consequence of the two results for a user of Jev, such as reading several tools from one answer.
