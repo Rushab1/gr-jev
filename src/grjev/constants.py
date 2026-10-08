@@ -32,8 +32,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # request that lists one API five times, and to 1,512 for a second such request. Raised to 1,612 the same day for the
 # copied subsets of MetaTool and StableToolBench, 50 calls each, and to 1,662 for the 50 calls of the absent subset of
 # MetaTool, to 1,712 for the 50 calls of its absent_random subset, and to 1,762 for the 50 calls of its unrelated
-# subset.
-JEV_CALL_LIMIT = 1762
+# subset. Raised to 1,962 on 2026-10-08 for four subsets of MMLU with 50 calls each: own, copied, unrelated and
+# absent_random.
+JEV_CALL_LIMIT = 1962
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 JEV_DOLLARS_PER_MILLION_INPUT_TOKENS = 0.042
