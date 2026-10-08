@@ -16,6 +16,7 @@ data/cache/                saved model responses, shared by all datasets
 results/        experiment outputs
 notebooks/      Colab notebooks, which only call scripts
 docs/           project notes
+docs/papers/    PDFs of the papers the study builds on, with source, licence and checked figures in README.md
 ```
 
 `data/` holds data only. Scripts parse arguments and call functions in `src/grjev/`. Notebooks contain no logic.

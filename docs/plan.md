@@ -667,7 +667,8 @@ Rushab, 2026-10-08: run the condition of Tam et al. The list holds the 3 other c
 
 - For the 45 questions that Jev answers correctly in all 4 orders with their own choices, it answers "None of the above" in 157 of the 180 answers. For the 4 questions that it answers wrongly in all 4 orders, it selects the same wrong choice again in all 16 answers.
 - Jev selects "None of the above" in all 4 orders for 34 of the 50 questions and one other choice in all 4 orders for 6. Its selection differs between the orders for 10. Its highest probability is 0.84, 0.76 and 0.55 on average in these three groups. The figures script does not print the three means.
-- An automated summary of Tam et al. gives, for their 28 LLMs, a mean accuracy of 63.2% with the original choices and 28.5% with "None of the above" as the correct answer. The two figures have not been checked against the paper. Jev's figures are 91.0% and 78.5%, on 50 questions that are not the sample of Tam et al.
+- Tam et al. (2025), Table 8: with zero-shot chain-of-thought prompting, the 28 LLMs score 0.738 on average with the 4 choices of the question and 0.350 with the correct choice replaced by "None of the above". With "None of the above" the highest score is 0.657 (DeepSeek-V3) and the lowest is 0.083 (Mistral-7B-Instruct-v0.3). The conclusion of the paper quotes 63.2% and 28.5%. Table 5 gives these two figures for one fine-tuned LLaMA 3 8B Instruct, and they are not a mean of the 28 LLMs. The PDF and the figures read from it are in `docs/papers/`.
+- Jev's figures are 91.0% and 78.5% (182 and 157 of 200 answers). They are not measured as in Tam et al. Tam et al. use the questions that they label as suitable for "None of the above", do not state how many these are, and keep "None of the above" at the place of the correct choice with the 3 other choices in place. Our 50 questions are a sample of the 13,096 in `test_standalone`, and our lists put the 3 other choices in a random order with "None of the above" at each of the 4 places. One of the 4 lists equals the list of Tam et al. for 3 of the 50 questions. Tam et al. leave out the subject moral_scenarios, which has 6 of our 50 questions. Without these 6, Jev's figures are 89.8% and 79.0% (158 and 139 of 176 answers).
 
 ## How runs are staged
 
@@ -928,7 +929,6 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 - Confirm Mind2Web and AndroidControl.
 - Decide when the limit of 2,012 Jev calls is raised, and for which runs.
 - Decide whether the project is described as a study of a decision model's probabilities, with tool selection as one of its datasets. Rushab, 2026-10-08: the runs with copies and with random options are not specific to tool selection.
-- Check the two accuracy figures of Tam et al. (2025), 63.2% and 28.5%, against their paper.
 - Have a second reader check whether a kept tool can do the task of the query in the two runs with the correct tool removed.
 - Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.
 - Find a consequence of the two results for a user of Jev, such as reading several tools from one answer.
