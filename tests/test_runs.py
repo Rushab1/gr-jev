@@ -51,6 +51,7 @@ from grjev.runs import (
 )
 
 TOOLS = [Option(name=f"tool_{tool}", description=f"Does thing {tool}.") for tool in range(1, 11)]
+CHOICES = [Option(name=choice, description="") for choice in ("3", "4", "5", "6")]
 
 
 class FakeJev:
@@ -288,6 +289,28 @@ def test_an_absent_run_asks_wrong_tools_and_none_in_every_rotation_and_none_is_c
     assert places == [5, 4, 3, 2, 1] and item.example.labels == []
     assert is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.2, NONE_NAME: 0.8}))
     assert not is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.8, NONE_NAME: 0.2}))
+
+
+def test_a_dataset_whose_options_are_not_tools_has_its_own_instruction_and_none_candidate() -> None:
+    question = Example(id="mmlu/test/0", query="What is 2 + 2?", options=CHOICES, labels=["4"], raw={})
+    pool = [Option(name=f"choice {number}", description="") for number in range(20)]
+    asked = "Choose the correct answer to the question."
+    for experiment, entries in (("own", 4), ("copied", 5), ("unrelated", 5), ("absent_random", 5)):
+        run_config = config(experiment, dataset="mmlu")
+        (item,) = plan(run_config, {"test_standalone": [question]}, pool)
+        (request,) = item.requests
+        assert list(request.questions) == [f"rotated_{moved}" for moved in range(entries)]
+        for question_sent in request.questions.values():
+            assert isinstance(question_sent, jev.ChoiceQuestion) and question_sent.instructions == asked
+            assert len(question_sent.criteria) == entries and set(question_sent.criteria.values()) == {None}
+    own = plan(config("own", dataset="mmlu"), {"test_standalone": [question]}, pool)[0]
+    assert own.lists["rotated_0"] == CHOICES and own.lists["rotated_1"] == CHOICES[1:] + CHOICES[:1]
+    absent = plan(config("absent_random", dataset="mmlu"), {"test_standalone": [question]}, pool)[0]
+    assert [tool.name for tool in absent.lists["rotated_0"]][-1] == "None of the above"
+    none_config = config("absent_random", dataset="mmlu")
+    assert is_correct(none_config, "test_standalone", [], choice({"choice 1": 0.2, "None of the above": 0.8}))
+    assert not is_correct(none_config, "test_standalone", [], choice({"choice 1": 0.8, "None of the above": 0.2}))
+    assert is_correct(config("own", dataset="mmlu"), "test_standalone", ["4"], choice({"3": 0.2, "4": 0.8}))
 
 
 def test_a_list_of_rewordings_offers_no_none_and_every_entry_is_correct() -> None:
@@ -730,3 +753,40 @@ def test_fifty_unrelated_metatool_queries_send_five_tools_from_outside_their_lis
             assert not is_correct(
                 run_config, item.test_file, [], choice({names[0]: 0.6} | dict.fromkeys(names[1:], 0.1))
             )
+
+
+@pytest.fixture(scope="module")
+def mmlu() -> tuple[dict[str, list[Example]], list[Option]]:
+    """The standalone questions of the processed MMLU test file, and the list of their choices."""
+    folder = PROCESSED_DIRS["mmlu"]
+    test_files = EXPERIMENT_TEST_FILES["own"]["mmlu"]
+    if not all((folder / f"{name}.jsonl").exists() for name in test_files):
+        pytest.skip("MMLU is not processed")
+    return read_dataset(folder, test_files)
+
+
+@pytest.mark.parametrize(("experiment", "entries"), [("own", 4), ("copied", 5), ("unrelated", 5), ("absent_random", 5)])
+def test_fifty_mmlu_questions_send_one_request_with_every_rotation(
+    experiment: str, entries: int, mmlu: tuple[dict[str, list[Example]], list[Option]]
+) -> None:
+    examples, choices = mmlu
+    run_config = config(experiment, dataset="mmlu", examples=50)
+    planned = plan(run_config, examples, choices)
+    own = plan(config("own", dataset="mmlu", examples=50), examples, choices)
+    assert [item.example.id for item in planned] == [item.example.id for item in own] and len(planned) == 50
+    counts = call_counts(run_config, planned)
+    assert sum(count["calls"] for count in counts.values()) == 50
+    assert sum(count["questions"] for count in counts.values()) == 50 * entries
+    for item, question in zip(planned, own, strict=True):
+        released = [option.name for option in question.example.options]
+        for listed in item.lists.values():
+            names = [tool.name for tool in listed]
+            assert len(set(names)) == entries
+            if experiment == "own":
+                assert sorted(names) == sorted(released)
+            elif experiment == "copied":
+                (correct,) = question.example.labels or []
+                assert {" ".join(name.split()) for name in names} == {" ".join(correct.split())}
+            else:
+                assert not set(names) & set(released)
+                assert ("None of the above" in names) == (experiment == "absent_random")

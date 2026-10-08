@@ -12,6 +12,7 @@ from grjev.constants import (
     BOOTSTRAP_RESAMPLES,
     COUNTED_WORDINGS,
     INTERVAL_TAIL,
+    NONE_CANDIDATES,
     NONE_NAME,
     PLACEMENTS,
     RELEASED_ORDER,
@@ -19,6 +20,9 @@ from grjev.constants import (
     UNCOUNTED_WORDINGS,
 )
 from grjev.runs import ListAnswer, Row, top_tools
+
+# The names of the "None" candidates of the datasets.
+NONE_NAMES = {NONE_NAME, *(name for name, _ in NONE_CANDIDATES.values())}
 
 # The name of a group of tool lists -> the names of the lists whose answers it pools.
 type Groups = dict[str, list[str]]
@@ -125,7 +129,7 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         csr=100 * statistics.fmean(shares),
         low=100 * low,
         high=100 * high,
-        none=sum(answer.choice == NONE_NAME for _, answer in answers),
+        none=sum(answer.choice in NONE_NAMES for _, answer in answers),
         confident=len(confident),
         confident_wrong=sum(not answer.correct for answer in confident),
         zero_probabilities=100 * statistics.fmean(value == 0 for value in probabilities),

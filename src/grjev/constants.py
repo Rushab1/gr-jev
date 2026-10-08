@@ -10,6 +10,7 @@ RESULTS_DIR = REPO_ROOT / "results"
 
 HTTP_TIMEOUT_SECONDS = 60.0
 GITHUB_RAW_URL = "https://raw.githubusercontent.com"
+HUGGINGFACE_URL = "https://huggingface.co"
 
 JEV_URL = "https://api.typesafe.ai/v1/systemone"
 JEV_MODEL = "jev-1.13.0"
@@ -114,6 +115,14 @@ STABLETOOLBENCH_SHA256 = {
     "G3_instruction.json": "f923d1a9452646bd1a415b266117d90675d0f8fc04cf014db58d3cd78c25634f",
 }
 
+# MMLU (Hendrycks et al., 2021), from the Hugging Face dataset cais/mmlu at this revision.
+MMLU_REVISION = "c30699e8356da336a370243923dbaf21066bb9fe"
+MMLU_BASE_URL = f"{HUGGINGFACE_URL}/datasets/cais/mmlu/resolve/{MMLU_REVISION}/"
+MMLU_RAW_DIR = DATA_DIR / "mmlu" / "raw"
+# The test questions of all 57 subjects in one file.
+MMLU_RAW_FILE = "all/test-00000-of-00001.parquet"
+MMLU_SHA256 = {MMLU_RAW_FILE: "74a41822ce7d3def56e1682f958469c04642a5336a5ce912fa375fdb90fb25d7"}
+
 BFCL_COMMIT = "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8"
 BFCL_BASE_URL = (
     f"{GITHUB_RAW_URL}/ShishirPatil/gorilla/{BFCL_COMMIT}/berkeley-function-call-leaderboard/bfcl_eval/data/"
@@ -210,6 +219,18 @@ STABLETOOLBENCH_TEST_FILES = (
 )
 
 BFCL_PROCESSED_DIR = DATA_DIR / "bfcl" / "processed"
+
+MMLU_PROCESSED_DIR = DATA_DIR / "mmlu" / "processed"
+# The processed file with every test question, and the one with the questions whose choices can be moved, copied and
+# replaced: the 4 choices differ, and none refers to another choice.
+MMLU_TEST_FILE = "test"
+MMLU_STANDALONE_FILE = "test_standalone"
+MMLU_TEST_FILES = (MMLU_TEST_FILE, MMLU_STANDALONE_FILE)
+# A choice that matches this pattern, with upper and lower case taken as the same, refers to other choices.
+MMLU_REFERRING_CHOICE = (
+    r"\b(none|all|both|neither|either) of (the|these)|\b(above|the other)\b|^(I|II|III|IV)\b"
+    r"|\b(A|B|C|D) and (A|B|C|D)\b"
+)
 # A raw test file is named BFCL_FILE_PREFIX, the test file's name and ".json". Its ground truth has the same file
 # name in the folder BFCL_ANSWER_DIR.
 BFCL_FILE_PREFIX = "BFCL_v4_"
@@ -274,6 +295,7 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "absent" sends every example with a list that has no correct tool: other tools of the example and "None", in every
 # rotation. "absent_random" does the same with random tools of the dataset that are not in the list of the example.
 # "unrelated" sends every example with a list of such random tools and without "None", in every rotation.
+# "own" sends every example with its own list in every rotation.
 # The MetaTool test files whose examples have a correct tool to reword.
 METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
@@ -283,21 +305,35 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
-    "copied": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "copied": {
+        "metatool": METATOOL_REWORDED_FILES,
+        "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+        "mmlu": (MMLU_STANDALONE_FILE,),
+    },
     "absent": {"metatool": ("similar_tools",)},
-    "absent_random": {"metatool": ("similar_tools",)},
-    "unrelated": {"metatool": METATOOL_REWORDED_FILES},
+    "absent_random": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
+    "unrelated": {"metatool": METATOOL_REWORDED_FILES, "mmlu": (MMLU_STANDALONE_FILE,)},
+    "own": {"mmlu": (MMLU_STANDALONE_FILE,)},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "metatool": ("similar_tools", "scenario", "reliability"),
     "stabletoolbench": (),
+    "mmlu": (),
 }
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
+# Dataset -> the name and the description of its "None" candidate, where the options are not tools.
+NONE_CANDIDATES = {"mmlu": ("None of the above", "")}
+# Dataset -> the instruction of every list of the dataset, where the options are not tools.
+DATASET_INSTRUCTIONS = {"mmlu": "Choose the correct answer to the question."}
 # Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
 # its k highest-probability tools.
-SEVERAL_TOOL_TEST_FILES = {"metatool": ("multi_tool",), "stabletoolbench": STABLETOOLBENCH_TEST_FILES}
+SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
+    "metatool": ("multi_tool",),
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "mmlu": (),
+}
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
 )
@@ -412,6 +448,7 @@ DOWNLOADS = {
     "metatool": (METATOOL_BASE_URL, METATOOL_SHA256, METATOOL_RAW_DIR),
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
+    "mmlu": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
 }
 
 # Dataset name -> where its files in the common format are written.
@@ -419,10 +456,12 @@ PROCESSED_DIRS = {
     "metatool": METATOOL_PROCESSED_DIR,
     "stabletoolbench": STABLETOOLBENCH_PROCESSED_DIR,
     "bfcl": BFCL_PROCESSED_DIR,
+    "mmlu": MMLU_PROCESSED_DIR,
 }
 # Dataset name -> its test files, in the order they are shown.
 TEST_FILES = {
     "metatool": tuple(METATOOL_TEST_FILES),
     "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
     "bfcl": BFCL_TEST_FILES,
+    "mmlu": MMLU_TEST_FILES,
 }

@@ -12,6 +12,7 @@ from grjev.constants import (
     ABSENT_LIST_TOOLS,
     COPIED_TOOLS,
     COUNTED_WORDINGS,
+    DATASET_INSTRUCTIONS,
     GROWTH_LENGTHS,
     GROWTH_WORDINGS,
     JEV_MODEL,
@@ -19,6 +20,7 @@ from grjev.constants import (
     JEV_WORKERS,
     LIST_LENGTHS,
     NO_ADDED_NONE_EXPERIMENTS,
+    NONE_CANDIDATES,
     NONE_DESCRIPTION,
     NONE_NAME,
     NONE_TEST_FILES,
@@ -134,6 +136,17 @@ def sampled(examples: list[Example], size: int | None, seed: int) -> list[Exampl
     return [example for index, example in enumerate(examples) if index in kept]
 
 
+def instruction_of(config: RunConfig, tool_instruction: str) -> str:
+    """Return the instruction of a list: the one of the dataset where its options are not tools, or the given one."""
+    return DATASET_INSTRUCTIONS.get(config.dataset, tool_instruction)
+
+
+def none_option(config: RunConfig) -> Option:
+    """Return the "None" candidate of the dataset."""
+    name, description = NONE_CANDIDATES.get(config.dataset, (NONE_NAME, NONE_DESCRIPTION))
+    return Option(name=name, description=description)
+
+
 def file_instructions(config: RunConfig, test_file: str) -> str:
     """Return the instruction of a test file: for one tool, or for two tools in the wording of the config."""
     if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]:
@@ -240,7 +253,7 @@ def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: l
             copies = spaced_copies(tool, COPIED_TOOLS, f"{config.seed}/{example.id}/copied")
             lists = rotated_orders(copies)
             relabelled = example.model_copy(update={"labels": [copy.name for copy in copies]})
-            yield test_file, relabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
+            yield test_file, relabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))
 
 
 def none_rotations(
@@ -250,12 +263,11 @@ def none_rotations(
 
     "None" is last in the first rotation. The yielded example has no label, so "None" is the correct answer.
     """
-    none = Option(name=NONE_NAME, description=NONE_DESCRIPTION)
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
-            lists = rotated_orders([*kept(example), none])
-            unlabelled = example.model_copy(update={"labels": []})
-            yield test_file, unlabelled, lists, dict.fromkeys(lists, ONE_TOOL_INSTRUCTIONS)
+            lists = rotated_orders([*kept(example), none_option(config)])
+            yield test_file, example.model_copy(update={"labels": []}), lists, dict.fromkeys(lists, instruction)
 
 
 def absent_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
@@ -280,7 +292,16 @@ def unrelated_lists(config: RunConfig, examples: dict[str, list[Example]], tools
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             lists = rotated_orders(outside_tools(example, tools, UNRELATED_TOOLS, config.seed))
             unlabelled = example.model_copy(update={"labels": []})
-            yield test_file, unlabelled, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
+            yield test_file, unlabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))
+
+
+def own_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its own list in every rotation."""
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(example.options)
+            yield test_file, example, lists, dict.fromkeys(lists, instruction)
 
 
 # Experiment -> the function that yields the tool lists of its examples.
@@ -295,6 +316,7 @@ LISTS = {
     "absent": absent_lists,
     "absent_random": absent_random_lists,
     "unrelated": unrelated_lists,
+    "own": own_lists,
 }
 
 
@@ -374,7 +396,7 @@ def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: Cho
     if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset] or config.experiment in REWORDING_EXPERIMENTS:
         top = top_tools(answer.probabilities, len(labels))
         return bool(labels) and top is not None and set(top) == set(labels)
-    return answer.choice == (labels[0] if labels else NONE_NAME)
+    return answer.choice == (labels[0] if labels else none_option(config).name)
 
 
 def row_of(config: RunConfig, item: Planned, responses: list[JevResponse]) -> Row:

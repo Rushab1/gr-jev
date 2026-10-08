@@ -5,9 +5,15 @@ import argparse
 from grjev.bfcl import process_bfcl
 from grjev.constants import DOWNLOADS, PROCESSED_DIRS
 from grjev.metatool import process_metatool
+from grjev.mmlu import process_mmlu
 from grjev.stabletoolbench import process_stabletoolbench
 
-PROCESSORS = {"metatool": process_metatool, "stabletoolbench": process_stabletoolbench, "bfcl": process_bfcl}
+PROCESSORS = {
+    "metatool": process_metatool,
+    "stabletoolbench": process_stabletoolbench,
+    "bfcl": process_bfcl,
+    "mmlu": process_mmlu,
+}
 
 
 def parse_args() -> argparse.Namespace:

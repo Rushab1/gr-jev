@@ -47,7 +47,8 @@ def distinct_options(examples: Iterable[Example]) -> list[Option]:
 
 def read_jsonl[T: BaseModel](path: Path, model: type[T]) -> list[T]:
     """Read a file written by write_jsonl."""
-    return [model.model_validate_json(line) for line in path.read_text().splitlines()]
+    # A row ends at a line feed only. str.splitlines would also cut a row at a line separator inside its text.
+    return [model.model_validate_json(line) for line in path.read_text().split("\n") if line]
 
 
 def read_dataset(processed_dir: Path, test_files: Iterable[str]) -> tuple[dict[str, list[Example]], list[Option]]:
