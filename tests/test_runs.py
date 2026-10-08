@@ -765,7 +765,9 @@ def mmlu() -> tuple[dict[str, list[Example]], list[Option]]:
     return read_dataset(folder, test_files)
 
 
-@pytest.mark.parametrize(("experiment", "entries"), [("own", 4), ("copied", 5), ("unrelated", 5), ("absent_random", 5)])
+@pytest.mark.parametrize(
+    ("experiment", "entries"), [("own", 4), ("copied", 5), ("unrelated", 5), ("absent_random", 5), ("absent", 4)]
+)
 def test_fifty_mmlu_questions_send_one_request_with_every_rotation(
     experiment: str, entries: int, mmlu: tuple[dict[str, list[Example]], list[Option]]
 ) -> None:
@@ -787,6 +789,11 @@ def test_fifty_mmlu_questions_send_one_request_with_every_rotation(
             elif experiment == "copied":
                 (correct,) = question.example.labels or []
                 assert {" ".join(name.split()) for name in names} == {" ".join(correct.split())}
+            elif experiment == "absent":
+                (correct,) = question.example.labels or []
+                assert sorted(names) == sorted(
+                    [*(choice for choice in released if choice != correct), "None of the above"]
+                )
             else:
                 assert not set(names) & set(released)
                 assert ("None of the above" in names) == (experiment == "absent_random")

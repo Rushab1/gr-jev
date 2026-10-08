@@ -109,9 +109,9 @@ def spaced_copies(tool: Option, copies: int, seed: str) -> list[Option]:
 
 
 def wrong_tools(example: Example, size: int, seed: int) -> list[Option]:
-    """Return `size` tools of the example that are not correct, chosen with the seed."""
+    """Return `size` tools of the example that are not correct, chosen with the seed, or all of them if it has fewer."""
     others = [option for option in example.options if option.name not in (example.labels or [])]
-    return random.Random(f"{seed}/{example.id}/absent").sample(others, size)
+    return random.Random(f"{seed}/{example.id}/absent").sample(others, min(size, len(others)))
 
 
 def outside_tools(example: Example, tools: list[Option], size: int, seed: int) -> list[Option]:

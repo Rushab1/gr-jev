@@ -311,7 +311,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
         "mmlu": (MMLU_STANDALONE_FILE,),
     },
-    "absent": {"metatool": ("similar_tools",)},
+    "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
     "absent_random": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
     "unrelated": {"metatool": METATOOL_REWORDED_FILES, "mmlu": (MMLU_STANDALONE_FILE,)},
     "own": {"mmlu": (MMLU_STANDALONE_FILE,)},
@@ -378,7 +378,8 @@ REWORDINGS_FILES = {
 REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied")
 # The "copied" experiment lists one correct tool this many times. The names of the copies differ only by extra spaces.
 COPIED_TOOLS = 5
-# The "absent" experiments list this many tools that are not correct, and "None" with them.
+# The "absent" experiments list this many tools that are not correct, and "None" with them. An MMLU question has 3
+# choices that are not correct, and its "absent" list holds the 3.
 ABSENT_LIST_TOOLS = 4
 # The experiments whose lists do not get "None" added at the end: the lists of rewordings and of copies, and the
 # "absent" lists, which hold "None" at a place of its own, and the "unrelated" lists, which offer no "None".
