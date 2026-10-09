@@ -63,8 +63,9 @@ def print_summary(config: RunConfig, rows: list[Row]) -> None:
         for name, percent in by_list.items():
             print(f"  {name:<28}{percent:6.1f}%")
     tokens = sum(row.input_tokens for row in rows)
-    rejected = sum(len(row.rejected) for row in rows)
-    print(f"Tool lists answered: {sum(len(row.answers) for row in rows):,}. Rejected by the model: {rejected:,}")
+    rejected, refused = sum(len(row.rejected) for row in rows), sum(len(row.refused) for row in rows)
+    answered = sum(len(row.answers) for row in rows)
+    print(f"Tool lists answered: {answered:,}. Rejected by the model: {rejected:,}. Refused by the model: {refused:,}")
     print(
         f"Answers to a query with several correct tools where a tie leaves a place open: {tied_answers(config, rows):,}"
     )

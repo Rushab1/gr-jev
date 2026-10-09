@@ -75,6 +75,12 @@ class NoulAnswer(BaseModel):
     noul: float
 
 
+class RefusalAnswer(BaseModel):
+    """The model declined to answer the question. GPT-6 Luna Decisions returns it."""
+
+    type: Literal["refusal"]
+
+
 class Usage(BaseModel):
     """Token counts reported by the API."""
 
@@ -86,7 +92,7 @@ class JevResponse(BaseModel):
     """One response: the model that answered, an answer for each question, and the token usage."""
 
     model: str
-    answers: dict[str, Annotated[ChoiceAnswer | NoulAnswer, Field(discriminator="type")]]
+    answers: dict[str, Annotated[ChoiceAnswer | NoulAnswer | RefusalAnswer, Field(discriminator="type")]]
     usage: Usage
 
 

@@ -47,6 +47,7 @@ from grjev.jev import (
     JevRequest,
     JevResponse,
     NoulQuestion,
+    RefusalAnswer,
     ask,
     check_call_limit,
     response_path,
@@ -106,8 +107,9 @@ class Row(BaseModel):
     labels: list[str]
     answers: dict[str, ListAnswer]
     input_tokens: int
-    # The names of the tool lists that the model rejected. They have no answer.
+    # The names of the tool lists that the model rejected, and of those it refused to answer. They have no answer.
     rejected: list[str] = []
+    refused: list[str] = []
 
 
 @dataclass(frozen=True)
@@ -408,15 +410,15 @@ def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: Cho
 
 
 def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]) -> Row:
-    """Return the row of one example from the responses to its requests. A rejected request gives no answer."""
+    """Return the row of one example from the responses to its requests. A rejection and a refusal give no answer."""
     labels = item.example.labels or []
     answered = [response for response in responses if response is not None]
     given = {name: answer for response in answered for name, answer in response.answers.items()}
     answers = {}
     for name, tools in item.lists.items():
-        if name not in given:
+        answer = given.get(name)
+        if answer is None or isinstance(answer, RefusalAnswer):
             continue
-        answer = given[name]
         if not isinstance(answer, ChoiceAnswer):
             raise TypeError(f"{item.example.id}: the answer for {name} is not a choice")
         answers[name] = ListAnswer(
@@ -433,6 +435,7 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]
         answers=answers,
         input_tokens=sum(response.usage.input_tokens for response in answered),
         rejected=[name for name in item.lists if name not in given],
+        refused=[name for name in item.lists if isinstance(given.get(name), RefusalAnswer)],
     )
 
 

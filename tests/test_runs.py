@@ -20,6 +20,7 @@ from grjev.constants import (
     JEV_MAX_OPTIONS,
     LAYA_MODEL,
     LIST_LENGTHS,
+    LUNA_MODEL,
     NONE_NAME,
     ONE_TOOL_INSTRUCTIONS,
     OWN_LIST,
@@ -415,6 +416,22 @@ def test_laya_gets_one_request_per_list_and_a_rejected_list_has_no_answer(
     assert list(row.answers) == [name for name in [RELEASED_ORDER, *PLACEMENTS] if name != "last"]
     assert row.rejected == ["last"] and row.input_tokens == 10 * len(row.answers)
     assert jev.calls_saved() == 0
+
+
+def test_a_refused_list_has_no_answer_and_is_named_in_the_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:
+    run_config = config("position", "similar_tools", model=LUNA_MODEL)
+    planned = plan(run_config, {"similar_tools": [example(0, ["tool_4"])]}, TOOLS)
+    accepted = fake.post
+
+    def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
+        payload = accepted(url, content, headers, timeout).json()
+        payload["answers"]["middle"] = {"type": "refusal"}
+        return httpx.Response(200, json=payload, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(jev.httpx, "post", post)
+    (row,) = run(run_config, planned)
+    assert row.refused == ["middle"] and row.rejected == [] and "middle" not in row.answers
+    assert len(row.answers) == len(PLACEMENTS)
 
 
 def test_the_answers_of_split_requests_are_joined_in_one_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:
