@@ -18,6 +18,7 @@ from grjev.constants import (
     GROWTH_LENGTHS,
     GROWTH_WORDINGS,
     JEV_MAX_OPTIONS,
+    LAYA_MODEL,
     LIST_LENGTHS,
     NONE_NAME,
     ONE_TOOL_INSTRUCTIONS,
@@ -77,7 +78,9 @@ def fake(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeJev:
     fake_jev = FakeJev()
     monkeypatch.setattr(jev.httpx, "post", fake_jev.post)
     monkeypatch.setattr(jev, "JEV_CACHE_DIR", tmp_path / "cache")
+    monkeypatch.setattr(jev, "GATEWAY_CACHE_DIR", tmp_path / "gateway")
     monkeypatch.setenv(jev.JEV_KEY_ENV, "test-key")
+    monkeypatch.setenv(jev.GATEWAY_KEY_ENV, "gateway-key")
     return fake_jev
 
 
@@ -390,6 +393,28 @@ def test_a_run_asks_once_per_request_and_scores_every_list(fake: FakeJev) -> Non
     assert first.answers["last"].choice == first.answers["last"].candidates[0]
     assert none_correct.answers[RELEASED_ORDER].candidates[-1] == NONE_NAME
     assert not none_correct.answers[RELEASED_ORDER].correct
+
+
+def test_laya_gets_one_request_per_list_and_a_rejected_list_has_no_answer(
+    fake: FakeJev, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_config = config("position", "similar_tools", model=LAYA_MODEL)
+    (planned,) = plan(run_config, {"similar_tools": [example(0, ["tool_4"])]}, TOOLS)
+    assert [list(request.questions) for request in planned.requests] == [
+        [name] for name in [RELEASED_ORDER, *PLACEMENTS]
+    ]
+    accepted = fake.post
+
+    def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
+        if "last" in json.loads(content)["questions"]:
+            return httpx.Response(422, json={"error": "too long"}, request=httpx.Request("POST", url))
+        return accepted(url, content, headers, timeout)
+
+    monkeypatch.setattr(jev.httpx, "post", post)
+    (row,) = run(run_config, [planned])
+    assert list(row.answers) == [name for name in [RELEASED_ORDER, *PLACEMENTS] if name != "last"]
+    assert row.rejected == ["last"] and row.input_tokens == 10 * len(row.answers)
+    assert jev.calls_saved() == 0
 
 
 def test_the_answers_of_split_requests_are_joined_in_one_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -25,6 +25,7 @@ from grjev.constants import (
     NONE_NAME,
     NONE_TEST_FILES,
     NUMBER_WORDS,
+    ONE_LIST_MODELS,
     ONE_TOOL_INSTRUCTIONS,
     ORDER_SEED,
     PADDED_LIST_TOOLS,
@@ -105,6 +106,8 @@ class Row(BaseModel):
     labels: list[str]
     answers: dict[str, ListAnswer]
     input_tokens: int
+    # The names of the tool lists that the model rejected. They have no answer.
+    rejected: list[str] = []
 
 
 @dataclass(frozen=True)
@@ -345,7 +348,12 @@ def questions_of(
 
 
 def requests_of(config: RunConfig, query: str, questions: dict[str, ChoiceQuestion]) -> list[JevRequest]:
-    """Return the requests of one example: the query as the state, and its questions split to fit a request."""
+    """Return the requests of one example: the query as the state, and its questions split to fit a request.
+
+    A model that takes one tool list per request gets one request per question.
+    """
+    if config.model in ONE_LIST_MODELS:
+        return [JevRequest(state=query, model=config.model, questions={name: q}) for name, q in questions.items()]
     groups: list[dict[str, ChoiceQuestion | NoulQuestion]] = [{}]
     size = 0
     for name, question in questions.items():
@@ -399,12 +407,15 @@ def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: Cho
     return answer.choice == (labels[0] if labels else none_option(config).name)
 
 
-def row_of(config: RunConfig, item: Planned, responses: list[JevResponse]) -> Row:
-    """Return the row of one example from Jev's responses to its requests."""
+def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]) -> Row:
+    """Return the row of one example from the responses to its requests. A rejected request gives no answer."""
     labels = item.example.labels or []
-    given = {name: answer for response in responses for name, answer in response.answers.items()}
+    answered = [response for response in responses if response is not None]
+    given = {name: answer for response in answered for name, answer in response.answers.items()}
     answers = {}
     for name, tools in item.lists.items():
+        if name not in given:
+            continue
         answer = given[name]
         if not isinstance(answer, ChoiceAnswer):
             raise TypeError(f"{item.example.id}: the answer for {name} is not a choice")
@@ -415,15 +426,24 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse]) -> Ro
             confidence=answer.confidence,
             correct=is_correct(config, item.test_file, labels, answer),
         )
-    tokens = sum(response.usage.input_tokens for response in responses)
-    return Row(id=item.example.id, test_file=item.test_file, labels=labels, answers=answers, input_tokens=tokens)
+    return Row(
+        id=item.example.id,
+        test_file=item.test_file,
+        labels=labels,
+        answers=answers,
+        input_tokens=sum(response.usage.input_tokens for response in answered),
+        rejected=[name for name in item.lists if name not in given],
+    )
 
 
 def run(config: RunConfig, planned: list[Planned]) -> list[Row]:
-    """Ask Jev every planned request and return one row per example. The run does not start past the call limit."""
+    """Ask the model every planned request and return one row per example.
+
+    A run on Jev does not start past the call limit.
+    """
     requests = [request for item in planned for request in item.requests]
-    check_call_limit(sum(not response_path(request, config.run).exists() for request in requests))
-    responses: list[JevResponse] = []
+    check_call_limit(sum(not response_path(request, config.run).exists() for request in requests), config.model)
+    responses: list[JevResponse | None] = []
     with ThreadPoolExecutor(JEV_WORKERS) as workers:
         for response in workers.map(lambda request: ask(request, config.run), requests):
             responses.append(response)

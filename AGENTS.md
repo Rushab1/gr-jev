@@ -41,6 +41,8 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random`, `unrelated` and `own`, and `--examples-per-file` or `--examples` runs a seeded sample. `--run 2` asks Jev the same requests again and saves the answers under run number 2. The `reworded` and `rotated` experiments read the rewordings of the tools from `src/grjev/rewordings/<dataset>.json`. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
 
+`--model` runs an experiment on a decision model that Vercel AI Gateway serves: `convaiinnovations/laya`, `liquid/d1` or `openai/gpt-6-luna-decisions`. The gateway key is read from `VERCEL_GATEWAY_API_KEY`. The run writes `results/<dataset>_<experiment>_<model>/<date>_<incr>/`, with `laya`, `d1` or `gpt-6-luna-decisions` as the model. Its responses are saved under `data/cache/gateway/` and do not count towards `JEV_CALL_LIMIT`. Laya gets one tool list per request. A list that Laya rejects as too long is saved as rejected, and the row of its example names it under `rejected`.
+
 `python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. `python scripts/compare_runs.py <folder> <folder>` compares the answers of two results folders to the same examples, such as two runs of the same requests. The code is in `src/grjev/metrics.py`.
 
 An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES` and `SEVERAL_TOOL_TEST_FILES` in `constants.py`, and in `LIST_LENGTHS` for the length experiment.
@@ -77,7 +79,7 @@ A plain `pytest` run uses no network. Tests marked `integration` call the live C
 - Processed data has one row per example with the same fields for every dataset: `id`, `query`, `options`, `labels`, and `raw`, the row of the raw file unchanged. When a dataset keeps the answer in a second file, `raw` holds both rows merged. A multi-turn example has one row per turn, and each row holds the whole raw row. `labels` is null when the answer is not one of the options. A converter loses no data, and a test on the downloaded files checks that every raw row and every character survives.
 - Every function that makes a random choice takes a seed or a generator as an argument. Do not call `random.seed` globally.
 - Save every response from Jev and from the frontier models under a hash of the exact request and a run number, and store the request and the model version with it. A rerun reads the saved files and calls nothing. A deliberate repeat of a request gets a new run number, so repeats are separate calls that can be compared. The hash covers only what is sent to the model, never the version of our code. For a Claude call it also covers the CLI version, the CLI arguments, the variables we set and the working folder. The CLI receives no other variable of our environment except the five listed in `constants.py`.
-- Pin the Jev model version. The current one is `jev-1.13.0`.
+- Pin the Jev model version. The current one is `jev-1.13.0`. The gateway takes no version of its models. A saved response holds the model name that the gateway returned.
 
 ## Results
 
@@ -85,7 +87,7 @@ Each run writes to `results/<name>/<date>_<incr>/`, for example `results/metatoo
 
 ## Secrets and terms
 
-- The Jev key is read from the environment variable `TYPESAFE_API_KEY`. Do not commit keys or `.env` files.
+- The Jev key is read from the environment variable `TYPESAFE_API_KEY`, and the Vercel AI Gateway key from `VERCEL_GATEWAY_API_KEY`. Do not commit keys or `.env` files.
 - Do not train any model on Jev output. TypeSafe's customer agreement prohibits it.
 
 ## Git

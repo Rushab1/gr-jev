@@ -8,9 +8,11 @@ import pytest
 from pydantic import ValidationError
 
 from grjev import jev
+from grjev.constants import D1_MODEL, GATEWAY_URL, LAYA_MODEL
 from grjev.store import run_path
 
 KEY = "test-key"
+GATEWAY_KEY = "gateway-key"
 ANSWER = {
     "model": "jev-1.13.0",
     "answers": {"tool": {"type": "choice", "choice": "a", "probabilities": {"a": 0.9, "b": 0.1}, "confidence": 0.8}},
@@ -23,10 +25,12 @@ class FakeJev:
 
     def __init__(self) -> None:
         self.calls: list[dict[str, str]] = []
+        self.urls: list[str] = []
         self.statuses: list[int] = []
 
     def post(self, url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
         self.calls.append(headers)
+        self.urls.append(url)
         status = self.statuses.pop(0) if self.statuses else 200
         payload = ANSWER if status == 200 else {"error": "refused"}
         return httpx.Response(status, json=payload, request=httpx.Request("POST", url))
@@ -38,8 +42,10 @@ def fake(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeJev:
     fake_jev = FakeJev()
     monkeypatch.setattr(jev.httpx, "post", fake_jev.post)
     monkeypatch.setattr(jev, "JEV_CACHE_DIR", tmp_path)
+    monkeypatch.setattr(jev, "GATEWAY_CACHE_DIR", tmp_path / "gateway")
     monkeypatch.setattr(jev.time, "sleep", lambda seconds: None)
     monkeypatch.setenv(jev.JEV_KEY_ENV, KEY)
+    monkeypatch.setenv(jev.GATEWAY_KEY_ENV, GATEWAY_KEY)
     return fake_jev
 
 
@@ -58,7 +64,7 @@ def test_option_order_changes_the_request_and_its_path() -> None:
 def test_ask_saves_the_response_and_reads_it_back_without_a_second_call(fake: FakeJev) -> None:
     first = jev.ask(request({"a": None, "b": None}))
     second = jev.ask(request({"a": None, "b": None}))
-    assert first == second
+    assert first is not None and first == second
     assert first.answers["tool"].type == "choice" and first.usage.input_tokens == 30
     assert len(fake.calls) == 1
 
@@ -86,7 +92,7 @@ def test_post_retries_while_jev_is_overloaded(fake: FakeJev) -> None:
 
 def test_an_error_status_raises_and_saves_nothing(fake: FakeJev, tmp_path: Path) -> None:
     fake.statuses = [401]
-    with pytest.raises(RuntimeError, match="Jev returned 401"):
+    with pytest.raises(RuntimeError, match="jev-1.13.0 returned 401"):
         jev.ask(request({"a": None, "b": None}))
     assert list(tmp_path.rglob("*.json")) == []
 
@@ -94,10 +100,36 @@ def test_an_error_status_raises_and_saves_nothing(fake: FakeJev, tmp_path: Path)
 def test_a_response_of_an_unexpected_shape_raises_and_saves_nothing(
     fake: FakeJev, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(jev, "post", lambda body: {"unexpected": True})
+    monkeypatch.setattr(jev, "post", lambda body, model: {"unexpected": True})
     with pytest.raises(ValidationError):
         jev.ask(request({"a": None, "b": None}))
     assert list(tmp_path.rglob("*.json")) == []
+
+
+def test_a_gateway_model_is_asked_at_the_gateway_with_its_key_and_saved_outside_the_jev_folder(
+    fake: FakeJev, tmp_path: Path
+) -> None:
+    question = jev.ChoiceQuestion(instructions="Which tool handles the query?", criteria={"a": None, "b": None})
+    jev.ask(jev.JevRequest(state="Find a flight.", model=D1_MODEL, questions={"tool": question}))
+    assert fake.urls == [GATEWAY_URL] and fake.calls[0]["Authorization"] == f"Bearer {GATEWAY_KEY}"
+    assert len(list((tmp_path / "gateway" / D1_MODEL).rglob("run-1.json"))) == 1
+    jev.check_call_limit(10**9, D1_MODEL)
+
+
+def test_a_list_that_laya_rejects_is_saved_as_rejected_and_not_asked_again(fake: FakeJev, tmp_path: Path) -> None:
+    question = jev.ChoiceQuestion(instructions="Which tool handles the query?", criteria={"a": None, "b": None})
+    asked = jev.JevRequest(state="Find a flight.", model=LAYA_MODEL, questions={"tool": question})
+    fake.statuses = [422]
+    assert jev.ask(asked) is None and jev.ask(asked) is None
+    assert len(fake.calls) == 1
+    assert json.loads(next((tmp_path / "gateway").rglob("run-1.json")).read_text())["response"]["rejected"] == 422
+
+
+def test_a_rejection_of_a_model_that_takes_whole_requests_raises(fake: FakeJev) -> None:
+    question = jev.ChoiceQuestion(instructions="Which tool handles the query?", criteria={"a": None, "b": None})
+    fake.statuses = [422]
+    with pytest.raises(RuntimeError, match="returned 422"):
+        jev.ask(jev.JevRequest(state="Find a flight.", model=D1_MODEL, questions={"tool": question}))
 
 
 def test_a_missing_key_raises(monkeypatch: pytest.MonkeyPatch) -> None:

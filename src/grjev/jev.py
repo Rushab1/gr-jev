@@ -1,4 +1,7 @@
-"""Client for Jev, TypeSafe AI's decision model. Every response is saved under the request's hash and a run number."""
+"""Client for Jev, TypeSafe AI's decision model, and for the decision models that Vercel AI Gateway serves.
+
+Every response is saved under the request's hash and a run number.
+"""
 
 import json
 import logging
@@ -11,6 +14,10 @@ import httpx
 from pydantic import BaseModel, Field
 
 from grjev.constants import (
+    GATEWAY_CACHE_DIR,
+    GATEWAY_KEY_ENV,
+    GATEWAY_MODELS,
+    GATEWAY_URL,
     HTTP_TIMEOUT_SECONDS,
     JEV_BACKOFF_SECONDS,
     JEV_CACHE_DIR,
@@ -21,6 +28,8 @@ from grjev.constants import (
     JEV_MODEL,
     JEV_RETRY_STATUSES,
     JEV_URL,
+    ONE_LIST_MODELS,
+    REJECTED_STATUSES,
 )
 from grjev.store import load_or_compute, run_path
 
@@ -86,45 +95,57 @@ def request_body(request: JevRequest) -> bytes:
     return json.dumps(request.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")).encode()
 
 
-def api_key() -> str:
-    """Read the Jev key from the environment."""
-    key = os.environ.get(JEV_KEY_ENV)
+def api_key(model: str = JEV_MODEL) -> str:
+    """Read the key of the API that serves the model from the environment."""
+    name = GATEWAY_KEY_ENV if model in GATEWAY_MODELS else JEV_KEY_ENV
+    key = os.environ.get(name)
     if not key:
-        raise RuntimeError(f"{JEV_KEY_ENV} is not set")
+        raise RuntimeError(f"{name} is not set")
     return key
 
 
-def post(body: bytes) -> dict[str, Any]:
-    """Send one request to Jev, retrying with backoff while the server is overloaded or rate limiting."""
-    headers = {"Authorization": f"Bearer {api_key()}", "Content-Type": "application/json"}
+def post(body: bytes, model: str = JEV_MODEL) -> dict[str, Any]:
+    """Send one request to the model's API, retrying with backoff while the server is overloaded or rate limiting.
+
+    A model that takes one tool list per request can reject the list. The rejection is returned and not raised.
+    """
+    url = GATEWAY_URL if model in GATEWAY_MODELS else JEV_URL
+    headers = {"Authorization": f"Bearer {api_key(model)}", "Content-Type": "application/json"}
     for attempt in range(1, JEV_MAX_ATTEMPTS + 1):
-        response = httpx.post(JEV_URL, content=body, headers=headers, timeout=HTTP_TIMEOUT_SECONDS)
+        response = httpx.post(url, content=body, headers=headers, timeout=HTTP_TIMEOUT_SECONDS)
         if response.status_code not in JEV_RETRY_STATUSES or attempt == JEV_MAX_ATTEMPTS:
             break
-        logger.warning("Jev returned %d on attempt %d of %d", response.status_code, attempt, JEV_MAX_ATTEMPTS)
+        logger.warning("%s returned %d on attempt %d of %d", model, response.status_code, attempt, JEV_MAX_ATTEMPTS)
         time.sleep(JEV_BACKOFF_SECONDS * 2 ** (attempt - 1))
+    if model in ONE_LIST_MODELS and response.status_code in REJECTED_STATUSES:
+        return {"rejected": response.status_code, "error": response.text}
     if response.status_code != httpx.codes.OK:
-        raise RuntimeError(f"Jev returned {response.status_code}: {response.text}")
+        raise RuntimeError(f"{model} returned {response.status_code}: {response.text}")
     return response.json()
 
 
-def ask(request: JevRequest, run: int = 1) -> JevResponse:
-    """Return Jev's response for this request and run number. The API is called only if that run is not saved."""
+def ask(request: JevRequest, run: int = 1) -> JevResponse | None:
+    """Return the model's response for this request and run number, or None when the model rejected the request.
+
+    The API is called only if that run is not saved.
+    """
     body = request_body(request)
 
     def call() -> dict[str, Any]:
-        response = post(body)
-        # A response that does not validate is not saved, so the next call with this request asks Jev again.
-        JevResponse.model_validate(response)
+        response = post(body, request.model)
+        # A response that does not validate is not saved, so the next call with this request asks the model again.
+        if "rejected" not in response:
+            JevResponse.model_validate(response)
         return {"request": json.loads(body), "run": run, "response": response}
 
     record = load_or_compute(response_path(request, run), call)
-    return JevResponse.model_validate(record["response"])
+    return None if "rejected" in record["response"] else JevResponse.model_validate(record["response"])
 
 
 def response_path(request: JevRequest, run: int = 1) -> Path:
-    """Return where the response to this request and run number is saved."""
-    return run_path(JEV_CACHE_DIR / request.model, request_body(request), run)
+    """Return where the response to this request and run number is saved. Gateway models have their own folder."""
+    root = GATEWAY_CACHE_DIR if request.model in GATEWAY_MODELS else JEV_CACHE_DIR
+    return run_path(root / request.model, request_body(request), run)
 
 
 def calls_saved() -> int:
@@ -132,8 +153,13 @@ def calls_saved() -> int:
     return sum(1 for _ in JEV_CACHE_DIR.rglob("run-*.json"))
 
 
-def check_call_limit(new_calls: int) -> None:
-    """Raise if this many new calls would take the number of saved responses past the limit."""
+def check_call_limit(new_calls: int, model: str = JEV_MODEL) -> None:
+    """Raise if this many new Jev calls would take the number of saved responses past the limit.
+
+    Calls to a gateway model do not count.
+    """
+    if model in GATEWAY_MODELS:
+        return
     saved = calls_saved()
     if saved + new_calls > JEV_CALL_LIMIT:
         raise RuntimeError(f"{new_calls} new Jev calls and {saved} saved ones pass the limit of {JEV_CALL_LIMIT}")

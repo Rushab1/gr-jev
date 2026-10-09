@@ -37,7 +37,25 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 JEV_CALL_LIMIT = 2012
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
-JEV_DOLLARS_PER_MILLION_INPUT_TOKENS = 0.042
+
+# Vercel AI Gateway serves other decision models through an API with the request and response of TypeSafe's.
+GATEWAY_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone"
+GATEWAY_KEY_ENV = "VERCEL_GATEWAY_API_KEY"
+GATEWAY_CACHE_DIR = DATA_DIR / "cache" / "gateway"
+LAYA_MODEL = "convaiinnovations/laya"
+D1_MODEL = "liquid/d1"
+LUNA_MODEL = "openai/gpt-6-luna-decisions"
+# The gateway takes no version of these models. A saved response holds the model name that the gateway returns.
+GATEWAY_MODELS = (LAYA_MODEL, D1_MODEL, LUNA_MODEL)
+# The name of a gateway model in the name of its results folders.
+RESULTS_MODEL_NAMES = {LAYA_MODEL: "laya", D1_MODEL: "d1", LUNA_MODEL: "gpt-6-luna-decisions"}
+# Laya on the gateway rejects a request when one of its tool lists is too long for the model, with one of these
+# statuses. Each list goes to Laya in a request of its own, and a rejected list is saved as rejected. On 2026-10-08
+# Laya answered a list of 16 APIs with descriptions (463 input tokens) and rejected the same list with 20.
+ONE_LIST_MODELS = (LAYA_MODEL,)
+REJECTED_STATUSES = (413, 422)
+# Prices on https://ai-gateway.vercel.sh/v1/models on 2026-10-08. Laya is free there through 2026-10-31.
+DOLLARS_PER_MILLION_INPUT_TOKENS = {JEV_MODEL: 0.042, LAYA_MODEL: 0.0, D1_MODEL: 0.04, LUNA_MODEL: 0.10}
 # The candidates of one request hold at most this many characters. The largest request of the 2026-10-05 subset had
 # 38,701 input tokens. Jev accepts 64,000 tokens per request.
 JEV_REQUEST_CHARACTERS = 120_000

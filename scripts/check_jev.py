@@ -23,6 +23,8 @@ def main() -> None:
     check_call_limit(1)
     # A run number that is not saved yet, so the answer comes from the API and not from a saved file.
     response = ask(request, next_run(JEV_CACHE_DIR / request.model, request_body(request)))
+    if response is None:
+        raise RuntimeError("Jev rejected the request")
     print(response.model_dump_json(indent=1))
 
 

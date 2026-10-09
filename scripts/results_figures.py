@@ -33,7 +33,7 @@ from pathlib import Path
 from grjev.constants import (
     BOOTSTRAP_SEED,
     CONFIDENT_PROBABILITY,
-    JEV_DOLLARS_PER_MILLION_INPUT_TOKENS,
+    DOLLARS_PER_MILLION_INPUT_TOKENS,
     LIST_LENGTHS,
     REWORDED_LIST,
     ROTATED_LIST,
@@ -121,7 +121,7 @@ def print_run(folder: Path) -> None:
     lengths = LIST_LENGTHS.get(config.dataset, ())
     tokens = sum(row.input_tokens for row in rows)
     questions = sum(len(row.answers) for row in rows)
-    dollars = tokens / 1e6 * JEV_DOLLARS_PER_MILLION_INPUT_TOKENS
+    dollars = tokens / 1e6 * DOLLARS_PER_MILLION_INPUT_TOKENS[config.model]
     print(f"{folder}: {len(rows):,} examples, {questions:,} questions, {tokens:,} input tokens, ${dollars:.2f}")
     print(f"{tokens / questions:,.0f} input tokens per question, {tokens / len(rows):,.0f} per example")
     for name, own in row_groups(rows).items():
