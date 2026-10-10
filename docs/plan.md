@@ -14,9 +14,9 @@ The wording run on a subset of StableToolBench was made on 2026-10-06. Its desig
 
 Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together. Five runs on MMLU were made on 2026-10-08, and are under "MMLU".
 
-1. The runs on every example are listed in `docs/paper_plan.md`, with the claim each supports. They are 110,857 requests per model and cost about $20.02 for Jev, Liquid d1 and GPT-6 Luna Decisions together. They have not started.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. He raised it to 5,000 on 2026-10-09, and 2,019 calls are saved. The runs on every example need 110,857 Jev calls. A run that would pass the limit does not start.
-3. HotpotQA is added to the repository: a pinned download, a converter with its test, and four runs. Rushab chose it on 2026-10-09 for lists with several correct options.
+1. The runs on every example are listed in `docs/paper_plan.md`, with the claim each supports. They are 33 runs, 168,828 requests per model, and cost about $30.19 for Jev, Liquid d1 and GPT-6 Luna Decisions together. 15 of the runs are new. They have not started.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. He raised it to 5,000 on 2026-10-09, and 2,019 calls are saved. The runs on every example need 168,828 Jev calls. A run that would pass the limit does not start.
+3. HotpotQA is added to the repository: a pinned download and a converter with its test. The runner gets three new runs: the correct option with the highest probability removed, a yes/no question per option, and the distractors of the example with no correct option. Rushab chose it on 2026-10-09 for lists with several correct options.
 4. The figures of `docs/all_runs.md` are moved from a script outside the repository into `src/grjev/metrics.py`, with tests.
 5. The runner for other decision models is built: `scripts/run_experiment.py --model` asks Liquid d1, GPT-6 Luna Decisions or Laya through Vercel AI Gateway. Rushab decided on 2026-10-08 that no model is hosted by us, and the 18 runs were repeated on the three models on 2026-10-09. List length is decided later: possibly a short section at the end of the paper on the 50 examples already run.
 
@@ -928,7 +928,7 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 5,000 Jev calls is raised for the runs on every example, which need 110,857 calls.
+- Decide when the limit of 5,000 Jev calls is raised for the runs on every example, which need 168,828 calls.
 - Decide whether the project is described as a study of a decision model's probabilities, with tool selection as one of its datasets. Rushab, 2026-10-08: the runs with copies and with random options are not specific to tool selection.
 - Have a second reader check whether a kept tool can do the task of the query in the two runs with the correct tool removed.
 - Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.
