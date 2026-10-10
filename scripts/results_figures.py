@@ -3,7 +3,8 @@
 Each test file gets a table with one row per tool list and per group of tool lists. In a wording run a row is one
 wording of the instruction. Its columns:
 
-- examples: the examples that have every list of the group
+- examples: the examples that have an answer for every list of the group. A list that the model rejected or refused
+  has none. A group with no such example gets a row with 0 examples.
 - answers, correct, CSR: one answer per example and list, and the percentage that is correct
 - 95% interval: the bootstrap interval of CSR over the examples
 - "None": the answers of "None"
@@ -11,19 +12,21 @@ wording of the instruction. Its columns:
 - probabilities at 0: the share of the returned probabilities that are 0.00
 - entropy: the mean entropy of an answer's probabilities, in bits
 - top minus second: the mean of an answer's highest probability minus its second-highest
-- highest correct, lowest correct, correct together: for the queries with several correct tools, the mean probability
+- highest correct, lowest correct, correct together: for the lists with several correct tools, the mean probability
   of the correct tool with the highest probability, of the one with the lowest, and of all the correct tools summed
 - one choice, all correct, none correct: the examples with the same choice in every list of the group, and those
   answered correctly in every list and in none
-- second tool wrong, second place tied, top tool wrong: for a query with two correct tools, the answers that miss
-  them. The top tool has the highest probability. In a tie, several tools share the second-highest probability.
+- top tool wrong, last place tied, later tool wrong: for a list with k correct tools, k being 2 or more, the answers
+  that miss them. Top tool wrong: no tool with the highest probability is correct. Last place tied: the top tool is
+  correct, and the tools at places k and k + 1 share a probability. Later tool wrong: the top tool is correct, no such
+  tie exists, and a wrong tool is among the k highest.
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 
 A run whose lists hold rewordings or copies of one tool also gets the mean probability of the entries from the highest
 of an answer to the lowest, the mean probability at each place of the list, and the answers that select each place.
 A run with rotated orders gets the last two by entry too, in the order of the first list, and the examples by the
-number of orders that select their most selected entry.
+number of orders that select their most selected entry. These figures leave out a list that has no answer.
 """
 
 import argparse
@@ -44,6 +47,7 @@ from grjev.metrics import (
     compared_groups,
     difference,
     figures,
+    having,
     list_groups,
     list_names,
     most_selected,
@@ -78,9 +82,9 @@ COLUMNS: dict[str, Callable[[Figures], str]] = {
     "one choice": lambda found: f"{found.one_choice:,}",
     "all correct": lambda found: f"{found.all_correct:,}",
     "none correct": lambda found: f"{found.none_correct:,}",
-    "second tool wrong": lambda found: f"{found.second_wrong:,}",
-    "second place tied": lambda found: f"{found.second_tied:,}",
     "top tool wrong": lambda found: f"{found.top_wrong:,}",
+    "last place tied": lambda found: f"{found.last_tied:,}",
+    "later tool wrong": lambda found: f"{found.later_wrong:,}",
 }
 
 
@@ -101,8 +105,10 @@ def print_table(table: list[list[str]]) -> None:
 
 def print_rewordings(rows: list[Row], lists: list[str]) -> None:
     """Print the figures of lists that hold rewordings or copies of one tool: by rank, by place, and by entry."""
+    answered = sum(name in row.answers for row in rows for name in lists)
+    print(f"\n{answered:,} of the {len(rows) * len(lists):,} lists of rewordings or copies have an answer")
     ranked = ", ".join(f"{value:.3f}" for value in ranked_means(rows, lists))
-    print(f"\nmean probability of the entries, from the highest of an answer to the lowest: {ranked}")
+    print(f"mean probability of the entries, from the highest of an answer to the lowest: {ranked}")
     by_place = {"at each place of the list": placed(rows, lists)}
     if len(lists) > 1:
         # The first rotation lists the entries in the order in which they are written or made.
@@ -111,7 +117,9 @@ def print_rewordings(rows: list[Row], lists: list[str]) -> None:
         print(f"mean probability {label}: {', '.join(f'{value:.3f}' for value in means)}")
         print(f"answers that select it, {label}: {', '.join(map(str, selected))}")
     if len(lists) > 1:
-        print(f"examples by the number of orders that select their most selected entry: {most_selected(rows, lists)}")
+        complete = len(having(rows, lists))
+        print(f"the {complete:,} examples with an answer for every order, by the number of orders that select their")
+        print(f"most selected entry: {most_selected(rows, lists)}")
 
 
 def print_run(folder: Path) -> None:
@@ -120,19 +128,29 @@ def print_run(folder: Path) -> None:
     rows = read_jsonl(folder / "rows.jsonl", Row)
     lengths = LIST_LENGTHS.get(config.dataset, ())
     tokens = sum(row.input_tokens for row in rows)
-    questions = sum(len(row.answers) for row in rows)
+    answered, yes_no = sum(len(row.answers) for row in rows), sum(len(row.yes) for row in rows)
+    rejected, refused = sum(len(row.rejected) for row in rows), sum(len(row.refused) for row in rows)
     dollars = tokens / 1e6 * DOLLARS_PER_MILLION_INPUT_TOKENS[config.model]
-    print(f"{folder}: {len(rows):,} examples, {questions:,} questions, {tokens:,} input tokens, ${dollars:.2f}")
-    print(f"{tokens / questions:,.0f} input tokens per question, {tokens / len(rows):,.0f} per example")
+    print(f"{folder}: {len(rows):,} examples, {tokens:,} input tokens, ${dollars:.2f}")
+    print(f"tool lists answered: {answered:,}, yes/no questions answered: {yes_no:,}")
+    print(f"questions that the model rejected: {rejected:,}, questions that it refused: {refused:,}")
+    print(f"{tokens / len(rows):,.0f} input tokens per example")
     for name, own in row_groups(rows).items():
         groups = list_groups(list_names(own), lengths)
+        if not groups:
+            continue
         table = [["tool lists", *COLUMNS]]
         for group, lists in groups.items():
+            if not having(own, lists):
+                table.append([group, "0", *[""] * (len(COLUMNS) - 1)])
+                continue
             found = figures(own, lists, BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
             table.append([group, *(cell(found) for cell in COLUMNS.values())])
         print(f"\n{name}")
         print_table(table)
         for comparison, (first, second) in compared_groups(groups, lengths).items():
+            if not having(own, [*groups[first], *groups[second]]):
+                continue
             points, low, high = difference(own, groups[first], groups[second], BOOTSTRAP_SEED)
             # Adding 0.0 turns a rounded -0.0 into 0.0.
             print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points, 95% interval {low:.1f} to {high:.1f}")

@@ -5,6 +5,7 @@ import pytest
 from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
 from grjev.metrics import (
+    Repeated,
     compared_groups,
     difference,
     entropy,
@@ -87,7 +88,7 @@ def test_figures_count_the_answers_to_the_named_lists() -> None:
     assert (found.none, found.confident, found.confident_wrong) == (1, 2, 1)
     assert found.zero_probabilities == pytest.approx(100 * 4 / 12)
     assert (found.one_choice, found.all_correct, found.none_correct) == (1, 0, 1)
-    assert (found.second_wrong, found.second_tied, found.top_wrong) == (0, 0, 0)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (0, 0, 0)
     assert 0 <= found.low <= found.csr <= found.high <= 50
     first_only = figures(rows, ["first"], BOOTSTRAP_SEED, confident_from=0.9)
     assert (first_only.answers, first_only.correct, first_only.csr, first_only.none) == (2, 1, 50.0, 0)
@@ -110,7 +111,50 @@ def test_an_answer_that_misses_two_correct_tools_is_counted_once_by_how_it_misse
     found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, confident_from=0.9)
     assert (found.answers, found.correct) == (5, 1)
     # A wrong tool is second twice, once after a tie for first place between a correct tool and a wrong one.
-    assert (found.second_wrong, found.second_tied, found.top_wrong) == (2, 1, 1)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (2, 1, 1)
+
+
+def test_a_miss_of_three_correct_tools_is_at_a_later_place_or_a_tie_for_the_third_place() -> None:
+    answers = {
+        "third_wrong": answer("a", False, {"a": 0.4, "b": 0.3, "d": 0.2, "c": 0.1}),
+        "second_wrong": answer("a", False, {"a": 0.4, "d": 0.3, "b": 0.2, "c": 0.1}),
+        "third_tied": answer("a", False, {"a": 0.4, "b": 0.3, "c": 0.15, "d": 0.15}),
+        "top_wrong": answer("d", False, {"d": 0.4, "a": 0.3, "b": 0.2, "c": 0.1}),
+    }
+    found = figures([row("test_violated", ["a", "b", "c"], answers)], list(answers), BOOTSTRAP_SEED, 0.9)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (2, 1, 1)
+
+
+def test_a_list_without_a_correct_tool_is_measured_on_the_correct_tools_that_it_holds() -> None:
+    answers = {
+        "full": answer("a", True, {"a": 0.8, "b": 0.2, "c": 0.0}),
+        "without_1": answer("b", True, {"b": 0.7, "c": 0.3}),
+        "without_all": answer("c", False, {"c": 1.0, "d": 0.0}),
+    }
+    found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, 0.9)
+    assert (found.answers, found.correct) == (3, 2)
+    # Only the full list holds several correct tools.
+    assert (found.highest_correct, found.lowest_correct, found.correct_together) == (0.8, 0.2, 1.0)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (0, 0, 0)
+
+
+def test_a_list_that_has_no_answer_is_left_out_of_the_figures_by_rank_by_place_and_by_entry() -> None:
+    both = row(
+        "similar_tools",
+        ["a", "b"],
+        {
+            "rotated_0": answer("a", True, {"a": 0.9, "b": 0.1}),
+            "rotated_1": answer("a", True, {"b": 0.3, "a": 0.7}),
+        },
+    )
+    refused_first = row("similar_tools", ["a", "b"], {"rotated_1": answer("b", True, {"b": 0.6, "a": 0.4})})
+    rows, lists = [both, refused_first], ["rotated_0", "rotated_1"]
+    assert ranked_means(rows, lists) == pytest.approx((2.2 / 3, 0.8 / 3))
+    assert placed(rows, lists) == (pytest.approx([1.8 / 3, 1.2 / 3]), [2, 1])
+    # The order of the entries is that of the first list, which the second example lacks.
+    assert placed(rows, lists, "rotated_0") == (pytest.approx([0.8, 0.2]), [2, 0])
+    assert most_selected(rows, lists) == {2: 1}
+    assert ranked_means([refused_first], ["rotated_0"]) == ()
 
 
 def test_an_example_without_one_of_the_lists_is_left_out() -> None:
@@ -284,3 +328,6 @@ def test_two_answers_to_one_list_are_compared_by_selection_and_by_probability() 
     assert (found.largest_change, found.overtaken) == (pytest.approx(0.1), pytest.approx(0.1))
     same = repeated(first, first, "all", "all")
     assert (same.answers, same.same_choice, same.identical, same.largest_change, same.overtaken) == (2, 2, 2, 0.0, 0.0)
+    # The second example has no answer in the later rows, as after a refusal, and is left out.
+    assert repeated(first, second[1:], "all", "own_all").answers == 1
+    assert repeated(first, [], "all", "own_all") == Repeated(0, 0, 0, 0.0, 0.0)

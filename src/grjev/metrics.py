@@ -19,7 +19,7 @@ from grjev.constants import (
     SEPARATED_PLACEMENTS,
     UNCOUNTED_WORDINGS,
 )
-from grjev.runs import ListAnswer, Row, top_tools
+from grjev.runs import ListAnswer, Row, offered_labels, top_tools
 
 # The names of the "None" candidates of the datasets.
 NONE_NAMES = {NONE_NAME, *(name for name, _ in NONE_CANDIDATES.values())}
@@ -33,11 +33,11 @@ class Figures:
     """The figures of the answers to some tool lists. `csr`, `low`, `high` and `zero_probabilities` are percentages.
 
     `entropy` is the mean entropy of an answer's probabilities in bits, and `gap` the mean of its highest probability
-    minus its second-highest. `second_wrong`, `second_tied` and `top_wrong` count the answers that miss the correct
-    tools of a query with several correct tools, each answer once. `highest_correct`, `lowest_correct` and
-    `correct_together` are means over the answers to queries with several correct tools: the probability of the
+    minus its second-highest. `later_wrong`, `last_tied` and `top_wrong` count the answers that miss the correct
+    tools of a list with several correct tools, each answer once. `highest_correct`, `lowest_correct` and
+    `correct_together` are means over the answers to lists with several correct tools: the probability of the
     correct tool with the highest probability, of the one with the lowest, and of all the correct tools summed. They
-    are None when no query has several correct tools.
+    are None when no list has several correct tools. The correct tools of a list are the labels that it holds.
     """
 
     examples: int
@@ -58,8 +58,8 @@ class Figures:
     one_choice: int
     all_correct: int
     none_correct: int
-    second_wrong: int
-    second_tied: int
+    later_wrong: int
+    last_tied: int
     top_wrong: int
 
 
@@ -93,17 +93,19 @@ def correct_shares(rows: Sequence[Row], lists: Collection[str]) -> list[float]:
 
 
 def miss_of(row: Row, answer: ListAnswer) -> str | None:
-    """Return how an answer misses the correct tools of a query with several correct tools, or None when it does not.
+    """Return how an answer misses the correct tools of a list with several correct tools, or None when it does not.
 
-    `top_wrong`: no tool with the highest probability is correct. `second_tied`: the top tool is correct, and a tie
-    leaves the next place open. `second_wrong`: the top tool is correct, and a wrong tool takes the next place.
+    The list holds k correct tools. `top_wrong`: no tool with the highest probability is correct. `last_tied`: the
+    top tool is correct, and the tools at places k and k + 1 share a probability. `later_wrong`: the top tool is
+    correct, no such tie exists, and a wrong tool is among the k highest. With 2 correct tools that is the second.
     """
-    if len(row.labels) < 2 or answer.correct:
+    labels = offered_labels(row.labels, answer.probabilities)
+    if len(labels) < 2 or answer.correct:
         return None
     highest = max(answer.probabilities.values())
-    if not any(answer.probabilities[name] == highest for name in row.labels):
+    if not any(answer.probabilities[name] == highest for name in labels):
         return "top_wrong"
-    return "second_tied" if top_tools(answer.probabilities, len(row.labels)) is None else "second_wrong"
+    return "last_tied" if top_tools(answer.probabilities, len(labels)) is None else "later_wrong"
 
 
 def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from: float) -> Figures:
@@ -119,8 +121,11 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
     confident = [answer for _, answer in answers if max(answer.probabilities.values()) >= confident_from]
     probabilities = [value for _, answer in answers for value in answer.probabilities.values()]
     misses = Counter(miss_of(row, answer) for row, answer in answers)
+    offered = [offered_labels(row.labels, answer.probabilities) for row, answer in answers]
     spreads = [
-        sorted(answer.probabilities[tool] for tool in row.labels) for row, answer in answers if len(row.labels) > 1
+        sorted(answer.probabilities[tool] for tool in labels)
+        for labels, (_, answer) in zip(offered, answers, strict=True)
+        if len(labels) > 1
     ]
     return Figures(
         examples=len(rows),
@@ -141,8 +146,8 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
         one_choice=sum(len({row.answers[name].choice for name in lists}) == 1 for row in rows),
         all_correct=sum(share == 1 for share in shares),
         none_correct=sum(share == 0 for share in shares),
-        second_wrong=misses["second_wrong"],
-        second_tied=misses["second_tied"],
+        later_wrong=misses["later_wrong"],
+        last_tied=misses["last_tied"],
         top_wrong=misses["top_wrong"],
     )
 
@@ -150,9 +155,10 @@ def figures(rows: Sequence[Row], lists: Sequence[str], seed: int, confident_from
 def ranked_means(rows: Sequence[Row], lists: Sequence[str]) -> tuple[float, ...]:
     """Return the mean probability of the highest tool of each answer to the named lists, then of the second-highest.
 
-    The means go on down to the lowest tool of the shortest list.
+    The means go on down to the lowest tool of the shortest list. A list that has no answer is left out.
     """
-    ranked = [sorted(row.answers[name].probabilities.values(), reverse=True) for row in rows for name in lists]
+    given = [row.answers[name] for row in rows for name in lists if name in row.answers]
+    ranked = [sorted(answer.probabilities.values(), reverse=True) for answer in given]
     return tuple(statistics.fmean(values) for values in zip(*ranked, strict=False))
 
 
@@ -160,12 +166,15 @@ def placed(rows: Sequence[Row], lists: Sequence[str], base: str | None = None) -
     """Return the mean probability at each place of the named lists, and the number of answers that select each place.
 
     The place of a tool is its place in the list that is answered. With `base` it is its place in the example's list
-    of that name, which follows one tool through several orders of a list.
+    of that name, which follows one tool through several orders of a list. A list is left out when it has no answer,
+    and with `base` when the list of that name has none.
     """
     values: dict[int, list[float]] = {}
     selected: Counter[int] = Counter()
     for row in rows:
         for name in lists:
+            if not {name, base or name} <= row.answers.keys():
+                continue
             order = row.answers[base or name].candidates
             for tool, value in row.answers[name].probabilities.items():
                 values.setdefault(order.index(tool), []).append(value)
@@ -174,8 +183,12 @@ def placed(rows: Sequence[Row], lists: Sequence[str], base: str | None = None) -
 
 
 def most_selected(rows: Sequence[Row], lists: Sequence[str]) -> dict[int, int]:
-    """Return the number of examples by the number of the named lists that select the example's most selected tool."""
-    counts = Counter(Counter(row.answers[name].choice for name in lists).most_common(1)[0][1] for row in rows)
+    """Return the number of examples by the number of the named lists that select the example's most selected tool.
+
+    The examples are those that have an answer for every named list.
+    """
+    complete = having(rows, lists)
+    counts = Counter(Counter(row.answers[name].choice for name in lists).most_common(1)[0][1] for row in complete)
     return dict(sorted(counts.items()))
 
 
@@ -186,7 +199,8 @@ class Repeated:
     `same_choice` counts the examples with the same selected tool in both answers, and `identical` those with the same
     probability for every tool. `largest_change` is the largest change of one tool's probability. `overtaken` is, over
     the examples whose selected tool differs, the largest lead that the first answer gives its selected tool over the
-    tool that the second answer selects. It is 0 when no selected tool differs.
+    tool that the second answer selects. It is 0 when no selected tool differs. An example counts when both have an
+    answer.
     """
 
     answers: int
@@ -199,7 +213,7 @@ class Repeated:
 def repeated(first: Sequence[Row], second: Sequence[Row], name: str, other: str) -> Repeated:
     """Compare each example's answer to the list `name` in the first rows with its answer to `other` in the second."""
     later = {row.id: row.answers[other] for row in second if other in row.answers}
-    pairs = [(row.answers[name], later[row.id]) for row in first if name in row.answers]
+    pairs = [(row.answers[name], later[row.id]) for row in first if name in row.answers and row.id in later]
     leads = [
         one.probabilities[one.choice] - one.probabilities[two.choice] for one, two in pairs if one.choice != two.choice
     ]
@@ -208,7 +222,7 @@ def repeated(first: Sequence[Row], second: Sequence[Row], name: str, other: str)
         answers=len(pairs),
         same_choice=len(pairs) - len(leads),
         identical=sum(one.probabilities == two.probabilities for one, two in pairs),
-        largest_change=max(changes),
+        largest_change=max(changes, default=0.0),
         overtaken=max(leads, default=0.0),
     )
 

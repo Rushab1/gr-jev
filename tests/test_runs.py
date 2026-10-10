@@ -50,6 +50,7 @@ from grjev.runs import (
     criteria_of,
     csr,
     is_correct,
+    offered_labels,
     plan,
     run,
     sample_size,
@@ -457,6 +458,40 @@ def test_a_removal_run_lists_the_example_without_each_correct_tool_and_without_a
     assert planned.example.labels == ["tool_3", "tool_7"]
 
 
+def test_a_removal_answer_is_scored_against_the_correct_tools_that_its_list_holds(
+    fake: FakeJev, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_config = config("removal", "multi_tool")
+    planned = plan(run_config, {"multi_tool": [example(0, ["tool_3", "tool_7"])]}, TOOLS)
+
+    def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
+        answers = {}
+        for name, question in json.loads(content)["questions"].items():
+            # The correct tools that the list holds share the probability, and tool_1 gets it when it holds none.
+            top = [tool for tool in ("tool_3", "tool_7") if tool in question["criteria"]] or ["tool_1"]
+            shared = dict.fromkeys(question["criteria"], 0.0) | dict.fromkeys(top, 1 / len(top))
+            answers[name] = {"type": "choice", "choice": top[0], "confidence": 1.0, "probabilities": shared}
+        payload = {"model": "jev-1.13.0", "answers": answers, "usage": {"input_tokens": 10, "output_tokens": 1}}
+        return httpx.Response(200, json=payload, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(jev.httpx, "post", post)
+    (row,) = run(run_config, planned)
+    assert row.labels == ["tool_3", "tool_7"]
+    assert {name: answer.correct for name, answer in row.answers.items()} == {
+        FULL_LIST: True,
+        "without_1": True,
+        "without_2": True,
+        WITHOUT_ALL_LIST: False,
+    }
+    assert tied_answers(run_config, [row]) == 0
+
+
+def test_the_correct_tools_of_a_list_are_the_labels_that_it_holds() -> None:
+    assert offered_labels(["a", "b"], {"b": 0.9, "c": 0.1}) == ["b"]
+    assert offered_labels(["a", "b"], ["b", "a", "c"]) == ["a", "b"]
+    assert offered_labels(["a"], ["c"]) == []
+
+
 def test_a_removal_run_sends_the_list_of_the_example_with_every_wording_of_the_dataset() -> None:
     run_config = config("removal", "validation", dataset="hotpotqa")
     (planned,) = plan(run_config, {"validation": [example(0, ["tool_3", "tool_7"])]}, TOOLS)
@@ -515,6 +550,7 @@ def test_a_yes_no_run_asks_one_question_per_option_and_saves_the_probability_of_
     assert list(request.questions) == ["tool_1", "tool_2"] and planned.lists == {}
     assert request.questions["tool_2"].instructions == f"{YES_NO_QUESTIONS['ecthr']} tool_2: Does thing 2."
     assert {question.type for question in request.questions.values()} == {"noul"}
+    assert call_counts(run_config, [planned]) == {"test": {"examples": 1, "questions": 2, "calls": 1, "new_calls": 1}}
 
     def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
         answers = {name: {"type": "noul", "noul": 0.25} for name in json.loads(content)["questions"]}
@@ -524,6 +560,21 @@ def test_a_yes_no_run_asks_one_question_per_option_and_saves_the_probability_of_
     monkeypatch.setattr(jev.httpx, "post", post)
     (row,) = run(run_config, [planned])
     assert row.yes == {"tool_1": 0.25, "tool_2": 0.25} and row.answers == {} and row.input_tokens == 7
+    assert row.refused == [] and row.rejected == []
+
+
+def test_a_refused_yes_no_question_is_named_in_the_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:
+    run_config = config("yes_no", "test", dataset="ecthr", model=LUNA_MODEL)
+    planned = plan(run_config, {"test": [example(0, ["tool_2"]).model_copy(update={"options": TOOLS[:2]})]}, TOOLS)
+
+    def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
+        answers = {"tool_1": {"type": "refusal"}, "tool_2": {"type": "noul", "noul": 0.25}}
+        payload = {"model": LUNA_MODEL, "answers": answers, "usage": {"input_tokens": 7, "output_tokens": 0}}
+        return httpx.Response(200, json=payload, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(jev.httpx, "post", post)
+    (row,) = run(run_config, planned)
+    assert row.refused == ["tool_1"] and row.rejected == [] and row.yes == {"tool_2": 0.25}
 
 
 def test_the_answers_of_split_requests_are_joined_in_one_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:

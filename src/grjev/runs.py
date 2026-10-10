@@ -109,14 +109,18 @@ class ListAnswer(BaseModel):
 
 
 class Row(BaseModel):
-    """One example of a run: its labels and Jev's answer for each of its tool lists."""
+    """One example of a run: its labels and Jev's answer for each of its tool lists.
+
+    The labels are those of the example. A list of a removal run holds some of them: `offered_labels` returns them.
+    """
 
     id: str
     test_file: str
     labels: list[str]
     answers: dict[str, ListAnswer]
     input_tokens: int
-    # The names of the tool lists that the model rejected, and of those it refused to answer. They have no answer.
+    # The names of the questions that the model rejected, and of those it refused to answer. They have no answer.
+    # A question is named by its tool list, and in a yes/no run by its option.
     rejected: list[str] = []
     refused: list[str] = []
     # The probability of "yes" for each option, in a run that asks one yes/no question per option.
@@ -338,7 +342,8 @@ def removal_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
     The list of the example is also sent with each other wording of the dataset's instruction. A list without one
     correct tool is named by the number of that tool in the labels, counted from 1, and exists when the example has
     several correct tools. A list that would hold fewer than 2 tools is left out. The yielded example keeps its
-    labels, so `correct` of an answer is meaningful for the list of the example only.
+    labels, and an answer is scored against the labels that its list holds. A list without every correct tool has
+    no correct answer.
     """
     instruction = instruction_of(config, REMOVAL_TOOL_INSTRUCTIONS)
     wordings = {f"{FULL_LIST}_{name}": text for name, text in REMOVAL_WORDINGS.get(config.dataset, {}).items()}
@@ -459,7 +464,7 @@ def call_counts(config: RunConfig, planned: Iterable[Planned]) -> dict[str, dict
     for item in planned:
         count = counts.setdefault(item.test_file, {"examples": 0, "questions": 0, "calls": 0, "new_calls": 0})
         count["examples"] += 1
-        count["questions"] += len(item.lists)
+        count["questions"] += sum(len(request.questions) for request in item.requests)
         count["calls"] += len(item.requests)
         count["new_calls"] += sum(not response_path(request, config.run).exists() for request in item.requests)
     return counts
@@ -473,8 +478,13 @@ def top_tools(probabilities: dict[str, float], count: int) -> list[str] | None:
     return ranked[:count]
 
 
+def offered_labels(labels: Iterable[str], candidates: Collection[str]) -> list[str]:
+    """Return the correct tools that a tool list holds. A list of a removal run lacks some of them."""
+    return [label for label in labels if label in candidates]
+
+
 def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: ChoiceAnswer) -> bool:
-    """Say whether Jev's answer matches the labels.
+    """Say whether Jev's answer matches the labels, which are the correct tools that its list holds.
 
     In a test file with several correct tools, and for a list of rewordings, its k highest-probability tools are the k
     correct tools. Elsewhere its choice is the correct tool. When no tool is correct, its choice is "None".
@@ -492,6 +502,7 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]
     labels = item.example.labels or []
     answered = [response for response in responses if response is not None]
     given = {name: answer for response in answered for name, answer in response.answers.items()}
+    asked = [name for request in item.requests for name in request.questions]
     answers = {}
     for name, tools in item.lists.items():
         answer = given.get(name)
@@ -504,7 +515,7 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]
             choice=answer.choice,
             probabilities=answer.probabilities,
             confidence=answer.confidence,
-            correct=is_correct(config, item.test_file, labels, answer),
+            correct=is_correct(config, item.test_file, offered_labels(labels, answer.probabilities), answer),
         )
     return Row(
         id=item.example.id,
@@ -512,8 +523,8 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]
         labels=labels,
         answers=answers,
         input_tokens=sum(response.usage.input_tokens for response in answered),
-        rejected=[name for name in item.lists if name not in given],
-        refused=[name for name in item.lists if isinstance(given.get(name), RefusalAnswer)],
+        rejected=[name for name in asked if name not in given],
+        refused=[name for name in asked if isinstance(given.get(name), RefusalAnswer)],
         yes={name: answer.noul for name, answer in given.items() if isinstance(answer, NoulAnswer)},
     )
 
@@ -548,10 +559,11 @@ def csr(rows: Iterable[Row]) -> dict[str, dict[str, float]]:
 
 
 def tied_answers(config: RunConfig, rows: Iterable[Row]) -> int:
-    """Return the number of two-tool answers in which a tie leaves the second place open."""
-    return sum(
-        top_tools(answer.probabilities, len(row.labels)) is None
+    """Return the number of answers in which a tie leaves the last place of the correct tools of the list open."""
+    offered = [
+        (offered_labels(row.labels, answer.probabilities), answer)
         for row in rows
         if row.test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]
         for answer in row.answers.values()
-    )
+    ]
+    return sum(bool(labels) and top_tools(answer.probabilities, len(labels)) is None for labels, answer in offered)
