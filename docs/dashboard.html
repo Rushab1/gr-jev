@@ -162,7 +162,7 @@
 <div class="page">
   <header>
     <h1>Jev study</h1>
-    <p class="updated">Updated 2026-10-09</p>
+    <p class="updated">Updated 2026-10-10</p>
   </header>
 
   <nav class="tabs" role="tablist" id="tabs">
@@ -2089,6 +2089,7 @@
         <li><span class="txt">HotpotQA in the distractor setting is the dataset with several correct options in a list: 2 supporting passages among 10. Rushab chose it on 2026-10-09 over MultiRC.</span></li>
         <li><span class="txt">The paper has three claims: the position of an option decides its probability when the options are identical, one of several correct options takes most of the probability, and the models stay confident when no option is correct. They are in <code>docs/paper_plan.md</code> with the runs on every example.</span></li>
         <li><span class="txt">Every run is made on every dataset where it is possible, and a list question and a yes/no question are compared with the same wording. Rushab, 2026-10-09, after a review of the plan.</span></li>
+        <li><span class="txt">StableToolBench is left out of the runs on every example, and MetaTool is kept. Rushab asked for one of the two on 2026-10-10. The StableToolBench results on 50 examples stay on this page.</span></li>
         <li><span class="txt">List length is decided later, possibly as a short section at the end of the paper on the 50 examples already run. Rushab, 2026-10-09.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
@@ -2119,8 +2120,8 @@
         <li><span class="txt">A consequence of the two results for a user of Jev, such as reading several tools from one answer</span></li>
         <li><span class="txt">Whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.</span></li>
         <li><span class="txt">Whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench</span></li>
-        <li><span class="txt">When the limit of 5,000 Jev calls is raised for the runs on every example. 2,019 calls are saved, and the 33 runs need 168,828 Jev calls and about $30.19 for Jev, Liquid d1 and GPT-6 Luna Decisions together.</span></li>
-        <li><span class="txt">Whether MMLU is run on every question or on a sample. It is 91,672 of the 168,828 requests per model, and it has no list with several correct options.</span></li>
+        <li><span class="txt">When the limit of 5,000 Jev calls is raised for the runs on every example. 2,019 calls are saved, and the 24 runs need 162,626 Jev calls and about $28.97 for Jev, Liquid d1 and GPT-6 Luna Decisions together.</span></li>
+        <li><span class="txt">Whether MMLU is run on every question or on a sample. It is 91,672 of the 162,626 requests per model, and it has no list with several correct options.</span></li>
         <li><span class="txt">The venue: a workshop, or a main track through ACL Rolling Review</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
