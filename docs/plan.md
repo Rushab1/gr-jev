@@ -1,6 +1,6 @@
 # Jev study: plan
 
-Last updated 2026-10-08. Three sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, runs on subsets of StableToolBench, 911 calls, and five runs on a subset of MMLU, 250 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
+Last updated 2026-10-09. The claims of the paper, the results on four decision models, and the runs on every example with their cost are in `docs/paper_plan.md`. Three sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, runs on subsets of StableToolBench, 911 calls, and five runs on a subset of MMLU, 250 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
 This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
 
@@ -14,10 +14,11 @@ The wording run on a subset of StableToolBench was made on 2026-10-06. Its desig
 
 Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordings on MetaTool. They were made the same day, and are under "MetaTool: the second run and the rewordings". Runs that list one correct tool five times were made the same day on both datasets, and are under "Copies of one correct tool". A run with the correct tool removed and "None" at five places was made the same day on MetaTool, and is under "The correct tool removed". "Two results so far" brings the results of all these runs together. Five runs on MMLU were made on 2026-10-08, and are under "MMLU".
 
-1. The runs on every example wait. Rushab decided this on 2026-10-05, after the subset.
-2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. It is 2,012, and 2,011 calls have been made. The position run on every example needs 4,534 more calls with both two-tool wordings and the length run 3,480 more, which takes the saved calls to 10,025. A run that would pass the limit does not start.
-3. When Rushab decides to run on every example: the position run needs 4,534 more calls and the length run 3,480 more. The 4,534 are 4,087 calls with the wording "one" and 447 calls for the multi-tool examples with the wording "both". On every example the position run costs about $0.50 with both wordings, and the length run about $4.80.
-4. Build the runner for open-weight decision models and repeat the first run on them.
+1. The runs on every example are listed in `docs/paper_plan.md`, with the claim each supports. They are 110,857 requests per model and cost about $20.02 for Jev, Liquid d1 and GPT-6 Luna Decisions together. They have not started.
+2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. He raised it to 5,000 on 2026-10-09, and 2,019 calls are saved. The runs on every example need 110,857 Jev calls. A run that would pass the limit does not start.
+3. HotpotQA is added to the repository: a pinned download, a converter with its test, and four runs. Rushab chose it on 2026-10-09 for lists with several correct options.
+4. The figures of `docs/all_runs.md` are moved from a script outside the repository into `src/grjev/metrics.py`, with tests.
+5. The runner for other decision models is built: `scripts/run_experiment.py --model` asks Liquid d1, GPT-6 Luna Decisions or Laya through Vercel AI Gateway. Rushab decided on 2026-10-08 that no model is hosted by us, and the 18 runs were repeated on the three models on 2026-10-09. List length is decided later: possibly a short section at the end of the paper on the 50 examples already run.
 
 The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/check_jev.py` uses 1 Jev call of the limit.
 
@@ -714,7 +715,7 @@ Every example of the four MetaTool test files with a tool list is sent with its 
 - Models. Jev first, then open-weight decision models. Claude is not run.
 - Requests. The lists of one example go to Jev as separate questions in one request, with the query as the state. TypeSafe's documentation says every question in a request "is evaluated independently". A multi-tool example takes two requests, one for each wording. That is 4,784 requests.
 - Cost. About $0.50 for Jev, from the input tokens measured in the subset of 2026-10-05: about $0.43 for the 22,238 tool lists of the four test files, and about $0.08 for the 4,473 multi-tool lists sent again with the wording `both`.
-- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 2,012 on 2026-10-08, until Rushab raises it.
+- Limit. Jev calls are limited to `JEV_CALL_LIMIT`, 5,000 since 2026-10-09, until Rushab raises it.
 
 | Claim the run can show | Read from |
 |---|---|
@@ -927,7 +928,7 @@ Decided on 2026-10-04. Question: can Jev reduce the token cost of a frontier LLM
 ## Open items
 
 - Confirm Mind2Web and AndroidControl.
-- Decide when the limit of 2,012 Jev calls is raised, and for which runs.
+- Decide when the limit of 5,000 Jev calls is raised for the runs on every example, which need 110,857 calls.
 - Decide whether the project is described as a study of a decision model's probabilities, with tool selection as one of its datasets. Rushab, 2026-10-08: the runs with copies and with random options are not specific to tool selection.
 - Have a second reader check whether a kept tool can do the task of the query in the two runs with the correct tool removed.
 - Decide the claim of the paper. Rushab's proposal of 2026-10-07 is that decision models exaggerate probabilities. Claude Code's proposal is that Jev's probabilities follow how the list is written.

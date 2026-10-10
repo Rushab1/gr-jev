@@ -162,7 +162,7 @@
 <div class="page">
   <header>
     <h1>Jev study</h1>
-    <p class="updated">Updated 2026-10-08</p>
+    <p class="updated">Updated 2026-10-09</p>
   </header>
 
   <nav class="tabs" role="tablist" id="tabs">
@@ -1951,6 +1951,52 @@
         <li>MMLU has been public since 2020. Whether Jev was trained on its questions is not known.</li>
       </ul>
 
+      <h2>Four decision models</h2>
+      <p>On 2026-10-09 the 18 runs made on Jev were repeated with the same requests on Liquid d1, GPT-6 Luna Decisions and Laya, through Vercel AI Gateway. Each run has 50 examples. The three models cost about $0.71 together. GPT-6 Luna Decisions returned a refusal for 426 of the 7,667 lists, and Laya rejected 2,784 as too long. <code>docs/all_runs.md</code> holds every figure.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>5 duplicates of a correct option: answers with the prediction at each position, first to last</th><th>Jev</th><th>Liquid d1</th><th>GPT-6 Luna Decisions</th><th>Laya</th></tr></thead>
+          <tbody>
+            <tr><th>MetaTool</th><td class="num">77, 0, 4, 67, 102</td><td class="num">250, 0, 0, 0, 0</td><td class="num">243, 0, 0, 0, 2</td><td class="num">129, 65, 28, 8, 0</td></tr>
+            <tr><th>StableToolBench</th><td class="num">12, 8, 21, 47, 162</td><td class="num">245, 5, 0, 0, 0</td><td class="num">229, 10, 2, 2, 4</td><td class="num">123, 67, 35, 5, 0</td></tr>
+            <tr><th>MMLU</th><td class="num">19, 2, 9, 44, 176</td><td class="num">208, 25, 8, 4, 5</td><td class="num">201, 18, 7, 6, 3</td><td class="num">113, 47, 24, 21, 45</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Mean over the answers</th><th>Jev</th><th>Liquid d1</th><th>GPT-6 Luna Decisions</th></tr></thead>
+          <tbody>
+            <tr><th>MetaTool, 5 duplicates: highest minus lowest probability</th><td class="num">0.20</td><td class="num">0.78</td><td class="num">0.76</td></tr>
+            <tr><th>StableToolBench, 5 duplicates: highest minus lowest probability</th><td class="num">0.24</td><td class="num">0.68</td><td class="num">0.61</td></tr>
+            <tr><th>MMLU, 5 duplicates: highest minus lowest probability</th><td class="num">0.24</td><td class="num">0.40</td><td class="num">0.71</td></tr>
+            <tr><th>MetaTool, 2 correct tools, "Choose one of them.": highest and lowest correct tool</th><td class="num">0.85 and 0.12</td><td class="num">0.80 and 0.14</td><td class="num">0.80 and 0.11</td></tr>
+            <tr><th>MetaTool, 5 random distractors: confidence</th><td class="num">0.81</td><td class="num">0.80</td><td class="num">0.84 on 125 lists, 125 refused</td></tr>
+            <tr><th>MMLU, 5 random distractors: confidence</th><td class="num">0.56</td><td class="num">0.59</td><td class="num">0.73 on 43 lists, 207 refused</td></tr>
+            <tr><th>MMLU, the 4 choices of the question: accuracy</th><td class="num">0.91</td><td class="num">0.84</td><td class="num">0.81</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>An answer of 0.20 for each of 5 duplicates gives a difference of 0, and 0.50 for each of 2 correct tools gives 0.50 and 0.50.</p>
+
+      <h2>One HotpotQA question</h2>
+      <p>HotpotQA question <code>5a8d5fc6554299585d9e37c6</code> asks for the fantasy film starring Sarah Bolger. Its 10 passages hold 2 supporting passages, "The Spiderwick Chronicles (film)" and "Sarah Bolger". It was asked on 2026-10-09 as a list with the instruction "Choose every passage in the list that is needed to answer the question.", and as one yes/no question per passage, "May this passage support the answer to the question?".</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>What is asked</th><th>Passage</th><th>Jev</th><th>Liquid d1</th><th>GPT-6 Luna Decisions</th></tr></thead>
+          <tbody>
+            <tr><th>List of 10 passages</th><td>The Spiderwick Chronicles (film)</td><td class="num">0.99</td><td class="num">0.96</td><td class="num">0.97</td></tr>
+            <tr><th>List of 10 passages</th><td>Sarah Bolger</td><td class="num">0.01</td><td class="num">0.04</td><td class="num">0.02</td></tr>
+            <tr><th>List of 9, "The Spiderwick Chronicles (film)" removed</th><td>Sarah Bolger</td><td class="num">1.00</td><td class="num">0.98</td><td class="num">0.90</td></tr>
+            <tr><th>List of the 8 distractors</th><td>The distractor with the highest probability</td><td class="num">0.31</td><td class="num">0.73</td><td class="num">0.36</td></tr>
+            <tr><th>Yes/no question per passage</th><td>The Spiderwick Chronicles (film)</td><td class="num">0.98</td><td class="num">0.99</td><td class="num">1.00</td></tr>
+            <tr><th>Yes/no question per passage</th><td>Sarah Bolger</td><td class="num">0.76</td><td class="num">0.84</td><td class="num">1.00</td></tr>
+            <tr><th>Yes/no question per passage</th><td>The distractor with the highest probability</td><td class="num">0.04</td><td class="num">0.03</td><td class="num">0.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The dataset has 7,405 such questions in its validation split, and none has been run beyond this one.</p>
+
       <h2>Runs and cost</h2>
       <div class="tablewrap">
         <table>
@@ -2037,7 +2083,12 @@
         <li><span class="txt">The runs with copies, with random options and with "None" are repeated on MMLU, a dataset of multiple-choice questions with no tool. Rushab chose it on 2026-10-08 from the benchmarks of Tam et al. (2025).</span></li>
         <li><span class="txt">The results are stated as two: Jev gives most of its probability to one entry, and the place of an entry changes Jev's probabilities.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
-        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 2,012 since 2026-10-08.</span></li>
+        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 5,000 since 2026-10-09.</span></li>
+        <li><span class="txt">No model is hosted by us. Liquid d1, GPT-6 Luna Decisions and Laya are asked through Vercel AI Gateway, which takes no model version. OpenJev has no hosted API and is left out. Rushab decided this on 2026-10-08.</span></li>
+        <li><span class="txt">Laya is left out of the runs on every example. It rejected 2,784 of 7,667 lists as too long, and its accuracy on MMLU with 4 choices is 0.24.</span></li>
+        <li><span class="txt">HotpotQA in the distractor setting is the dataset with several correct options in a list: 2 supporting passages among 10. Rushab chose it on 2026-10-09 over MultiRC.</span></li>
+        <li><span class="txt">The paper has three claims: the position of an option decides its probability when the options are identical, one of several correct options takes most of the probability, and the models stay confident when no option is correct. They are in <code>docs/paper_plan.md</code> with the runs on every example.</span></li>
+        <li><span class="txt">List length is decided later, possibly as a short section at the end of the paper on the 50 examples already run. Rushab, 2026-10-09.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
         <li><span class="txt">Jev as a co-pilot stays in the paper, as a parallel study to REFLEX. It reports the four-way error count between Jev and a frontier LLM and asks whether Jev reduces the frontier LLM's token cost on difficult tasks.</span></li>
@@ -2067,7 +2118,9 @@
         <li><span class="txt">A consequence of the two results for a user of Jev, such as reading several tools from one answer</span></li>
         <li><span class="txt">Whether the order of the rewordings in the two files is changed. The second rewording starts with "Use" for 35 of the 45 StableToolBench APIs and for all 38 MetaTool tools, and it is selected in 82 and in 96 of 250 answers.</span></li>
         <li><span class="txt">Whether the queries that name their APIs explain why CSR does not fall with the list length on StableToolBench</span></li>
-        <li><span class="txt">When the limit of 2,012 Jev calls is raised, and for which runs. 2,011 calls have been made. The position run on every example needs 4,534 more with both two-tool wordings: 4,087 with "Choose one of them." and 447 for the multi-tool examples with "Choose both." The length run needs 3,480 more.</span></li>
+        <li><span class="txt">When the limit of 5,000 Jev calls is raised for the runs on every example. 2,019 calls are saved, and the runs need 110,857 Jev calls and about $20.02 for Jev, Liquid d1 and GPT-6 Luna Decisions together.</span></li>
+        <li><span class="txt">Whether a yes/no question per passage is run on every HotpotQA question</span></li>
+        <li><span class="txt">The venue: a workshop, or a main track through ACL Rolling Review</span></li>
         <li><span class="txt">The instruction for one tool and the description of the "None" candidate. They were used in the subset of 2026-10-05, and Rushab has not confirmed them.</span></li>
         <li><span class="txt">List lengths of the later runs</span><span class="tag gray">Proposed: 5, 10, 20, 50, 100 and 199</span></li>
         <li><span class="txt">The probability threshold for a confidently wrong answer. arXiv 2609.26550 counts at 0.9 and tests the grid 0.5 to 0.99.</span></li>

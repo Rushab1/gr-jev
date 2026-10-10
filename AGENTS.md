@@ -1,6 +1,6 @@
 # gr-jev
 
-Research code for a study of Jev, TypeSafe AI's decision model, as a tool and action selector. Background, prior work and datasets are in `docs/starter.md`. The plan is in `docs/plan.md`.
+Research code for a study of Jev, TypeSafe AI's decision model, as a tool and action selector. Background, prior work and datasets are in `docs/starter.md`. The plan is in `docs/plan.md`. The claims of the paper and the runs on every example are in `docs/paper_plan.md`, and the figures of every run and model in `docs/all_runs.md`.
 
 This file is the code standard for everyone who works here: Rushab, Gyanesh, and AI workers such as Claude Code and Codex.
 
