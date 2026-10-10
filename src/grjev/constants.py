@@ -33,8 +33,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # copied subsets of MetaTool and StableToolBench, 50 calls each, and to 1,662 for the 50 calls of the absent subset of
 # MetaTool, to 1,712 for the 50 calls of its absent_random subset, and to 1,762 for the 50 calls of its unrelated
 # subset. Raised to 1,962 on 2026-10-08 for four subsets of MMLU with 50 calls each: own, copied, unrelated and
-# absent_random. Raised to 2,012 the same day for the 50 calls of the absent subset of MMLU.
-JEV_CALL_LIMIT = 2012
+# absent_random. Raised to 2,012 the same day for the 50 calls of the absent subset of MMLU. Raised to 5,000 on
+# 2026-10-09 on Rushab's instruction ("increase jev limit to 5k"), when single HotpotQA questions needed Jev calls.
+JEV_CALL_LIMIT = 5000
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
