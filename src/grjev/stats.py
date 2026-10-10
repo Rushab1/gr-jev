@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 
 from grjev.constants import EXTREMES_SHOWN, HISTOGRAM_BINS, LOG_BINS_RATIO, STOP_WORDS_TEXT, WORD_PATTERN
-from grjev.examples import Example, Option
+from grjev.examples import Example, Option, distinct_options
 
 WORD = re.compile(WORD_PATTERN)
 STOP_WORDS = frozenset(STOP_WORDS_TEXT.split())
@@ -217,11 +217,14 @@ def tool_usage(dataset: dict[str, list[Example]], tools: list[Option], names_of:
 
     A tool is identified by its name, which the tool list can hold with more than one description. A test file where
     names_of ties no example to a tool is left out. The tools at the lowest count are named only when there are at
-    most EXTREMES_SHOWN of them.
+    most EXTREMES_SHOWN of them. A name that names_of returns and the tool list lacks raises an error.
     """
     names = dict.fromkeys(tool.name for tool in tools)
     by_file = {file: examples_by_name(examples, names_of) for file, examples in dataset.items()}
     by_file = {file: grouped for file, grouped in by_file.items() if grouped}
+    unlisted = sorted({name for grouped in by_file.values() for name in grouped} - names.keys())
+    if unlisted:
+        raise ValueError(f"{len(unlisted)} names of the examples are not in the tool list, such as {unlisted[0]!r}")
     rows = sorted((tool_row(name, by_file) for name in names), key=lambda row: (-row["examples"], row["name"]))
     lowest = rows[-1]["examples"]
     at_lowest = [row["name"] for row in rows if row["examples"] == lowest]
@@ -237,8 +240,19 @@ def tool_usage(dataset: dict[str, list[Example]], tools: list[Option], names_of:
     }
 
 
+def every_tool(dataset: dict[str, list[Example]], tools: list[Option]) -> list[Option]:
+    """Return the tool list, then each option of the examples whose name it lacks, once.
+
+    The tool list of MMLU and of HotpotQA is built from one test file and lacks options of the other.
+    """
+    listed = {tool.name for tool in tools}
+    options = distinct_options(example for examples in dataset.values() for example in examples)
+    return [*tools, *(option for option in options if option.name not in listed)]
+
+
 def dataset_stats(dataset: dict[str, list[Example]], tools: list[Option]) -> dict[str, Any]:
-    """Return every statistic the dashboard shows for a dataset."""
+    """Return every statistic the dashboard shows for a dataset, over its tool list and the options of its examples."""
+    tools = every_tool(dataset, tools)
     return {
         "files": {name: file_stats(file_examples) for name, file_examples in dataset.items()},
         "tools": len({tool.name for tool in tools}),

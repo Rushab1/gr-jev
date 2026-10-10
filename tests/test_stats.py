@@ -141,8 +141,17 @@ def test_dataset_stats_describes_each_file_and_each_tool() -> None:
     assert stats["files"]["b"]["position"]["bins"] == [{"from": 2, "to": 2, "count": 1}]
     assert (stats["files"]["b"]["all_correct"], stats["files"]["b"]["with_choice"]) == (0, 1)
     assert stats["files"]["b"]["best_position"] == {"position": 2, "percent": 100.0}
-    assert (stats["tools"], stats["tool_description_words"]["median"]) == (1, 2)
+    # The tool list lacks "mail", which is counted from the options of the examples.
+    assert (stats["tools"], stats["tool_description_words"]["median"]) == (2, 2)
     assert stats["correct"]["highest"] == [
-        {"name": "forecast", "examples": 2, "queries": 1, "by_file": {"a": 1, "b": 1}}
+        {"name": "forecast", "examples": 2, "queries": 1, "by_file": {"a": 1, "b": 1}},
+        {"name": "mail", "examples": 0, "queries": 0, "by_file": {"a": 0, "b": 0}},
     ]
     assert stats["listed"]["per_tool"]["max"] == 2
+    assert [row["name"] for row in stats["listed"]["highest"]] == ["forecast", "mail"]
+
+
+def test_tool_usage_does_not_count_a_name_that_its_tool_list_lacks() -> None:
+    row = example("weather in Paris", {"forecast": "weather report", "mail": "send email"}, ["forecast"])
+    with pytest.raises(ValueError, match="1 names of the examples are not in the tool list, such as 'mail'"):
+        tool_usage({"a": [row]}, [Option(name="forecast", description="weather report")], option_names)
