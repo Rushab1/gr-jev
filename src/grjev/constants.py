@@ -143,6 +143,20 @@ MMLU_RAW_DIR = DATA_DIR / "mmlu" / "raw"
 MMLU_RAW_FILE = "all/test-00000-of-00001.parquet"
 MMLU_SHA256 = {MMLU_RAW_FILE: "74a41822ce7d3def56e1682f958469c04642a5336a5ce912fa375fdb90fb25d7"}
 
+# HotpotQA (Yang et al., 2018), distractor setting, from the Hugging Face dataset hotpotqa/hotpot_qa at this revision.
+HOTPOTQA_REVISION = "1908d6afbbead072334abe2965f91bd2709910ab"
+HOTPOTQA_BASE_URL = f"{HUGGINGFACE_URL}/datasets/hotpotqa/hotpot_qa/resolve/{HOTPOTQA_REVISION}/"
+HOTPOTQA_RAW_DIR = DATA_DIR / "hotpotqa" / "raw"
+HOTPOTQA_RAW_FILE = "distractor/validation-00000-of-00001.parquet"
+HOTPOTQA_SHA256 = {HOTPOTQA_RAW_FILE: "c20b638ca82b21d04fe12e14ff417ad05153d4d215a65de54497fca4e972f7c6"}
+
+# ECtHR Task A of LexGLUE (Chalkidis et al., 2022), from the Hugging Face dataset coastalcph/lex_glue at this revision.
+ECTHR_REVISION = "c23fdff1a6bf74e0e1a71cb86f1e781d37da888c"
+ECTHR_BASE_URL = f"{HUGGINGFACE_URL}/datasets/coastalcph/lex_glue/resolve/{ECTHR_REVISION}/"
+ECTHR_RAW_DIR = DATA_DIR / "ecthr" / "raw"
+ECTHR_RAW_FILE = "ecthr_a/test-00000-of-00001.parquet"
+ECTHR_SHA256 = {ECTHR_RAW_FILE: "e306383d3ffd3baec21ba7419c03a9d2273f1c0946cf2d5512cf98c81d1a3f8b"}
+
 BFCL_COMMIT = "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8"
 BFCL_BASE_URL = (
     f"{GITHUB_RAW_URL}/ShishirPatil/gorilla/{BFCL_COMMIT}/berkeley-function-call-leaderboard/bfcl_eval/data/"
@@ -250,6 +264,30 @@ MMLU_TEST_FILES = (MMLU_TEST_FILE, MMLU_STANDALONE_FILE)
 MMLU_REFERRING_CHOICE = (
     r"\b(none|all|both|neither|either) of (the|these)|\b(above|the other)\b|^(I|II|III|IV)\b"
     r"|\b(A|B|C|D) and (A|B|C|D)\b"
+)
+HOTPOTQA_PROCESSED_DIR = DATA_DIR / "hotpotqa" / "processed"
+# The processed file with every validation question, and the one with the questions that have 10 passages.
+HOTPOTQA_TEST_FILE = "validation"
+HOTPOTQA_TEN_FILE = "validation_ten"
+HOTPOTQA_TEST_FILES = (HOTPOTQA_TEST_FILE, HOTPOTQA_TEN_FILE)
+HOTPOTQA_PASSAGES = 10
+
+ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
+ECTHR_TEST_FILE = "test"
+ECTHR_TEST_FILES = (ECTHR_TEST_FILE,)
+# The 10 articles of the European Convention on Human Rights that a case is labelled with, in the order of the label
+# numbers of LexGLUE, each with its title in the Convention.
+ECTHR_ARTICLES = (
+    ("Article 2", "Right to life"),
+    ("Article 3", "Prohibition of torture"),
+    ("Article 5", "Right to liberty and security"),
+    ("Article 6", "Right to a fair trial"),
+    ("Article 8", "Right to respect for private and family life"),
+    ("Article 9", "Freedom of thought, conscience and religion"),
+    ("Article 10", "Freedom of expression"),
+    ("Article 11", "Freedom of assembly and association"),
+    ("Article 14", "Prohibition of discrimination"),
+    ("Article 1 of Protocol 1", "Protection of property"),
 )
 # A raw test file is named BFCL_FILE_PREFIX, the test file's name and ".json". Its ground truth has the same file
 # name in the folder BFCL_ANSWER_DIR.
@@ -470,6 +508,8 @@ DOWNLOADS = {
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
     "mmlu": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
+    "hotpotqa": (HOTPOTQA_BASE_URL, HOTPOTQA_SHA256, HOTPOTQA_RAW_DIR),
+    "ecthr": (ECTHR_BASE_URL, ECTHR_SHA256, ECTHR_RAW_DIR),
 }
 
 # Dataset name -> where its files in the common format are written.
@@ -478,6 +518,8 @@ PROCESSED_DIRS = {
     "stabletoolbench": STABLETOOLBENCH_PROCESSED_DIR,
     "bfcl": BFCL_PROCESSED_DIR,
     "mmlu": MMLU_PROCESSED_DIR,
+    "hotpotqa": HOTPOTQA_PROCESSED_DIR,
+    "ecthr": ECTHR_PROCESSED_DIR,
 }
 # Dataset name -> its test files, in the order they are shown.
 TEST_FILES = {
@@ -485,4 +527,6 @@ TEST_FILES = {
     "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
     "bfcl": BFCL_TEST_FILES,
     "mmlu": MMLU_TEST_FILES,
+    "hotpotqa": HOTPOTQA_TEST_FILES,
+    "ecthr": ECTHR_TEST_FILES,
 }
