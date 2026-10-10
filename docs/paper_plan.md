@@ -1,6 +1,6 @@
 # Paper plan: the probability distribution of decision models
 
-Last updated 2026-10-10. Rushab, 2026-10-10: "the whole reason this paper is important is because we want to study the probability distribution of decision models". The paper is not about tool selection. This file holds the six properties of the distribution that the paper tests, the datasets, the results so far, the runs on every example with their cost, and what is not built or not decided. The history of the runs is in `docs/plan.md`. The figures of every run and model are in `docs/all_runs.md`.
+Last updated 2026-10-10. Rushab, 2026-10-10: "the whole reason this paper is important is because we want to study the probability distribution of decision models". The paper is not about tool selection. This file holds the five properties of the distribution that the paper tests, the datasets, the results so far, the runs on every example with their cost, and what is not built or not decided. The history of the runs is in `docs/plan.md`. The figures of every run and model are in `docs/all_runs.md`.
 
 ## Terms
 
@@ -14,23 +14,23 @@ Last updated 2026-10-10. Rushab, 2026-10-10: "the whole reason this paper is imp
 - **NOTA**: an option that says no other option is correct: "None" on MetaTool, "None of the above" on MMLU.
 - **Refusal**: an answer of type `refusal` with no probabilities. Only GPT-6 Luna Decisions returns it.
 
-## The six properties
+## The five properties
 
-A dataset is used where its labels say what the distribution should look like.
+A dataset is used where its labels say which options are correct. Order is the one property with a required answer, and it leads the paper. The other four describe how the distribution behaves and whether a user can read a probability as a score of how suitable an option is. A list question must give probabilities that sum to 1, and an uneven split between two correct options, or a high probability when no option is correct, is not a malfunction by that fact.
 
-| | Property | Question | What the options justify | Result so far |
+| | Property | Question | Reference | Result so far |
 |---|---|---|---|---|
-| 1 | Order | Does the distribution change when the same options are in another order? | The same probability for an option at every position. 0.20 for each of 5 duplicate options | With 5 duplicates the favoured position gets 0.22 to 0.81 on average. Jev favours the last position, and Liquid d1, GPT-6 Luna Decisions and Laya the first. With one correct option among distractors the position makes no difference |
-| 2 | Allocation | How is the probability divided among options that are all correct? | Probability on every correct option. 0.50 each for 2 correct options is a reference and not the required answer: a model may prefer one of them | The highest correct option gets 0.80 to 0.85 and the lowest 0.11 to 0.14, on MetaTool queries that need 2 tools |
-| 3 | Abstention | What does the distribution do when no option is correct? | A low highest probability, a refusal, or NOTA when it is offered | Mean confidence 0.56 to 0.84 on 5 random distractors. GPT-6 Luna Decisions refuses 125 and 207 of 250 lists. Jev and Liquid d1 never refuse |
-| 4 | Calibration | Does confidence match accuracy when one option is correct? | Mean confidence equal to accuracy | Mean confidence is 0.04 to 0.07 above accuracy on MMLU with 4 choices |
-| 5 | Dependence on the list | Does the probability of an option depend on the option, or on the other options of the list? | A probability for an applicable option that stays high whichever other options are listed | On one HotpotQA question a supporting passage has 0.01 to 0.04 in the list of 10 and 0.90 to 1.00 when the other supporting passage is removed |
-| 6 | Agreement with yes/no | Does the list rate an option as a yes/no question about that option does, with the same wording? | The same verdict from both | On the same question that passage has 0.00 to 0.05 in the list and 0.76 to 1.00 as a yes/no question, with the wording "may support the answer" |
+| 1 | Order | Does the distribution change when the same options are in another order? | Required: an identical option has the same probability at every position. 0.20 for each of 5 duplicate options | With 5 duplicates the favoured position gets 0.22 to 0.81 on average. Jev favours the last position, and Liquid d1, GPT-6 Luna Decisions and Laya the first. With one correct option among distractors the position makes no difference |
+| 2 | Allocation | How is the probability divided among options that are all correct? | For comparison: 0.50 each for 2 correct options. A model may prefer one of them | The highest correct option gets 0.80 to 0.85 and the lowest 0.11 to 0.14, on MetaTool queries that need 2 tools |
+| 3 | Abstention | What does the distribution do when no option is correct? | For comparison: equal probabilities, a refusal, or NOTA when it is offered | Mean confidence 0.56 to 0.84 on 5 random distractors. GPT-6 Luna Decisions refuses 125 and 207 of 250 lists. Jev and Liquid d1 never refuse |
+| 4 | Calibration | Does confidence match accuracy at each level of confidence, when one option is correct? | Required: accuracy equal to confidence within each of 10 bins of confidence. Measured as ECE, with the 10 bins reported. Refusals are counted apart | Mean confidence is 0.04 to 0.07 above accuracy on MMLU with 4 choices. The bins are not reported yet |
+| 5 | Dependence on the list | Does the probability of an option depend on the option, or on the other options of the list? | For comparison: the probability of the same option when a correct option is removed from the list, and as a yes/no question about that option alone with the same wording | On one HotpotQA question a supporting passage has 0.00 to 0.05 in the list of 10, 0.90 to 1.00 when the other supporting passage is removed, and 0.57 to 1.00 as a yes/no question |
 
 Notes on the properties:
 
 - Rushab, 2026-10-09: "A choice answer sums to 1, so of course the second correct option gets little" is wrong. A sum of 1 means the correct options share the probability. It does not make one of them take 0.85 or more.
-- A review of this plan on 2026-10-09 added three points, and the plan follows them. Two correct options do not automatically deserve 0.50 each. The stronger test of allocation is whether a model rates both as applicable when each is asked about separately, with the same wording as the list question. That is property 6. A supporting passage of HotpotQA can help to answer a question without being needed for it.
+- Two reviews of this plan, on 2026-10-09 and by Codex on 2026-10-10, are followed. An observation is kept apart from a failure. The labels must match the question that is asked. Calibration is measured by level of confidence. A pilot comes before the runs on every example. The script that computes the figures is checked first.
+- The yes/no questions are a control of property 5 and not a property. Rushab, 2026-10-10: the recommended setup, with yes/no questions on 500 HotpotQA questions and on the ECtHR test cases, one wording.
 - A second run of the same requests on Jev gives the same prediction in 1,158 of 1,182 answers on StableToolBench and in 1,526 of 1,550 on MetaTool.
 - The instruction "Choose all of them with equal probability." does not give an equal split. On StableToolBench Jev's highest correct API has 0.72 and its lowest 0.13.
 
@@ -114,7 +114,7 @@ On MetaTool `multi_tool` with "Choose one of them.", the highest correct tool mi
 | Mean confidence | 0.96 | 0.88 | 0.88 |
 | Overconfidence: mean confidence minus accuracy | +0.05 | +0.04 | +0.07 |
 
-### Properties 5 and 6: one HotpotQA question
+### Property 5, dependence on the list: one HotpotQA question
 
 Question `5a8d5fc6554299585d9e37c6`: "What's the name of the fantasy film starring Sarah Bolger, featuring a New England family who discover magical creatures around their estate?" Its supporting passages are "The Spiderwick Chronicles (film)" and "Sarah Bolger". The first holds the answer. It was asked on 2026-10-09 as a list and as one yes/no question per passage, each with two wordings:
 
@@ -141,63 +141,72 @@ The two lists with passages removed, with the wording "is needed":
 
 - The highest yes/no probability of a distractor is 0.04, 0.03 and 0.00 with "may support", and 0.07, 0.09 and 0.59 with "is needed". With "is needed" GPT-6 Luna Decisions gives 0.59, 0.45 and 0.41 to three distractors.
 - "Sarah Bolger" does not hold the answer, and 0.15 from Liquid d1 for "is needed" as a yes/no question fits that.
+- Three wordings were asked the same day, as a list and as a yes/no question: "may support", "supports" and "definitely supports" the answer to the question. The probability of "Sarah Bolger":
+
+| Asked as | Wording | Jev | Liquid d1 | GPT-6 Luna Decisions |
+|---|---|---|---|---|
+| List of 10 | may support | 0.00 | 0.05 | 0.01 |
+| List of 10 | supports | 0.00 | 0.04 | 0.01 |
+| List of 10 | definitely supports | 0.00 | 0.03 | 0.02 |
+| Yes/no | may support | 0.76 | 0.84 | 1.00 |
+| Yes/no | supports | 0.66 | 0.68 | 0.99 |
+| Yes/no | definitely supports | 0.57 | 0.73 | 0.77 |
+
+- With these three wordings "The Spiderwick Chronicles (film)" has 0.95 to 1.00 in all 6 cases, and no distractor has more than 0.04.
 - This is one question. It is not a rate.
 
 ## Runs on every example
 
-Rushab, 2026-10-09: every run is made on every dataset where it is possible. The table has 30 runs. 15 of them are new and have not been run on any example.
+Rushab, 2026-10-10: the recommended setup. MMLU is run on 1,000 questions, a seeded sample of the 13,096. The yes/no questions are a control on 500 HotpotQA questions and on the ECtHR test cases. The full HotpotQA list is asked with three wordings. The other three datasets are run on every example, and the three HotpotQA runs with 5 cyclic permutations on 1,000 questions.
 
-The cost is the number of requests times the input tokens per request times the price. For a run made on 50 examples the tokens are those measured. For a HotpotQA run they are scaled from the one question above. For an ECtHR run they are scaled from the 1,926 words of an average case. For another new run they are scaled from a run with lists of a similar size. A refusal of GPT-6 Luna Decisions costs fewer tokens than an answer.
+One request holds every list of one example. A HotpotQA question is one request for its full list in 3 wordings, its 2 lists without one supporting passage, and its list without both.
 
-| Property | Run | Dataset | Requests per model | Jev | Liquid d1 | GPT-6 Luna Decisions | So far |
-|---|---|---|---|---|---|---|---|
-| 1 Order | 5 duplicates of a correct option, 5 cyclic permutations | MetaTool | 3,292 | $0.18 | $0.12 | $0.39 | run on 50 |
-| 1 Order | 5 duplicates of a correct option, 5 cyclic permutations | MMLU | 13,096 | $0.43 | $0.38 | $1.03 | run on 50 |
-| 1 Order | 5 duplicates of a correct option, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 | $0.16 | $0.11 | $0.30 | new |
-| 1 Order | 5 duplicates of a violated article, 5 cyclic permutations | ECtHR, 847 cases | 847 | $0.11 | $0.07 | $0.21 | new |
-| 1 Order | 5 paraphrased options, 5 cyclic permutations | MetaTool, 1,767 examples | 1,767 | $0.10 | $0.06 | $0.18 | run on 50 |
-| 1 Order and 4 Calibration | One correct option, placed at every position | MetaTool `similar_tools`, `scenario`, `reliability` | 3,790 | $0.37 | $0.24 | $0.75 | run on 50 |
-| 1 Order and 4 Calibration | One correct option, 4 cyclic permutations | MMLU | 13,096 | $0.33 | $0.27 | $0.80 | run on 50 |
-| 2 Allocation | The list of the example, "Choose one of them." and "Choose both." | MetaTool `multi_tool` | 994 | $0.15 | $0.10 | $0.32 | run on 50 |
-| 2 Allocation | The list of 10 passages, 2 wordings | HotpotQA | 14,810 | $0.94 | $0.65 | $1.75 | run on 1 |
-| 2 Allocation, 3 Abstention and 4 Calibration | The list of 10 articles, 10 cyclic permutations | ECtHR | 1,000 | $0.17 | $0.12 | $0.33 | new |
-| 3 Abstention | 5 random distractors, 5 cyclic permutations | MetaTool | 3,292 | $0.17 | $0.11 | $0.38 | run on 50 |
-| 3 Abstention | 5 random distractors, 5 cyclic permutations | MMLU | 13,096 | $0.44 | $0.38 | $1.05 | run on 50 |
-| 3 Abstention | 5 random distractors, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 | $0.16 | $0.11 | $0.30 | new |
-| 3 Abstention | The distractors of the example, no correct option | MetaTool `similar_tools` | 995 | $0.04 | $0.03 | $0.09 | new |
-| 3 Abstention | The distractors of the example, no correct option | MMLU | 13,096 | $0.19 | $0.16 | $0.47 | new |
-| 3 Abstention | The distractors of the example, no correct option | HotpotQA | 7,405 | $0.40 | $0.27 | $0.73 | run on 1 |
-| 3 Abstention | The articles that were not violated, no correct option | ECtHR, 847 cases | 847 | $0.10 | $0.07 | $0.19 | new |
-| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | MetaTool `similar_tools` | 995 | $0.05 | $0.03 | $0.11 | run on 50 |
-| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | MMLU | 13,096 | $0.42 | $0.37 | $1.07 | run on 50 |
-| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 | $0.13 | $0.09 | $0.25 | new |
-| 3 Abstention | The distractors of the example and NOTA | MMLU | 13,096 | $0.32 | $0.26 | $0.78 | run on 50 |
-| 3 Abstention | The distractors of the example and NOTA | HotpotQA | 7,405 | $0.40 | $0.27 | $0.74 | new |
-| 3 Abstention | The list of 10 articles and NOTA | ECtHR | 1,000 | $0.12 | $0.08 | $0.22 | new |
-| 5 Dependence on the list | The correct option with the highest probability removed | MetaTool `multi_tool` | 497 | $0.01 | $0.01 | $0.02 | new |
-| 5 Dependence on the list | The correct option with the highest probability removed | HotpotQA | 7,405 | $0.43 | $0.29 | $0.79 | run on 1 |
-| 5 Dependence on the list | The violated article with the highest probability removed | ECtHR, 192 cases | 192 | $0.02 | $0.02 | $0.04 | new |
-| 6 Agreement with yes/no | A yes/no question per option | MetaTool `multi_tool` | 497 | $0.01 | $0.01 | $0.04 | new |
-| 6 Agreement with yes/no | A yes/no question per option | MMLU | 13,096 | $0.09 | $0.10 | $0.44 | new |
-| 6 Agreement with yes/no | A yes/no question per option, 2 wordings | HotpotQA | 14,810 | $0.98 | $1.00 | $3.87 | run on 1 |
-| 6 Agreement with yes/no | A yes/no question per article | ECtHR | 1,000 | $0.13 | $0.10 | $0.30 | new |
-| | **Total** | | **167,512** | **$7.55** | **$5.85** | **$17.96** | |
-
-The three models together cost about $31.36.
+| Property | Run | Dataset | Requests per model |
+|---|---|---|---|
+| 1 Order | 5 duplicates of a correct option, 5 cyclic permutations | MetaTool | 3,292 |
+| 1 Order | 5 duplicates of a correct option, 5 cyclic permutations | MMLU, 1,000 questions | 1,000 |
+| 1 Order | 5 duplicates of a supporting passage, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 |
+| 1 Order | 5 duplicates of a violated article, 5 cyclic permutations | ECtHR, 847 cases | 847 |
+| 1 Order | 5 paraphrased options, 5 cyclic permutations | MetaTool, 1,767 examples | 1,767 |
+| 1 Order and 4 Calibration | One correct option, placed at every position | MetaTool `similar_tools`, `scenario`, `reliability` | 3,790 |
+| 1 Order and 4 Calibration | One correct option, 4 cyclic permutations | MMLU, 1,000 questions | 1,000 |
+| 2 Allocation | The list of the example, "Choose one of them." and "Choose both." | MetaTool `multi_tool` | 994 |
+| 2 Allocation, 3 Abstention and 5 Dependence | The list, the list without each correct option, and the list without every correct option, in one request | MetaTool `multi_tool` | 497 |
+| 2 Allocation, 3 Abstention and 5 Dependence | The same, with the full list in 3 wordings | HotpotQA | 7,405 |
+| 2 Allocation, 3 Abstention and 5 Dependence | The same | ECtHR, 847 cases | 847 |
+| 2 Allocation, 3 Abstention and 4 Calibration | The list of 10 articles, 10 cyclic permutations | ECtHR | 1,000 |
+| 3 Abstention | 5 random distractors, 5 cyclic permutations | MetaTool | 3,292 |
+| 3 Abstention | 5 random distractors, 5 cyclic permutations | MMLU, 1,000 questions | 1,000 |
+| 3 Abstention | 5 random distractors, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 |
+| 3 Abstention | The distractors of the example, no correct option | MetaTool `similar_tools` | 995 |
+| 3 Abstention | The distractors of the example, no correct option | MMLU, 1,000 questions | 1,000 |
+| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | MetaTool `similar_tools` | 995 |
+| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | MMLU, 1,000 questions | 1,000 |
+| 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 |
+| 3 Abstention | The distractors of the example and NOTA | MMLU, 1,000 questions | 1,000 |
+| 3 Abstention | The distractors of the example and NOTA | HotpotQA | 7,405 |
+| 3 Abstention | The list of 10 articles and NOTA | ECtHR | 1,000 |
+| 5 Dependence, control | A yes/no question per passage, wording "supports" | HotpotQA, 500 questions | 500 |
+| 5 Dependence, control | A yes/no question per article | ECtHR | 1,000 |
+| | **Total** | | **44,626** |
 
 | Dataset | Requests per model | Cost, three models |
 |---|---|---|
-| MetaTool | 16,119 | $4.07 |
-| MMLU | 91,672 | $9.76 |
-| HotpotQA | 54,835 | $15.15 |
-| ECtHR | 4,886 | $2.38 |
+| MetaTool | 15,622 | $4.00 |
+| MMLU | 6,000 | $0.70 |
+| HotpotQA | 18,310 | $11.17 |
+| ECtHR | 4,694 | $2.38 |
+| **Total** | **44,626** | **about $18.25** |
 
+- The cost is an estimate: about $4.40 on Jev, $3.40 on Liquid d1 and $10.40 on GPT-6 Luna Decisions. The MetaTool and MMLU figures use the input tokens measured in the runs on 50 examples. The HotpotQA figure is scaled from one question, and the ECtHR figure from the 1,926 words of an average case. The pilot replaces both.
+- HotpotQA wordings. The three list instructions are "Choose every passage in the list that may support the answer to the question.", the same with "supports", and the same with "definitely supports". The labels of HotpotQA mark sentences that support the answer, and a passage with such a sentence can support an answer without being needed for it. The three wordings are reported separately. The lists without a supporting passage and the yes/no questions use "supports".
+- ECtHR wording. The labels are the articles that the Court found violated, not every article that the facts could concern. The instruction asks for the Court's finding, and a case with no label is a case in which the Court found no violation of the 10 articles. Its wording is fixed in the pilot.
 - On ECtHR one run with the list of 10 articles covers three properties: its cases have one, several or no violated article.
 - The MetaTool run with the distractors of the example and NOTA is left out. The label "None" of that run is not verified.
 - Paraphrased options exist for 38 MetaTool tools only.
-- The three HotpotQA runs with 5 cyclic permutations are made on 1,000 of the 7,405 questions. On every question they would cost about $14 more.
-- On HotpotQA the list and the yes/no questions are asked with both wordings, "is needed" and "may support". Questions of type `bridge` (5,918) and of type `comparison` (1,487) are reported separately. A comparison question needs both supporting passages.
+- HotpotQA questions of type `bridge` (5,918) and of type `comparison` (1,487) are reported separately. A comparison question needs both supporting passages.
 - MMLU has no list with several correct options, and HotpotQA none with one correct option.
+- A refusal of GPT-6 Luna Decisions is counted and reported for every run, apart from its answers.
 
 ### List length
 
@@ -207,19 +216,18 @@ Rushab, 2026-10-09: decided later. Possibly a short section at the end of the pa
 - From 5 to 199 MetaTool tools, accuracy falls from 0.86 to 0.73 on Jev, from 0.80 to 0.71 on Liquid d1 and from 0.82 to 0.66 on GPT-6 Luna Decisions. Overconfidence goes from +0.05 to +0.07 on Jev, from +0.09 to +0.05 on Liquid d1 and from +0.08 to +0.17 on GPT-6 Luna Decisions.
 - On every example the MetaTool list-length run would cost about $25.62 for the three models: $7.50 on Jev, $4.45 on Liquid d1 and $13.66 on GPT-6 Luna Decisions.
 
-## Before the runs can start
+## Steps
 
-1. Rushab raises `JEV_CALL_LIMIT`. It is 5,000 since 2026-10-09 and 2,019 calls are saved. The runs above need 167,512 Jev calls.
-2. Vercel AI Gateway credit. Rushab added $25 on 2026-10-08, and the runs of 2026-10-09 used about $0.72. The runs above need about $23.81 for the two gateway models.
-3. HotpotQA and ECtHR in the repository: a pinned download and a converter to the common format with its test, for each.
-4. The new runs in the runner, with tests: the correct option with the highest probability removed, a yes/no question per option, and the distractors of the example with no correct option. The runs with duplicates, random distractors and NOTA exist and need their entries for HotpotQA and ECtHR.
-5. The figures of `docs/all_runs.md` in the repository. They come from a script that is not in the repository and has no test: the three differences between correct options and distractors, the probabilities by position, overconfidence and ECE.
-6. One ECtHR case sent to the three models and shown to Rushab, with the wording of the instruction and of the 10 articles.
+1. The figures in the repository. They come from a script that is not in the repository and has no test: the three differences between correct options and distractors, the probabilities by position, overconfidence and ECE with its 10 bins. The code goes into `src/grjev/metrics.py` with tests and must give the figures of `docs/all_runs.md` again.
+2. HotpotQA and ECtHR in the repository: a pinned download and a converter to the common format with its test, for each.
+3. The new runs in the runner, with tests: the lists without correct options, a yes/no question per option, and the distractors of the example with no correct option. The runs with duplicates, random distractors and NOTA exist and need their entries for HotpotQA and ECtHR.
+4. A pilot on 50 examples per dataset and model, about 900 Jev calls. One exact request of HotpotQA and one of ECtHR are shown to Rushab before it.
+5. Rushab raises `JEV_CALL_LIMIT` for the runs on every example. It is 5,000 since 2026-10-09 and 2,023 calls are saved. The runs need 44,626 Jev calls.
+6. The runs on every example. Vercel AI Gateway credit: Rushab added $25 on 2026-10-08, about $24 is left, and the runs need about $14 for the two gateway models.
 
 ## Not decided
 
-- Whether MMLU is run on every question or on a sample. It is 91,672 of the 167,512 requests per model and about $9.76 of the $31.36. On 1,000 questions its 7 runs are 7,000 requests per model and about $0.75.
 - The venue. Rushab's goal is two workshop papers by the end of October 2026. A paper in Findings is submitted to a main track through ACL Rolling Review. Its dates were not checked.
 - Whether the paper reports a way to avoid the behaviours, such as a yes/no question per option, an average over several orders of a list, or NOTA in every list. None has been tested beyond one question.
 - Related work is not read. To read: SATA-Bench (Xu et al., 2025, arXiv 2506.00643), which tests LLMs on questions with several correct answers, and the work on the order of options in multiple-choice questions for LLMs. Tam et al. (2025) is read, and its figures are in `docs/papers/README.md`.
-- The wording of the instructions on HotpotQA and on ECtHR.
+- List length, under "List length" above.
