@@ -13,6 +13,7 @@ from grjev.constants import (
     COPIED_TOOLS,
     COUNTED_WORDINGS,
     DATASET_INSTRUCTIONS,
+    FULL_LIST,
     GROWTH_LENGTHS,
     GROWTH_WORDINGS,
     JEV_MODEL,
@@ -28,8 +29,11 @@ from grjev.constants import (
     ONE_LIST_MODELS,
     ONE_TOOL_INSTRUCTIONS,
     ORDER_SEED,
+    OWN_LIST,
     PADDED_LIST_TOOLS,
     PROGRESS_EVERY,
+    REMOVAL_TOOL_INSTRUCTIONS,
+    REMOVAL_WORDINGS,
     REWORDED_INSTRUCTIONS,
     REWORDED_LIST,
     REWORDING_EXPERIMENTS,
@@ -39,6 +43,10 @@ from grjev.constants import (
     TWO_TOOL_WORDING,
     UNCOUNTED_WORDINGS,
     UNRELATED_TOOLS,
+    WITHOUT_ALL_LIST,
+    WITHOUT_LIST,
+    YES_NO_EXPERIMENT,
+    YES_NO_QUESTIONS,
 )
 from grjev.examples import Example, Option, read_rewordings
 from grjev.jev import (
@@ -46,6 +54,7 @@ from grjev.jev import (
     ChoiceQuestion,
     JevRequest,
     JevResponse,
+    NoulAnswer,
     NoulQuestion,
     RefusalAnswer,
     ask,
@@ -110,6 +119,8 @@ class Row(BaseModel):
     # The names of the tool lists that the model rejected, and of those it refused to answer. They have no answer.
     rejected: list[str] = []
     refused: list[str] = []
+    # The probability of "yes" for each option, in a run that asks one yes/no question per option.
+    yes: dict[str, float] = {}
 
 
 @dataclass(frozen=True)
@@ -309,6 +320,48 @@ def own_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list
             yield test_file, example, lists, dict.fromkeys(lists, instruction)
 
 
+def distractor_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with tools of its own list that are not correct, in every rotation.
+
+    No tool of the list is correct and "None" is not offered. The yielded example has no label.
+    """
+    instruction = instruction_of(config, REWORDED_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(wrong_tools(example, ABSENT_LIST_TOOLS, config.seed))
+            yield test_file, example.model_copy(update={"labels": []}), lists, dict.fromkeys(lists, instruction)
+
+
+def removal_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its list, its list without each correct tool, and its list without every correct tool.
+
+    The list of the example is also sent with each other wording of the dataset's instruction. A list without one
+    correct tool is named by the number of that tool in the labels, counted from 1, and exists when the example has
+    several correct tools. A list that would hold fewer than 2 tools is left out. The yielded example keeps its
+    labels, so `correct` of an answer is meaningful for the list of the example only.
+    """
+    instruction = instruction_of(config, REMOVAL_TOOL_INSTRUCTIONS)
+    wordings = {f"{FULL_LIST}_{name}": text for name, text in REMOVAL_WORDINGS.get(config.dataset, {}).items()}
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            labels = example.labels or []
+            lists = {FULL_LIST: example.options} | dict.fromkeys(wordings, example.options)
+            if len(labels) > 1:
+                for number, label in enumerate(labels, 1):
+                    lists[f"{WITHOUT_LIST}_{number}"] = [tool for tool in example.options if tool.name != label]
+            lists[WITHOUT_ALL_LIST] = [tool for tool in example.options if tool.name not in labels]
+            lists = {name: kept for name, kept in lists.items() if len(kept) > 1}
+            yield test_file, example, lists, {name: wordings.get(name, instruction) for name in lists}
+
+
+def with_none_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its own list and the "None" candidate last. "None" is correct when it has no label."""
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            yield test_file, example, {OWN_LIST: [*example.options, none_option(config)]}, {OWN_LIST: instruction}
+
+
 # Experiment -> the function that yields the tool lists of its examples.
 LISTS = {
     "position": position_lists,
@@ -322,6 +375,9 @@ LISTS = {
     "absent_random": absent_random_lists,
     "unrelated": unrelated_lists,
     "own": own_lists,
+    "distractors": distractor_lists,
+    "removal": removal_lists,
+    "with_none": with_none_lists,
 }
 
 
@@ -368,8 +424,28 @@ def requests_of(config: RunConfig, query: str, questions: dict[str, ChoiceQuesti
     return [JevRequest(state=query, model=config.model, questions=group) for group in groups]
 
 
+def yes_no_plan(config: RunConfig, examples: dict[str, list[Example]]) -> list[Planned]:
+    """Return every example of a yes/no run with one request that asks one yes/no question per option.
+
+    A question is named by its option and ends with the name and the description of the option.
+    """
+    opening = YES_NO_QUESTIONS[config.dataset]
+    planned = []
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            questions: dict[str, ChoiceQuestion | NoulQuestion] = {
+                option.name: NoulQuestion(instructions=f"{opening} {option.name}: {option.description}")
+                for option in example.options
+            }
+            request = JevRequest(state=example.query, model=config.model, questions=questions)
+            planned.append(Planned(test_file, example, {}, [request]))
+    return planned
+
+
 def plan(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> list[Planned]:
     """Return every example of the run with its tool lists and requests."""
+    if config.experiment == YES_NO_EXPERIMENT:
+        return yes_no_plan(config, examples)
     planned = []
     for test_file, example, lists, instructions in LISTS[config.experiment](config, examples, tools):
         requests = requests_of(config, example.query, questions_of(config, test_file, lists, instructions))
@@ -401,12 +477,14 @@ def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: Cho
     """Say whether Jev's answer matches the labels.
 
     In a test file with several correct tools, and for a list of rewordings, its k highest-probability tools are the k
-    correct tools. Elsewhere its choice is the correct tool, or "None" when no tool is correct.
+    correct tools. Elsewhere its choice is the correct tool. When no tool is correct, its choice is "None".
     """
+    if not labels:
+        return answer.choice == none_option(config).name
     if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset] or config.experiment in REWORDING_EXPERIMENTS:
         top = top_tools(answer.probabilities, len(labels))
         return bool(labels) and top is not None and set(top) == set(labels)
-    return answer.choice == (labels[0] if labels else none_option(config).name)
+    return answer.choice == labels[0]
 
 
 def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]) -> Row:
@@ -436,6 +514,7 @@ def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]
         input_tokens=sum(response.usage.input_tokens for response in answered),
         rejected=[name for name in item.lists if name not in given],
         refused=[name for name in item.lists if isinstance(given.get(name), RefusalAnswer)],
+        yes={name: answer.noul for name, answer in given.items() if isinstance(answer, NoulAnswer)},
     )
 
 

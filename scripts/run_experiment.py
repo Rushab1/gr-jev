@@ -66,6 +66,7 @@ def print_summary(config: RunConfig, rows: list[Row]) -> None:
     rejected, refused = sum(len(row.rejected) for row in rows), sum(len(row.refused) for row in rows)
     answered = sum(len(row.answers) for row in rows)
     print(f"Tool lists answered: {answered:,}. Rejected by the model: {rejected:,}. Refused by the model: {refused:,}")
+    print(f"Yes/no questions answered: {sum(len(row.yes) for row in rows):,}")
     print(
         f"Answers to a query with several correct tools where a tie leaves a place open: {tied_answers(config, rows):,}"
     )

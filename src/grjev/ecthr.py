@@ -6,7 +6,7 @@ from typing import Any
 # pyarrow ships no type information.
 import pyarrow.parquet  # type: ignore[import-untyped]
 
-from grjev.constants import ECTHR_ARTICLES, ECTHR_RAW_FILE, ECTHR_TEST_FILE, TOOLS_FILE_NAME
+from grjev.constants import ECTHR_ARTICLES, ECTHR_RAW_FILE, ECTHR_TEST_FILE, ECTHR_VIOLATED_FILE, TOOLS_FILE_NAME
 from grjev.examples import Example, Option, write_jsonl
 
 ARTICLES = [Option(name=name, description=title) for name, title in ECTHR_ARTICLES]
@@ -31,8 +31,14 @@ def examples_of(rows: list[dict[str, Any]]) -> list[Example]:
 
 
 def process_ecthr(raw_dir: Path, processed_dir: Path) -> dict[str, int]:
-    """Write the test cases and the 10 articles. Return the number of rows written."""
+    """Write the test cases, the cases with a violated article, and the 10 articles. Return the rows written."""
     examples = examples_of(pyarrow.parquet.read_table(raw_dir / ECTHR_RAW_FILE).to_pylist())
+    violated = [example for example in examples if example.labels]
     write_jsonl(processed_dir / f"{ECTHR_TEST_FILE}.jsonl", examples)
+    write_jsonl(processed_dir / f"{ECTHR_VIOLATED_FILE}.jsonl", violated)
     write_jsonl(processed_dir / TOOLS_FILE_NAME, ARTICLES)
-    return {f"{ECTHR_TEST_FILE}.jsonl": len(examples), TOOLS_FILE_NAME: len(ARTICLES)}
+    return {
+        f"{ECTHR_TEST_FILE}.jsonl": len(examples),
+        f"{ECTHR_VIOLATED_FILE}.jsonl": len(violated),
+        TOOLS_FILE_NAME: len(ARTICLES),
+    }

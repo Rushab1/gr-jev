@@ -6,7 +6,7 @@ from typing import Any
 import pyarrow.parquet  # type: ignore[import-untyped]
 import pytest
 
-from grjev.constants import ECTHR_ARTICLES, ECTHR_RAW_DIR, ECTHR_RAW_FILE, ECTHR_TEST_FILE
+from grjev.constants import ECTHR_ARTICLES, ECTHR_RAW_DIR, ECTHR_RAW_FILE, ECTHR_TEST_FILE, ECTHR_VIOLATED_FILE
 from grjev.ecthr import examples_of, process_ecthr
 from grjev.examples import read_dataset
 
@@ -31,10 +31,14 @@ def test_every_downloaded_case_keeps_its_paragraphs_and_its_labels(tmp_path: Pat
         pytest.skip("ECtHR is not downloaded")
     rows: list[dict[str, Any]] = pyarrow.parquet.read_table(ECTHR_RAW_DIR / ECTHR_RAW_FILE).to_pylist()
     written = process_ecthr(ECTHR_RAW_DIR, tmp_path)
-    examples, articles = read_dataset(tmp_path, (ECTHR_TEST_FILE,))
+    examples, articles = read_dataset(tmp_path, (ECTHR_TEST_FILE, ECTHR_VIOLATED_FILE))
     cases = examples[ECTHR_TEST_FILE]
     assert [case.raw for case in cases] == rows and written[f"{ECTHR_TEST_FILE}.jsonl"] == 1000
     # 1,580 paragraphs hold a line feed themselves, so the query is compared whole and not split.
     assert [case.query for case in cases] == ["\n".join(row["text"]) for row in rows]
     assert [len(case.labels or []) for case in cases] == [len(row["labels"]) for row in rows]
     assert sum(not case.labels for case in cases) == 153 and len(articles) == 10
+    assert (
+        examples[ECTHR_VIOLATED_FILE] == [case for case in cases if case.labels]
+        and written[f"{ECTHR_VIOLATED_FILE}.jsonl"] == 847
+    )

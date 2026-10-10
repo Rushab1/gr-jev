@@ -14,7 +14,9 @@ import pytest
 from grjev import jev, results, runs
 from grjev.constants import (
     COUNTED_WORDINGS,
+    DATASET_INSTRUCTIONS,
     EXPERIMENT_TEST_FILES,
+    FULL_LIST,
     GROWTH_LENGTHS,
     GROWTH_WORDINGS,
     JEV_MAX_OPTIONS,
@@ -28,10 +30,14 @@ from grjev.constants import (
     PLACEMENTS,
     PROCESSED_DIRS,
     RELEASED_ORDER,
+    REMOVAL_TOOL_INSTRUCTIONS,
+    REMOVAL_WORDINGS,
     REWORDED_LIST,
     REWORDINGS_FILES,
     TWO_TOOL_INSTRUCTIONS,
     UNCOUNTED_WORDINGS,
+    WITHOUT_ALL_LIST,
+    YES_NO_QUESTIONS,
 )
 from grjev.examples import Example, Option, read_dataset, read_rewordings
 from grjev.placement import reworded_order, reworded_tool
@@ -432,6 +438,92 @@ def test_a_refused_list_has_no_answer_and_is_named_in_the_row(fake: FakeJev, mon
     (row,) = run(run_config, planned)
     assert row.refused == ["middle"] and row.rejected == [] and "middle" not in row.answers
     assert len(row.answers) == len(PLACEMENTS)
+
+
+def names(tools: list[Option]) -> list[str]:
+    return [tool.name for tool in tools]
+
+
+def test_a_removal_run_lists_the_example_without_each_correct_tool_and_without_all_of_them() -> None:
+    (planned,) = plan(config("removal", "multi_tool"), {"multi_tool": [example(0, ["tool_3", "tool_7"])]}, TOOLS)
+    assert list(planned.lists) == [FULL_LIST, "without_1", "without_2", WITHOUT_ALL_LIST]
+    assert names(planned.lists[FULL_LIST]) == names(TOOLS)
+    assert names(planned.lists["without_1"]) == [name for name in names(TOOLS) if name != "tool_3"]
+    assert names(planned.lists["without_2"]) == [name for name in names(TOOLS) if name != "tool_7"]
+    assert names(planned.lists[WITHOUT_ALL_LIST]) == [name for name in names(TOOLS) if name not in ("tool_3", "tool_7")]
+    (request,) = planned.requests
+    assert {question.instructions for question in request.questions.values()} == {REMOVAL_TOOL_INSTRUCTIONS}
+    assert NONE_NAME not in criteria_of(config("removal", "multi_tool"), "multi_tool", planned.lists[FULL_LIST])
+    assert planned.example.labels == ["tool_3", "tool_7"]
+
+
+def test_a_removal_run_sends_the_list_of_the_example_with_every_wording_of_the_dataset() -> None:
+    run_config = config("removal", "validation", dataset="hotpotqa")
+    (planned,) = plan(run_config, {"validation": [example(0, ["tool_3", "tool_7"])]}, TOOLS)
+    assert list(planned.lists) == [FULL_LIST, "full_may", "full_definitely", "without_1", "without_2", WITHOUT_ALL_LIST]
+    instructions = {name: question.instructions for name, question in planned.requests[0].questions.items()}
+    assert instructions["full_may"] == REMOVAL_WORDINGS["hotpotqa"]["may"]
+    assert instructions["full_definitely"] == REMOVAL_WORDINGS["hotpotqa"]["definitely"]
+    assert {instructions[name] for name in (FULL_LIST, "without_1", WITHOUT_ALL_LIST)} == {
+        DATASET_INSTRUCTIONS["hotpotqa"]
+    }
+
+
+def test_a_removal_run_leaves_out_a_repeated_list_and_a_list_with_fewer_than_2_tools() -> None:
+    run_config = config("removal", "test_violated", dataset="ecthr")
+    one_label, short = plan(
+        run_config,
+        {
+            "test_violated": [
+                example(0, ["tool_3"]),
+                example(1, ["tool_1", "tool_2"]).model_copy(update={"options": TOOLS[:3]}),
+            ]
+        },
+        TOOLS,
+    )
+    assert list(one_label.lists) == [FULL_LIST, WITHOUT_ALL_LIST]
+    assert list(short.lists) == [FULL_LIST, "without_1", "without_2"]
+
+
+def test_a_distractors_run_lists_tools_that_are_not_correct_in_every_rotation_with_no_label() -> None:
+    (planned,) = plan(config("distractors", "similar_tools"), {"similar_tools": [example(0, ["tool_4"])]}, TOOLS)
+    first = names(planned.lists["rotated_0"])
+    assert len(first) == 4 and "tool_4" not in first and planned.example.labels == []
+    assert [names(tools) for tools in planned.lists.values()] == [first[moved:] + first[:moved] for moved in range(4)]
+    assert NONE_NAME not in criteria_of(
+        config("distractors", "similar_tools"), "similar_tools", planned.lists["rotated_0"]
+    )
+
+
+def test_a_with_none_run_ends_the_list_with_none_which_is_correct_when_the_example_has_no_label(fake: FakeJev) -> None:
+    run_config = config("with_none", "test", dataset="ecthr")
+    planned = plan(run_config, {"test": [example(0, []), example(1, ["tool_1"])]}, TOOLS)
+    assert names(planned[0].lists["own"])[-1] == "None of these articles"
+    assert is_correct(run_config, "test", [], choice({"None of these articles": 0.9, "tool_1": 0.1}))
+    assert not is_correct(run_config, "test", [], choice({"None of these articles": 0.1, "tool_1": 0.9}))
+    unlabelled, labelled = run(run_config, planned)
+    # The fake selects the first candidate, tool_1.
+    assert not unlabelled.answers["own"].correct and labelled.answers["own"].correct
+
+
+def test_a_yes_no_run_asks_one_question_per_option_and_saves_the_probability_of_yes(
+    fake: FakeJev, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_config = config("yes_no", "test", dataset="ecthr")
+    (planned,) = plan(run_config, {"test": [example(0, ["tool_2"]).model_copy(update={"options": TOOLS[:2]})]}, TOOLS)
+    (request,) = planned.requests
+    assert list(request.questions) == ["tool_1", "tool_2"] and planned.lists == {}
+    assert request.questions["tool_2"].instructions == f"{YES_NO_QUESTIONS['ecthr']} tool_2: Does thing 2."
+    assert {question.type for question in request.questions.values()} == {"noul"}
+
+    def post(url: str, content: bytes, headers: dict[str, str], timeout: float) -> httpx.Response:
+        answers = {name: {"type": "noul", "noul": 0.25} for name in json.loads(content)["questions"]}
+        payload = {"model": "jev-1.13.0", "answers": answers, "usage": {"input_tokens": 7, "output_tokens": 0}}
+        return httpx.Response(200, json=payload, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(jev.httpx, "post", post)
+    (row,) = run(run_config, [planned])
+    assert row.yes == {"tool_1": 0.25, "tool_2": 0.25} and row.answers == {} and row.input_tokens == 7
 
 
 def test_the_answers_of_split_requests_are_joined_in_one_row(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:

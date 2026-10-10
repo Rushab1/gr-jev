@@ -273,8 +273,10 @@ HOTPOTQA_TEST_FILES = (HOTPOTQA_TEST_FILE, HOTPOTQA_TEN_FILE)
 HOTPOTQA_PASSAGES = 10
 
 ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
+# The processed file with every test case, and the one with the cases that have a violated article.
 ECTHR_TEST_FILE = "test"
-ECTHR_TEST_FILES = (ECTHR_TEST_FILE,)
+ECTHR_VIOLATED_FILE = "test_violated"
+ECTHR_TEST_FILES = (ECTHR_TEST_FILE, ECTHR_VIOLATED_FILE)
 # The 10 articles of the European Convention on Human Rights that a case is labelled with, in the order of the label
 # numbers of LexGLUE, each with its title in the Convention.
 ECTHR_ARTICLES = (
@@ -367,30 +369,85 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "metatool": METATOOL_REWORDED_FILES,
         "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
         "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEN_FILE,),
+        "ecthr": (ECTHR_VIOLATED_FILE,),
     },
-    "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
-    "absent_random": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
-    "unrelated": {"metatool": METATOOL_REWORDED_FILES, "mmlu": (MMLU_STANDALONE_FILE,)},
-    "own": {"mmlu": (MMLU_STANDALONE_FILE,)},
+    "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,), "hotpotqa": (HOTPOTQA_TEN_FILE,)},
+    "absent_random": {
+        "metatool": ("similar_tools",),
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    },
+    "unrelated": {
+        "metatool": METATOOL_REWORDED_FILES,
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    },
+    "own": {"mmlu": (MMLU_STANDALONE_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+    # "distractors" lists options of the example that are not correct, with no correct option and no "None".
+    "distractors": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
+    # "removal" sends the list of the example, the list without each correct option, and the list without all of them.
+    "removal": {
+        "metatool": ("multi_tool",),
+        "hotpotqa": (HOTPOTQA_TEST_FILE,),
+        "ecthr": (ECTHR_VIOLATED_FILE,),
+    },
+    # "with_none" sends the list of the example with the "None" candidate added.
+    "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
+    # "yes_no" asks one yes/no question about each option of the example, and no list.
+    "yes_no": {"hotpotqa": (HOTPOTQA_TEST_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "metatool": ("similar_tools", "scenario", "reliability"),
     "stabletoolbench": (),
     "mmlu": (),
+    "hotpotqa": (),
+    "ecthr": (),
 }
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
 # Dataset -> the name and the description of its "None" candidate, where the options are not tools.
-NONE_CANDIDATES = {"mmlu": ("None of the above", "")}
-# Dataset -> the instruction of every list of the dataset, where the options are not tools.
-DATASET_INSTRUCTIONS = {"mmlu": "Choose the correct answer to the question."}
+NONE_CANDIDATES = {
+    "mmlu": ("None of the above", ""),
+    "hotpotqa": ("None of the passages", "No passage in the list supports the answer to the question."),
+    "ecthr": ("None of these articles", "The Court found no violation of an article in the list."),
+}
+# Dataset -> the instruction of every list of the dataset, where the options are not tools. The labels of HotpotQA
+# mark the passages that support the answer, and those of ECtHR the articles that the Court found violated.
+DATASET_INSTRUCTIONS = {
+    "mmlu": "Choose the correct answer to the question.",
+    "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
+    "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+}
+# Dataset -> other wordings of its instruction by name. A "removal" run sends the list of the example with each.
+REMOVAL_WORDINGS = {
+    "hotpotqa": {
+        "may": "Choose every passage in the list that may support the answer to the question.",
+        "definitely": "Choose every passage in the list that definitely supports the answer to the question.",
+    },
+}
+# The instruction of the lists of a "removal" run on a dataset of tools. It does not say how many tools are correct.
+REMOVAL_TOOL_INSTRUCTIONS = "Choose every tool in the list that is needed to solve the user's query."
+# Dataset -> the yes/no question about one option, which is followed by the option.
+YES_NO_QUESTIONS = {
+    "hotpotqa": "Does this passage support the answer to the question? Passage:",
+    "ecthr": "Did the European Court of Human Rights find a violation of this article in this case? Article:",
+}
+YES_NO_EXPERIMENT = "yes_no"
+# The names of the lists of a "removal" run: the list of the example, the list without correct option number n, and
+# the list without every correct option.
+FULL_LIST = "full"
+WITHOUT_LIST = "without"
+WITHOUT_ALL_LIST = "without_all"
 # Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
 # its k highest-probability tools.
 SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
     "metatool": ("multi_tool",),
     "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
     "mmlu": (),
+    "hotpotqa": HOTPOTQA_TEST_FILES,
+    "ecthr": ECTHR_TEST_FILES,
 }
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
@@ -440,7 +497,15 @@ COPIED_TOOLS = 5
 ABSENT_LIST_TOOLS = 4
 # The experiments whose lists do not get "None" added at the end: the lists of rewordings and of copies, and the
 # "absent" lists, which hold "None" at a place of its own, and the "unrelated" lists, which offer no "None".
-NO_ADDED_NONE_EXPERIMENTS = (*REWORDING_EXPERIMENTS, "absent", "absent_random", "unrelated")
+NO_ADDED_NONE_EXPERIMENTS = (
+    *REWORDING_EXPERIMENTS,
+    "absent",
+    "absent_random",
+    "unrelated",
+    "distractors",
+    "removal",
+    "with_none",
+)
 # The "unrelated" experiment lists this many random tools, as many as the "copied" experiment lists copies.
 UNRELATED_TOOLS = 5
 REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
