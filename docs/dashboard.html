@@ -1041,7 +1041,7 @@
         <ul class="plain" data-after="rules">
           <li>The rules score only the choice of function. BFCL scores the whole call: the function name and the value of every parameter.</li>
           <li>Multi-turn: the ground truth of a turn calls 0 to 7 different functions, and 412 of the 3,336 turns have no call. 203 of them are in <code>multi_turn_miss_func</code> and 203 in <code>multi_turn_miss_param</code>.</li>
-          <li>In <code>multi_turn_miss_func_49</code> the ground truth of the second turn calls <code>tail</code>, which the row withholds until the fourth turn.</li>
+          <li>In <code>multi_turn_miss_func_49</code> the ground truth of the second turn calls <code>tail</code>, which the row withholds until the fourth turn. The processed row of that turn has no stored label.</li>
           <li><code>live_relevance</code> accepts any call. <code>web_search</code> and <code>memory</code> are answered in text.</li>
         </ul>
       </div>

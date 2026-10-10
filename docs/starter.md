@@ -115,7 +115,7 @@ Measured on StableToolBench's six test files (765 examples), BFCL's 13 single-tu
 - BFCL: 339 of the 1,998 function names have more than one description, up to 30 for `get_current_weather`.
 - BFCL: in 653 of the 1,053 examples of `live_multiple`, the correct function has a name of the form `Service_N_Intent`, such as `Movies_3_FindMovies`.
 - BFCL multi-turn: a turn's list holds 15 to 39 functions, and its ground truth calls 0 to 7 different functions. 203 turns of `multi_turn_miss_func` and 203 of `multi_turn_miss_param` have no call.
-- BFCL multi-turn: in `multi_turn_miss_func_49` the ground truth of the second turn calls `tail`, which the row withholds until the fourth turn.
+- BFCL multi-turn: in `multi_turn_miss_func_49` the ground truth of the second turn calls `tail`, which the row withholds until the fourth turn. The processed row of that turn has no stored label.
 - BFCL parameter values: the 2,501 single-turn examples with a ground truth have 10,193 accepted parameter values. 63.3% are in the query, 8.3% are true or false, 5.9% are listed in the function's schema, 11.2% may be left out, 2.6% are in the description of the function or of the parameter or are the parameter's default, and 8.8% are none of these. In 1,848 of the 2,501 examples (73.9%) no value has to be rewritten. Of the 892 values that do, 269 are dates or times in a fixed format, 230 are numbers that are not in the query as digits, and 157 are place names with a part added.
 
 ## Prior work

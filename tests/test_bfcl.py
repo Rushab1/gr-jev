@@ -116,6 +116,13 @@ def test_a_multi_turn_row_gives_one_example_per_turn_with_the_functions_availabl
     assert all(example.raw == TURNS | TURNS_ANSWER for example in examples)
 
 
+def test_a_turn_whose_ground_truth_calls_a_withheld_function_has_no_stored_label() -> None:
+    answer = TURNS_ANSWER | {"ground_truth": [["logarithm(value=3)", "add(a=1,b=2)"], [], ["send(to='Ana')"]]}
+    examples = turn_examples(TURNS, answer, DOCS)
+    assert names(examples[0]) == ["logarithm", "send"]
+    assert [example.labels for example in examples] == [None, [], ["send"]]
+
+
 def test_a_memory_row_gives_one_example_per_backend_and_no_function_is_a_label() -> None:
     row = {"id": "memory_0", "question": [[user("What is my name?")]], "involved_classes": ["MemoryAPI"]}
     answer = {"id": "memory_0", "ground_truth": ["Ana"], "source": "My name is Ana."}
@@ -208,24 +215,27 @@ FUNCTIONS_PER_TURN = {
 def test_multi_turn_examples_match_the_turns_of_the_raw_rows(
     raw_rows: dict[str, tuple[Rows, Rows]], processed: Processed
 ) -> None:
-    unavailable = []
+    withheld = []
     for name in BFCL_MULTI_TURN_FILES:
         rows, answers = raw_rows[name]
         examples = iter(processed[0][name])
         for row, answer in zip(rows, answers, strict=True):
             for turn, (messages, calls) in enumerate(zip(row["question"], answer["ground_truth"], strict=True)):
                 example = next(examples)
-                assert example.id == f"bfcl/{row['id']}/turn_{turn}" and example.labels is not None
+                assert example.id == f"bfcl/{row['id']}/turn_{turn}"
                 assert messages == ([user(example.query)] if messages else []) and (messages or example.query == "")
                 assert len(set(names(example))) == len(example.options)
                 assert not set(names(example)) & set(row.get("excluded_function", []))
-                assert set(example.labels) == {call.split("(")[0] for call in calls}
-                unavailable += [(row["id"], turn, label) for label in example.labels if label not in names(example)]
+                called = {call.split("(")[0] for call in calls}
+                if example.labels is None:
+                    withheld.append((row["id"], turn, sorted(called - set(names(example)))))
+                else:
+                    assert set(example.labels) == called <= set(names(example))
         assert next(examples, None) is None
         sizes = [len(example.options) for example in processed[0][name]]
         assert (median(sizes), min(sizes), max(sizes)) == FUNCTIONS_PER_TURN[name]
     # An inconsistency in BFCL: this ground truth calls a function that its row withholds until turn 3.
-    assert unavailable == [("multi_turn_miss_func_49", 1, "tail")]
+    assert withheld == [("multi_turn_miss_func_49", 1, ["tail"])]
 
 
 def test_agentic_examples_have_the_functions_of_their_class_or_backend_and_no_label(

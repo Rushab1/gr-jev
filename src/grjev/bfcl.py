@@ -80,7 +80,8 @@ def turn_examples(row: Row, answer: Row, docs: dict[str, list[Row]]) -> list[Exa
 
     The options are the functions of the row's API classes without its excluded functions. A function listed in
     `missed_function` is withheld until the turn it is listed under. The labels are the functions that the ground
-    truth of the turn calls.
+    truth of the turn calls. A turn has no stored label when its ground truth calls a withheld function, as turn 1
+    of `multi_turn_miss_func_49` does.
     """
     excluded = row.get("excluded_function", [])
     defined = [function for name in row["involved_classes"] for function in docs[BFCL_CLASS_DOCS[name]]]
@@ -89,12 +90,13 @@ def turn_examples(row: Row, answer: Row, docs: dict[str, list[Row]]) -> list[Exa
     examples = []
     for turn, (messages, calls) in enumerate(zip(row["question"], answer["ground_truth"], strict=True)):
         withheld = {name for added_at, names in added.items() if int(added_at) > turn for name in names}
+        called = list(dict.fromkeys(call.split("(", 1)[0] for call in calls))
         examples.append(
             Example(
                 id=f"bfcl/{row['id']}/turn_{turn}",
                 query=query_of(messages),
                 options=options_of([function for function in functions if function["name"] not in withheld]),
-                labels=list(dict.fromkeys(call.split("(", 1)[0] for call in calls)),
+                labels=None if withheld & set(called) else called,
                 raw=row | answer,
             )
         )
