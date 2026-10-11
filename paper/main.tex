@@ -1,4 +1,4 @@
-% Skeleton of the paper: section headers only. No text is written yet.
+% Draft of the paper: the abstract is written and the sections are outlines.
 %
 % Build: tectonic paper/main.tex
 % Style: neurips_2026.sty, from the NeurIPS 2026 formatting instructions, downloaded on 2026-10-11 from
@@ -49,7 +49,7 @@
 \maketitle
 
 \begin{abstract}
-% To be written.
+Decision models return a probability distribution over a supplied list of choices. We test whether an option's reported probability can be used as the probability that the option is correct. We evaluate Jev, Liquid d1, and GPT-6 Luna Decisions on MetaTool, MMLU, HotpotQA, and ECtHR, constructing lists with one, several, or no correct choices and with five copies of one correct choice. On lists with two to four correct choices, the highest-scored correct choice receives a mean probability of 0.66 to 0.85, while the lowest receives 0.11 to 0.19. A threshold of 0.25 retains every correct choice in only 15\% to 35\% of these answers. With five semantically identical choices, Liquid d1 and GPT-6 Luna Decisions assign mean probabilities of 0.50 to 0.81 and 0.67 to 0.79 to the most favored copy, compared with an equal-share reference of 0.20. On lists with no correct choice, Jev and Liquid d1 return choices with mean top probabilities of 0.49 to 0.87 across the tested conditions. On lists with one correct choice, mean top probability differs from accuracy by at most 0.14. The results show that a choice probability describes allocation within the supplied list and cannot generally be read as an independent probability that its option is correct.
 \end{abstract}
 
 \section{Introduction}
