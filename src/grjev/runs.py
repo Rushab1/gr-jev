@@ -237,11 +237,15 @@ def with_rewordings(
 ) -> Iterator[tuple[str, Example, list[Option]]]:
     """Yield each example with the rewordings of one of its correct tools, in the order in which they are written.
 
-    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings.
+    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings. An example whose
+    chosen tool has no rewordings in the file is left out, after the sample is drawn.
     """
     rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
     for test_file in config.test_files:
-        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+        chosen = sampled(examples[test_file], sample_size(config, test_file), config.seed)
+        kept = [example for example in chosen if reworded_tool(example, config.seed) in rewordings]
+        logger.info("%s: %d of %d examples have rewordings of their tool", test_file, len(kept), len(chosen))
+        for example in kept:
             written = rewordings[reworded_tool(example, config.seed)]
             yield test_file, example.model_copy(update={"labels": [tool.name for tool in written]}), written
 

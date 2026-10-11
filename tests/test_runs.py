@@ -248,6 +248,17 @@ def test_a_reworded_run_asks_a_list_that_holds_only_the_rewordings_of_one_correc
     assert two_correct.labels == ["tool_1", "tool_3"]
 
 
+def test_an_example_whose_tool_has_no_rewordings_is_left_out_of_a_rotated_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    written = [Option(name=f"tool_2_reworded_{number}", description=f"Said way {number}.") for number in range(1, 6)]
+    (tmp_path / "rewordings.json").write_text(json.dumps({"tool_2": [tool.model_dump() for tool in written]}))
+    monkeypatch.setitem(REWORDINGS_FILES, "stabletoolbench", tmp_path / "rewordings.json")
+    examples = {"G1_tool": [example(0, ["tool_2"]), example(1, ["tool_5"]), example(2, ["tool_2"])]}
+    planned = plan(config("rotated", "G1_tool", dataset="stabletoolbench"), examples, TOOLS)
+    assert [item.example.id for item in planned] == ["set/file/0", "set/file/2"]
+
+
 def test_a_rotated_run_asks_the_rewordings_in_every_rotation_as_questions_of_one_request(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
