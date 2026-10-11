@@ -5,7 +5,7 @@
   "The claim. A decision model gives each option in a list a probability. That probability does not reliably say whether the option is correct. It is close to the accuracy when exactly one option in the list is correct. It is not close in the three other cases.",
   "Several correct options (finding 2, the main finding). When 2 to 4 options in a list are correct, one of them has a mean probability of 0.66 to 0.85. The correct option with the lowest probability has 0.11 to 0.19. This happens on three datasets and three models. TypeSafe's example code notifies a second team when its probability is above 0.25. Every correct option is above 0.25 in 15% to 35% of the answers. Strong.",
   "TypeSafe's example (finding 6). TypeSafe's example ticket has two issues. Jev gives their two teams 0.65 and 0.31. The documentation shows 0.61 and 0.35. On 24 tickets written the same way, both teams are above 0.25 in 11 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions. When an issue is sent alone, the models give its team 0.99 to 1.00. Moderate: 24 tickets.",
-  "Why the second correct option is low (finding 5). Remove the correct option with the highest probability from the list. The second correct option then rises from between 0.11 and 0.19 to between 0.53 and 0.71. Divide its probability in the full list by the probability of the options that stay, and the result is 0.41 to 0.81. The first correct option held the probability. This supports finding 2. It is not a finding of its own.",
+  "Why the second correct option is low (finding 5). Remove the correct option with the highest probability from the list. The second correct option then rises from between 0.11 and 0.19 to between 0.53 and 0.71. Sharing out the removed probability in proportion predicts this rise. Liquid d1 returns full-precision probabilities: the prediction is 0.64, 0.80 and 0.70 on the three datasets, and the model gives 0.61, 0.70 and 0.67. Jev and GPT-6 Luna Decisions return 2 decimals, and their values agree within 0.13 on the examples where 0.10 or more is left. This supports finding 2. It is not a finding of its own.",
   "Identical options (finding 1). In a list of 5 copies of one correct option, every copy is equally correct, and equal probabilities are 0.20. Jev gives its highest copy 0.29 to 0.34 and its lowest copy 0.10 to 0.12. Liquid d1 gives them 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions gives them 0.67 to 0.79 and 0.01 to 0.02. Liquid d1 and GPT-6 Luna Decisions pick the first copy in 86% to 100% of their answers. Strong.",
   "No correct option (finding 3). When no option in a list is correct, Jev and Liquid d1 answer every list. Their mean confidence is 0.49 to 0.87. GPT-6 Luna Decisions refuses 58% to 98% of the lists with random options. It refuses 1% to 27% of the lists with the example's distractors. Strong for random options.",
   "One correct option (finding 4). The mean confidence is within 0.14 of the accuracy. The probability works in this case. When several options are correct, the mean confidence is 0.08 to 0.23 below the accuracy.",
@@ -428,16 +428,16 @@
   {
    "title": "5. Removal: the second correct option has a low probability because the first has most of it",
    "conclusion": "An option's probability is its share of the list. It does not judge that option alone. When the correct option with the highest probability is removed, the second correct option gets most of that option's probability. Dividing the removed probability among the remaining options in proportion gives nearly the same value.",
-   "strength": "supports finding 2. It is not a separate finding. Probabilities in a list sum to 1, so the remaining options' probabilities rise when one is removed. Dividing the second correct option's probability in the full list by the total probability of the remaining options gives 0.41 to 0.81. After removal, its measured probability is 0.53 to 0.71. That is within 0.15 of the divided value in each of the nine cells of three datasets and three models.",
+   "strength": "supports finding 2. It is not a separate finding. Probabilities in a list sum to 1, so the remaining options' probabilities rise when one is removed. Liquid d1 returns probabilities with full precision. Dividing its second correct option's probability in the full list by the probability of the remaining options gives 0.64, 0.80 and 0.70 on MetaTool, HotpotQA and ECtHR. After the removal, Liquid d1 gives 0.61, 0.70 and 0.67. Jev and GPT-6 Luna Decisions return 2 decimals, so their division is less exact. Across the three models, the two values are within 0.13 of each other in each of the nine cells.",
    "evidence": [
     "On MetaTool, Jev's probability for the second correct option goes from 0.11 to 0.71, Liquid d1's from 0.16 to 0.62, and GPT-6 Luna Decisions' from 0.11 to 0.53 after removal. On HotpotQA, their probabilities go from 0.17 to 0.66, 0.19 to 0.68 and 0.16 to 0.60. On ECtHR, they go from 0.19 to 0.71, 0.16 to 0.68 and 0.15 to 0.68.",
-    "The same option's probability in the full list, renormalised over the options other than the removed one, is 0.80, 0.65 and 0.41 on MetaTool, 0.81, 0.78 and 0.60 on HotpotQA, and 0.73, 0.68 and 0.59 on ECtHR.",
+    "On the examples where the options other than the removed one hold 0.10 or more, the second correct option's renormalised probability is 0.77, 0.64 and 0.40 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is 0.80, 0.80 and 0.61 on HotpotQA, and 0.72, 0.70 and 0.59 on ECtHR. After the removal, the same examples give 0.72, 0.61 and 0.49 on MetaTool, 0.67, 0.70 and 0.60 on HotpotQA, and 0.71, 0.67 and 0.68 on ECtHR.",
     "When one correct option is removed, the models predict the remaining correct option in 0.86, 0.78 and 0.67 of the MetaTool answers and in 0.84, 0.84 and 0.80 of the HotpotQA answers.",
     "In a yes/no question about a violated ECtHR article alone, the models give yes a mean probability of 0.67, 0.89 and 0.74. They give 80% to 96% of those articles 0.50 or more for yes.",
     "When asked about a supporting HotpotQA passage alone, the models give it 0.45, 0.40 and 0.52. They give 38% to 51% of those passages 0.50 or more."
    ],
    "limits": [
-    "The renormalised value excludes examples where the removed option has 1.00. Each run's table gives the number of examples used to compute it.",
+    "Jev and GPT-6 Luna Decisions return probabilities with 2 decimals. Dividing by a remainder near 0.01 means little at 2 decimals. The renormalised value therefore uses only the examples where the remaining options hold 0.10 or more. On Jev these are 227 of 497 MetaTool queries, 4,866 of 7,384 HotpotQA questions and 150 of 192 ECtHR cases.",
     "The HotpotQA yes/no figures show that about half of the supporting passages are not judged to support the answer alone. This weakens the view that both passages are correct options.",
     "HotpotQA's yes/no questions cover 500 questions."
    ],
@@ -471,7 +471,7 @@
     "about": "The question from finding 2 is shown after the removal."
    },
    "table": {
-    "caption": "The table shows the second correct option's mean probability in the full list and after removing the correct option with the highest probability. It also shows its full-list probability divided by the probability of the remaining options.",
+    "caption": "The first two columns show the second correct option's mean probability in the full list and after removing the correct option with the highest probability. The last two columns use the examples where the other options hold 0.10 or more: its full-list probability divided by the probability of those options, and its probability after the removal. Jev and GPT-6 Luna Decisions return probabilities with 2 decimals.",
     "parts": [
      {
       "run": "MetaTool: the second correct option before and after the removal",
@@ -479,7 +479,8 @@
       "columns": [
        "Second correct option in the full list",
        "After the removal",
-       "Full list, renormalised"
+       "Full list, renormalised",
+       "After the removal, same examples"
       ]
      },
      {
@@ -488,7 +489,8 @@
       "columns": [
        "Second correct option in the full list",
        "After the removal",
-       "Full list, renormalised"
+       "Full list, renormalised",
+       "After the removal, same examples"
       ]
      },
      {
@@ -497,7 +499,8 @@
       "columns": [
        "Second correct option in the full list",
        "After the removal",
-       "Full list, renormalised"
+       "Full list, renormalised",
+       "After the removal, same examples"
       ]
      }
     ]
@@ -644,6 +647,7 @@
  ],
  "notes": [
   "Jev is `jev-1.13.0` and uses TypeSafe's API. Liquid d1 (`liquid/d1`) and GPT-6 Luna Decisions (`openai/gpt-6-luna-decisions`) use Vercel AI Gateway, which does not take a model version. All three models get the same requests.",
+  "Jev and GPT-6 Luna Decisions return each probability with 2 decimals. Liquid d1 returns full floating-point values.",
   "Every figure in a row uses the lists that the model answered. A refused list has no answer. Jev and Liquid d1 refused no lists.",
   "A table leaves out a column when no model has that figure. A list with no correct option has no accuracy. A list with only correct options has no distractor.",
   "The three differences and the probabilities are calculated for each answer, then averaged across answers. Differences involving a distractor use answers to lists with a correct option and a distractor. When a run also has lists with only correct options, the column \"Lists with a correct option and a distractor\" shows how many lists have both.",

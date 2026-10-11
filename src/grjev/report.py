@@ -14,6 +14,7 @@ from grjev.constants import (
     MODEL_TITLES,
     POSITIONS_SHOWN_BELOW,
     PROCESSED_DIRS,
+    RENORMALISED_REST,
     REPO_ROOT,
     SECOND_TEAM_PROBABILITY,
 )
@@ -187,26 +188,19 @@ def second_correct_table(spec: RowSpec, chosen: dict[str, Selected]) -> list[lis
             "Examples with both lists answered",
             "Mean probability of the second correct option in the full list",
             "Its mean probability in the list without the correct option that has the highest probability",
-            "Its mean probability in the full list, renormalised over the options other than the removed one",
-            "Examples with a renormalised value: the removed option has less than 1.00",
+            f"Examples in which the options other than the removed one hold {RENORMALISED_REST} or more",
+            "On these examples: its mean probability in the full list, renormalised over those options",
+            "On these examples: its mean probability in the list without the removed option",
         ]
     ]
     for model, own in chosen.items():
         found = second_after_removal(own.rows)
         if found is None:
-            table.append([MODEL_TITLES[model], "0", *[NOT_MEASURED] * 3, "0"])
+            table.append([MODEL_TITLES[model], "0", NOT_MEASURED, NOT_MEASURED, "0", NOT_MEASURED, NOT_MEASURED])
             continue
-        shared = NOT_MEASURED if found.renormalised is None else two(found.renormalised)
-        table.append(
-            [
-                MODEL_TITLES[model],
-                f"{found.examples:,}",
-                two(found.before),
-                two(found.after),
-                shared,
-                f"{found.shared:,}",
-            ]
-        )
+        kept = [NOT_MEASURED if value is None else two(value) for value in (found.renormalised, found.after_kept)]
+        counts = [f"{found.examples:,}", two(found.before), two(found.after), f"{found.kept:,}"]
+        table.append([MODEL_TITLES[model], *counts, *kept])
     return table
 
 
@@ -343,6 +337,7 @@ PAPER_COLUMNS: dict[str, Callable[[Selected, Distribution | None], str | None]] 
     "Second correct option in the full list": lambda own, found: removal_text(own, lambda moved: moved.before),
     "After the removal": lambda own, found: removal_text(own, lambda moved: moved.after),
     "Full list, renormalised": lambda own, found: removal_text(own, lambda moved: moved.renormalised),
+    "After the removal, same examples": lambda own, found: removal_text(own, lambda moved: moved.after_kept),
 }
 
 

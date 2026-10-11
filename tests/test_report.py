@@ -102,8 +102,8 @@ def test_the_yes_no_table_and_the_table_of_the_second_correct_option_have_one_ro
     second = second_correct_table(spec(), chosen(root, spec()))
     # The top correct option of the full list is a, the first label, so the list without it is `without_1`.
     # The options other than a hold 0.3 of the full list, and b holds 0.1 of it.
-    assert second[1] == ["Jev", "1", "0.10", "0.60", "0.33", "1"]
-    assert second[2] == ["Liquid d1", "0", "none", "none", "none", "0"]
+    assert second[1] == ["Jev", "1", "0.10", "0.60", "1", "0.33", "0.60"]
+    assert second[2] == ["Liquid d1", "0", "none", "none", "0", "none", "none"]
 
 
 def test_the_table_of_a_finding_has_one_row_per_model_and_the_columns_of_each_run_under_its_name(

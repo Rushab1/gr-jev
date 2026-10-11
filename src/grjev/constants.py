@@ -292,6 +292,10 @@ TICKETS_EXAMPLE_FILE = "typesafe_example"
 TICKETS_TEST_FILES = (TICKETS_TWO_FILE, TICKETS_ONE_FILE, TICKETS_EXAMPLE_FILE)
 # TypeSafe's example code notifies a second team whose probability is above this value.
 SECOND_TEAM_PROBABILITY = 0.25
+# The second correct option is renormalised on the examples whose options other than the top correct one hold at
+# least this probability. Jev and GPT-6 Luna Decisions return probabilities with 2 decimals, and a smaller
+# remainder is within a few rounding steps of 0.01.
+RENORMALISED_REST = 0.1
 
 ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
 # The processed file with every test case, and the one with the cases that have a violated article.

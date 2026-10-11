@@ -154,15 +154,15 @@ def test_the_second_correct_option_is_followed_into_the_list_without_the_top_one
     found = second_after_removal([row(["a", "b"], answers), one_label])
     assert found is not None and (found.before, found.after, found.examples) == (0.2, 0.6, 1)
     # The options other than b hold 0.3 of the full list, and a holds 0.2 of it.
-    assert found.renormalised == pytest.approx(2 / 3) and found.shared == 1
+    assert found.renormalised == pytest.approx(2 / 3) and (found.after_kept, found.kept) == (0.6, 1)
     assert second_after_removal([row(["a", "b"], refused), one_label]) is None
 
 
-def test_an_example_whose_top_correct_option_has_all_the_probability_has_no_renormalised_value() -> None:
-    answers = {"full": answer({"a": 0.0, "b": 1.0, "c": 0.0}), "without_2": answer({"a": 0.6, "c": 0.4})}
+def test_an_example_whose_other_options_hold_less_than_a_tenth_has_no_renormalised_value() -> None:
+    answers = {"full": answer({"a": 0.04, "b": 0.95, "c": 0.01}), "without_2": answer({"a": 0.6, "c": 0.4})}
     found = second_after_removal([row(["a", "b"], answers)])
-    assert found is not None and (found.before, found.after, found.examples) == (0.0, 0.6, 1)
-    assert found.renormalised is None and found.shared == 0
+    assert found is not None and (found.before, found.after, found.examples) == (0.04, 0.6, 1)
+    assert (found.renormalised, found.after_kept, found.kept) == (None, None, 0)
 
 
 def test_yes_no_answers_are_counted_for_correct_options_and_for_distractors() -> None:

@@ -47,6 +47,7 @@ from grjev.constants import (
     CONFIDENT_PROBABILITY,
     DOLLARS_PER_MILLION_INPUT_TOKENS,
     LIST_LENGTHS,
+    RENORMALISED_REST,
     REWORDED_LIST,
     ROTATED_LIST,
     YES_PROBABILITY,
@@ -151,8 +152,9 @@ def print_removal(rows: list[Row]) -> None:
     if found is not None:
         print(f"\nsecond correct option, {found.examples:,} examples with several correct options: mean probability")
         print(f"{found.before:.3f} in the full list, {found.after:.3f} in the list without the top correct option")
-        if found.renormalised is not None:
-            print(f"{found.renormalised:.3f} renormalised over the full list without it, {found.shared:,} examples")
+        if found.renormalised is not None and found.after_kept is not None:
+            print(f"{found.kept:,} examples in which the other options hold {RENORMALISED_REST} or more:")
+            print(f"{found.renormalised:.3f} renormalised over the full list, {found.after_kept:.3f} after the removal")
 
 
 def print_yes_no(rows: list[Row]) -> None:

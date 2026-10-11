@@ -14,6 +14,7 @@ from grjev.constants import (
     ECE_BINS,
     FULL_LIST,
     PROBABILITY_DECIMALS,
+    RENORMALISED_REST,
     SECOND_TEAM_PROBABILITY,
     WITHOUT_LIST,
     YES_PROBABILITY,
@@ -223,14 +224,16 @@ class Removal:
     option, over `examples` examples. `renormalised` is the mean of its probability in the full list divided by the
     probability that the full list gives to the options other than the top correct one. It is the value that the
     full list gives when the probability of the removed option is shared out in proportion. It is computed over the
-    `shared` examples whose top correct option has less than 1, and is None when there is none.
+    `kept` examples in which those options hold RENORMALISED_REST or more, and `after_kept` is the mean after the
+    removal over the same examples. Both are None when there is no such example.
     """
 
     before: float
     after: float
     examples: int
     renormalised: float | None
-    shared: int
+    after_kept: float | None
+    kept: int
 
 
 def second_after_removal(rows: Sequence[Row], full: str = FULL_LIST) -> Removal | None:
@@ -240,7 +243,7 @@ def second_after_removal(rows: Sequence[Row], full: str = FULL_LIST) -> Removal 
     named `full`. The list without the correct option that has the highest probability there gives the value after.
     The examples are those with several correct options and an answer to both lists. Return None when there is none.
     """
-    before, after, shares = [], [], []
+    before, after, shares, after_kept = [], [], [], []
     for row in rows:
         answer = row.answers.get(full)
         if answer is None or len(row.labels) < 2:
@@ -252,12 +255,14 @@ def second_after_removal(rows: Sequence[Row], full: str = FULL_LIST) -> Removal 
         top, second = answer.probabilities[ranked[0]], answer.probabilities[ranked[1]]
         before.append(second)
         after.append(removed.probabilities[ranked[1]])
-        if top < 1:
+        if 1 - top >= RENORMALISED_REST:
             shares.append(second / (1 - top))
+            after_kept.append(after[-1])
     if not before:
         return None
     renormalised = statistics.fmean(shares) if shares else None
-    return Removal(statistics.fmean(before), statistics.fmean(after), len(before), renormalised, len(shares))
+    kept = statistics.fmean(after_kept) if after_kept else None
+    return Removal(statistics.fmean(before), statistics.fmean(after), len(before), renormalised, kept, len(shares))
 
 
 def yes_figures(rows: Sequence[Row]) -> YesFigures:
