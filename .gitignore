@@ -30,3 +30,6 @@ results/
 .DS_Store
 .idea/
 .vscode/
+
+# The built paper
+paper/*.pdf
