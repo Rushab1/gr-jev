@@ -279,6 +279,20 @@ HOTPOTQA_TEN_FILE = "validation_ten"
 HOTPOTQA_TEST_FILES = (HOTPOTQA_TEST_FILE, HOTPOTQA_TEN_FILE)
 HOTPOTQA_PASSAGES = 10
 
+# Support tickets for the team question of TypeSafe's documentation of the Choice question. The file holds TypeSafe's
+# example request with its documented answer, and issues that Claude Opus 5.5 wrote for the three teams of that
+# question. No file is downloaded for this dataset.
+TICKETS_FILE = Path(__file__).parent / "stimuli" / "tickets.json"
+TICKETS_PROCESSED_DIR = DATA_DIR / "tickets" / "processed"
+# The processed files: tickets with two issues for two teams in both orders, the same issues one per ticket, and the
+# ticket of TypeSafe's example, which names an issue for each of the three teams.
+TICKETS_TWO_FILE = "two_issues"
+TICKETS_ONE_FILE = "one_issue"
+TICKETS_EXAMPLE_FILE = "typesafe_example"
+TICKETS_TEST_FILES = (TICKETS_TWO_FILE, TICKETS_ONE_FILE, TICKETS_EXAMPLE_FILE)
+# TypeSafe's example code notifies a second team whose probability is above this value.
+SECOND_TEAM_PROBABILITY = 0.25
+
 ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
 # The processed file with every test case, and the one with the cases that have a violated article.
 ECTHR_TEST_FILE = "test"
@@ -398,6 +412,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "metatool": ("multi_tool",),
         "hotpotqa": (HOTPOTQA_TEST_FILE,),
         "ecthr": (ECTHR_VIOLATED_FILE,),
+        "tickets": TICKETS_TEST_FILES,
     },
     # "with_none" sends the list of the example with the "None" candidate added.
     "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
@@ -411,6 +426,7 @@ NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "mmlu": (),
     "hotpotqa": (),
     "ecthr": (),
+    "tickets": (),
 }
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
@@ -426,6 +442,8 @@ DATASET_INSTRUCTIONS = {
     "mmlu": "Choose the correct answer to the question.",
     "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
     "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+    # The instruction of the team question of TypeSafe's example, unchanged.
+    "tickets": "Which team should handle this?",
 }
 # Dataset -> other wordings of its instruction by name. A "removal" run sends the list of the example with each.
 REMOVAL_WORDINGS = {
@@ -455,6 +473,7 @@ SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
     "mmlu": (),
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
+    "tickets": TICKETS_TEST_FILES,
 }
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
@@ -589,6 +608,7 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("with_none", "ecthr"),
     ("yes_no", "hotpotqa", "--examples", "500"),
     ("yes_no", "ecthr"),
+    ("removal", "tickets"),
 )
 # The definitions of the tables of runs: the title, the text and the rows of each table.
 TABLES_DIR = Path(__file__).parent / "definitions"
@@ -636,6 +656,7 @@ PROCESSED_DIRS = {
     "mmlu": MMLU_PROCESSED_DIR,
     "hotpotqa": HOTPOTQA_PROCESSED_DIR,
     "ecthr": ECTHR_PROCESSED_DIR,
+    "tickets": TICKETS_PROCESSED_DIR,
 }
 # Dataset name -> its test files, in the order they are shown.
 TEST_FILES = {
@@ -645,4 +666,5 @@ TEST_FILES = {
     "mmlu": MMLU_TEST_FILES,
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
+    "tickets": TICKETS_TEST_FILES,
 }
