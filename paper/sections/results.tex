@@ -1,0 +1,102 @@
+\section{Results}
+
+\subsection{Several correct options}
+\begin{table}[t]
+\caption{Lists with several correct options. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest correct option. \emph{Distr.} is the mean probability of the highest distractor. \emph{All $>$0.25} is the share of answers in which every correct option is above 0.25. MetaTool: 497 queries with two correct tools. HotpotQA: 7,405 questions with two supporting passages. ECtHR: 192 cases with two to four violated articles.}
+\label{tab:allocation}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/allocation}}
+\end{table}
+
+\begin{itemize}
+\item One correct option takes most of the probability: the highest gets a mean of 0.66 to 0.85, the lowest 0.11 to 0.19 (Table~\ref{tab:allocation}).
+\item The highest distractor gets 0.04 to 0.17. The two ranges overlap. For GPT-6 Luna Decisions on MetaTool the highest distractor (0.17) is above the lowest correct tool (0.11).
+\item The ranking is good. The prediction is a correct option in 0.82 to 0.98 of the answers. The two highest options are exactly the two correct ones in 0.52 to 0.85 of the answers.
+\item The 0.25 threshold keeps every correct option in 15\% to 35\% of the answers, so it misses a correct option in 65\% to 85\%.
+\item Against the primer's reading: the lowest correct option gets 0.11 to 0.19 on average, and the dataset labels it correct in every one of these lists.
+\item The instruction does not change this. MetaTool, Jev: ``Choose one of them.'' gives the lowest correct tool 0.14 and ``Choose both.'' gives it 0.15. HotpotQA: ``may support'', ``supports'' and ``definitely supports'' give the lowest supporting passage 0.18, 0.17 and 0.17.
+\end{itemize}
+
+\paragraph{The documented example.}\label{sec:tickets}
+\begin{itemize}
+\item TypeSafe's own ticket, sent once: Jev returns 0.65 (returns), 0.31 (billing), 0.04 (shipping). The page shows 0.61, 0.35, 0.04. The documented answer holds for this ticket.
+\item The same ticket on the other models: Liquid d1 0.20, 0.75, 0.05. GPT-6 Luna Decisions 0.49, 0.50, 0.01. Sent a second time, Jev returned 0.58 and 0.37.
+\item 24 tickets written the same way: two problems for two different teams, from 12 pairs, each pair in both orders (Table~\ref{tab:tickets}).
+\item The second team is above 0.25 in 11 of 24 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions.
+\item Each of the 24 problems sent alone gets its team 0.99 to 1.00. The third team gets 0.00 to 0.01 in the tickets with two problems.
+\item With one of the two correct teams taken out of the list, the other gets 0.98 to 0.99.
+\item The order of the two problems changes the prediction in 1 of 12 pairs on Jev, 4 on Liquid d1 and 3 on GPT-6 Luna Decisions.
+\item Reading: the models know which teams apply. They do not give the two teams that apply a number that says so.
+\end{itemize}
+
+\begin{table}[t]
+\caption{Support tickets written after TypeSafe's example. \emph{High} and \emph{Low} are the mean probabilities of the higher and the lower of the correct teams. \emph{Distr.} is the mean probability of the highest other team. \emph{All $>$0.25} is the share of the 24 tickets in which both correct teams are above 0.25.}
+\label{tab:tickets}
+\centering
+\small
+\input{tables/tickets}
+\end{table}
+
+\paragraph{Removing the highest correct option.}
+\begin{itemize}
+\item Each list is sent again without its highest correct option. The second correct option goes from between 0.11 and 0.19 to between 0.53 and 0.71 (Table~\ref{tab:removal}).
+\item The prediction on the shorter list is the remaining correct option in 0.67 to 0.86 of the MetaTool answers and 0.80 to 0.84 of the HotpotQA answers.
+\item Sharing out the removed probability in proportion predicts the rise. Liquid d1, which returns full precision: predicted 0.64, 0.80, 0.70 on MetaTool, HotpotQA, ECtHR; measured 0.61, 0.70, 0.67.
+\item Across the three models the predicted and the measured value are within 0.13 in all nine cells. Jev and Liquid d1 give the second correct option less than predicted in all six of their cells. GPT-6 Luna Decisions gives it more on MetaTool and ECtHR and 0.01 less on HotpotQA.
+\item Jev and GPT-6 Luna Decisions return two decimals, so this comparison uses the examples in which the remaining options hold 0.10 or more.
+\item The models follow Luce's choice axiom~\citep{luce1959individual} approximately. The second correct option was low because the first held the probability.
+\item This explains the direction of the rise. It does not explain why the first split is uneven (0.80 against 0.15, not 0.50 each).
+\end{itemize}
+
+\subsection{Identical options}
+\begin{table}[t]
+\caption{Each list contains five copies of one correct option and is sent in its five cyclic permutations. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest copy. \emph{First} is the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20\%.}
+\label{tab:copies}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/copies}}
+\end{table}
+
+\begin{itemize}
+\item Five copies of one correct option are equally correct. Equal probabilities are 0.20 each. No model gives them (Table~\ref{tab:copies}).
+\item Jev: highest copy 0.29 to 0.34, lowest copy 0.10 to 0.12. The highest gets 2.4 to 3.3 times the lowest.
+\item Liquid d1: 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions: 0.67 to 0.79 and 0.01 to 0.02.
+\item Mean entropy: 2.18 to 2.24 bits on Jev, 1.03 to 1.85 on Liquid d1, 1.00 to 1.35 on GPT-6 Luna Decisions. Equal probabilities give 2.32 bits.
+\item The position decides which copy is highest. Liquid d1 and GPT-6 Luna Decisions predict the first copy in 86\% to 100\% of their answers. Jev predicts the last copy in 74\% of its answers on MMLU and 59\% on ECtHR.
+\item TypeSafe's notes on \texttt{jev-1.13} say that the model leans toward the option that comes first~\citep{typesafe2026jev}. On these lists Jev prefers the last position on two of four datasets.
+\item Five paraphrases of one MetaTool tool, written in five styles: the highest gets 0.47, 0.52 and 0.59, the lowest 0.05, 0.06 and 0.03. Position 1 is predicted in 26\%, 74\% and 87\% of the answers.
+\item Link to ordinary lists: with one correct tool among distractors, the accuracy of GPT-6 Luna Decisions is 0.80 with the tool first and 0.67 with it last. Jev: 0.78 and 0.80. Liquid d1: 0.69 and 0.74.
+\end{itemize}
+
+\subsection{No correct option}
+\begin{table}[t]
+\caption{Lists with no correct option and no ``none of the above'' option. \emph{Refused} is the share of lists that the model refused. \emph{Conf.} is the mean confidence on the lists that it answered. Each list contains five random options or the example's own options without the correct ones.}
+\label{tab:abstention}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/abstention}}
+\end{table}
+
+\begin{itemize}
+\item Jev and Liquid d1 answer every list with no correct option, with a mean confidence of 0.49 to 0.87 (Table~\ref{tab:abstention}).
+\item On lists with one correct option, Jev's mean confidence is 0.86 to 0.94 and Liquid d1's is 0.81 to 0.89. A confidence threshold does not separate the two kinds of lists.
+\item Tickets: a problem sent with only the two teams that it does not concern gets a mean confidence of 0.95 on Jev and 0.83 on Liquid d1. GPT-6 Luna Decisions refuses 4 of these 24 lists and has 0.95 on the other 20.
+\item GPT-6 Luna Decisions refuses 58\% to 98\% of the lists of random options and 1\% to 27\% of the lists made of the example's own options. On the lists that it answers, its mean confidence is 0.65 to 0.87. The API gives no reason (Appendix~\ref{app:refusals}).
+\item With a ``none of the above'' option and four random options, the models predict it in 0.93 to 1.00 of the answers.
+\item With a ``none of the above'' option and the example's own distractors, they predict it less often: 0.54 to 0.72 on MMLU and 0.79 to 0.88 on HotpotQA. For the 153 ECtHR cases with no violated article: 0.37, 0.07 and 0.17.
+\item OpenAI's guide advises a fallback option such as ``other''~\citep{openai2026decisions}. The figures above say when that works: for options unrelated to the query, less for near misses.
+\end{itemize}
+
+\subsection{One correct option}
+\begin{itemize}
+\item Mean confidence minus accuracy: $+0.08$, $+0.09$, $+0.14$ on MetaTool for Jev, Liquid d1, GPT-6 Luna Decisions. $+0.02$, $+0.05$, $+0.04$ on MMLU. $-0.03$, $-0.01$, $0.00$ on ECtHR (Table~\ref{tab:calibration}).
+\item Expected calibration error with 10 bins: 0.01 to 0.15.
+\item This is the setting in which calibration is usually measured~\citep{guo2017calibration}, and the one case where the documented reading holds. It agrees with \citet{deusser2026evaluating}.
+\item It does not carry over. With several correct options the mean confidence is 0.08 to 0.23 below the accuracy. With no correct option the accuracy is 0 and the mean confidence is 0.49 to 0.87.
+\end{itemize}
+
+\subsection{Asking about one option at a time}
+\begin{itemize}
+\item A yes/no question about one option does not share a list. We asked one per option.
+\item ECtHR: a violated article gets a mean probability of yes of 0.67, 0.89 and 0.74. It is at 0.50 or more for 964 of 1,090 on Jev, 1,050 of 1,090 on Liquid d1 and 818 of 1,018 on GPT-6 Luna Decisions. An article that was not violated is at 0.50 or more for 607 of 8,910, 790 of 8,910 and 374 of 8,868.
+\item HotpotQA: a supporting passage gets 0.45, 0.40 and 0.52, and is at 0.50 or more for 396, 375 and 508 of 1,000. A passage that does not support is at 0.50 or more for 131 of 3,955, 125 of 3,955 and 181 of 3,951.
+\item Reading: asking per option finds 80\% to 96\% of the violated articles, and 38\% to 51\% of the supporting passages. One supporting passage alone often does not answer a two-step question, so the HotpotQA label is a weaker test of ``correct on its own''.
+\end{itemize}

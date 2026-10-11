@@ -1,0 +1,34 @@
+\section{Introduction}
+\begin{itemize}
+\item Decision models do not write text. Input: a query, an instruction, a list of options. Output: one probability per option, summing to 1. Jev (TypeSafe AI), Liquid d1~\citep{liquid2026introducing} and GPT-6 Luna Decisions~\citep{openai2026decisions} share this interface.
+\item How vendors present the numbers. TypeSafe's primer: ``outcomes assigned a probability of \texttt{0.2} should occur about 20\% of the time''~\citep{typesafe2026primer}. TypeSafe's Choice page: a ticket about a wrong shoe size and a double charge gets 0.61 (returns) and 0.35 (billing); the page says ``the ticket belongs to two teams''; its example code notifies a second team above 0.25~\citep{typesafe2026choice}.
+\item That use reads each number as the probability that one option is correct. We test this reading.
+\item The opening example (Table~\ref{tab:example}): each of a ticket's two problems, sent alone, gets its team 1.00. Sent together, the two teams get 0.68 and 0.32 on Jev. Both teams are still correct.
+\item Design: lists in which the number of correct options is known: one, several, none, or five copies of the same one.
+\item Result 1, several correct options: one gets 0.66 to 0.85, the lowest 0.11 to 0.19, close to the highest distractor. A 0.25 threshold keeps every correct option in 15\% to 35\% of the answers.
+\item Result 2, identical options: the copies do not get equal probabilities on any model.
+\item Result 3, no correct option: Jev and Liquid d1 answer every list, with a mean confidence of 0.49 to 0.87.
+\item Result 4, one correct option: mean confidence is within 0.14 of the accuracy. The documented reading works here.
+\item Explanation: when the highest correct option is removed, the second one rises from between 0.11 and 0.19 to between 0.53 and 0.71. The number is a share of the list.
+\item Wording of the claim: the probabilities are not reliable as probabilities of being correct. We do not say that they are always wrong.
+\end{itemize}
+
+% The ticket is tickets/two_issues/11, and its two problems are tickets/one_issue/10 and tickets/one_issue/11, in
+% results/tickets_removal*/2026-10-11_01. The probabilities are rounded to two decimals.
+\begin{table}[t]
+\caption{One support ticket with two problems, with each problem also sent alone. Both teams are correct for the full ticket. The numbers are the probabilities that each model gives the returns team and the shipping team. Every model gives the billing team a probability of 0.00.}
+\label{tab:example}
+\centering
+\small
+\begin{tabular}{p{0.46\linewidth}rrrrrr}
+\toprule
+ & \multicolumn{2}{c}{Jev} & \multicolumn{2}{c}{Liquid d1} & \multicolumn{2}{c}{GPT-6 Luna Dec.} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Ticket & Ret. & Ship. & Ret. & Ship. & Ret. & Ship. \\
+\midrule
+``The boots are a size too small and I need the next size up.'' & 1.00 & 0.00 & 1.00 & 0.00 & 1.00 & 0.00 \\
+``The tracking page has shown no update for nine days.'' & 0.00 & 1.00 & 0.00 & 1.00 & 0.00 & 1.00 \\
+Both sentences in one ticket & 0.68 & 0.32 & 0.65 & 0.35 & 0.86 & 0.14 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,9 @@
+\begin{itemize}
+\item A decision model gets a query and a list of options and returns one probability per option. Question: can that probability be read as the probability that the option is correct?
+\item Models: Jev, Liquid d1, GPT-6 Luna Decisions. Datasets: MetaTool, MMLU, HotpotQA, ECtHR, and 24 support tickets after TypeSafe's example.
+\item Several correct options: the highest gets a mean of 0.66 to 0.85, the lowest 0.11 to 0.19. The 0.25 threshold of TypeSafe's example code keeps every correct option in 15\% to 35\% of the answers.
+\item Five identical copies of one correct option: Jev gives its highest copy 0.29 to 0.34 and its lowest 0.10 to 0.12. The two other models give their highest copy 0.50 to 0.81.
+\item No correct option: Jev and Liquid d1 answer every list, with a mean top probability of 0.49 to 0.87.
+\item One correct option: the mean top probability is within 0.14 of the accuracy.
+\item Claim: the probability is the option's share of the list. It does not reliably say whether the option is correct.
+\end{itemize}

@@ -1,0 +1,77 @@
+\section{Terms and measures}
+\label{app:terms}
+\begin{itemize}
+\item Option: one entry of the list sent with a query (a tool, a choice, a passage, an article, a team).
+\item Correct option: an option that the dataset labels as correct for the query. Distractor: any other option.
+\item Prediction: the option in the \texttt{choice} field of the answer.
+\item Confidence: the highest probability of an answer.
+\item Accuracy: the share of answers whose prediction is a correct option.
+\item Refused list: a list for which the model returns an answer of type \texttt{refusal} and no probabilities.
+\end{itemize}
+
+\section{Lists and instructions}
+\label{app:lists}
+\begin{itemize}
+\item A list of identical options or of random options is sent in each of its cyclic permutations, so every option is at every position once.
+\item The MetaTool lists with one correct tool end with the option ``None'', as in the dataset.
+\item MetaTool repeats queries across its test files. An answer to a repeated request is counted once per example.
+\end{itemize}
+
+\begin{table}[h]
+\caption{The instruction sent with each kind of list.}
+\label{tab:instructions}
+\centering
+\small
+\begin{tabular}{p{0.27\linewidth}p{0.67\linewidth}}
+\toprule
+Lists & Instruction \\
+\midrule
+MetaTool, one correct tool & ``Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None.'' \\
+MetaTool, two correct tools & ``Choose every tool in the list that is needed to solve the user's query.'' \\
+MetaTool, copies and random tools & ``Pick all the tools in the list that are relevant to the task at hand.'' \\
+MMLU & ``Choose the correct answer to the question.'' \\
+HotpotQA & ``Choose every passage in the list that supports the answer to the question.'' \\
+ECtHR & ``Choose every article in the list that the European Court of Human Rights found violated in this case.'' \\
+Tickets & ``Which team should handle this?'' \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{One correct option and the removal test}
+\label{app:tables}
+\begin{table}[h]
+\caption{Accuracy (\emph{Acc.}) and mean confidence (\emph{Conf.}) on lists with one correct option and on lists with several. A prediction is correct when it is one of the correct options.}
+\label{tab:calibration}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/calibration}}
+\end{table}
+
+\begin{table}[h]
+\caption{The second correct option. \emph{Before} is its mean probability in the full list, and \emph{After} is its mean probability in the list without the highest correct option. The last two columns use only the examples in which the options other than the removed one hold 0.10 or more. \emph{Renorm.} is its probability in the full list divided by the probability of those options, and \emph{After$^*$} is its probability after the removal on the same examples.}
+\label{tab:removal}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/removal}}
+\end{table}
+
+\section{Refusals of GPT-6 Luna Decisions}
+\label{app:refusals}
+\begin{itemize}
+\item 24,286 of 202,088 questions refused (12.0\%).
+\item By kind of list: 18,639 of 26,460 lists of random options; 3,458 of 17,231 lists made of the example's distractors; 1,545 of 39,530 lists with only correct options; 526 of the 103,912 other lists; 118 of 14,955 yes/no questions.
+\item A refusal has no probabilities and no reason.
+\item One refused request was sent again seven times, with one change each time. The model answered the same passages when the query was changed to one that a passage fits. It answered the same query when a ``none of the above'' option or a fitting passage was added.
+\end{itemize}
+
+\section{Support tickets}
+\label{app:tickets}
+\begin{itemize}
+\item Teams and descriptions, from TypeSafe's example: returns (``Exchanges, wrong or damaged items''), shipping (``Delivery status, delays, lost packages''), billing (``Charges, invoices, payment problems''). Instruction: ``Which team should handle this?''
+\item Claude Opus 5.5 wrote 24 problems, eight per team, on 11 October 2026.
+\item 12 pairs of problems for two different teams, each pair sent in both orders: 24 tickets.
+\item Every problem and pair is in \texttt{src/grjev/stimuli/tickets.json}.
+\end{itemize}
+
+\section{Cost}
+\begin{itemize}
+\item 38,221 requests per model. At list prices: about \$5.46 on Jev, \$6.48 on Liquid d1, \$10.86 on GPT-6 Luna Decisions.
+\end{itemize}

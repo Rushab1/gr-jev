@@ -1,5 +1,5 @@
 % Outline of the short paper: each section holds its main points as bullets, to be written as prose by the author.
-% The tables in tables/ are written by scripts/paper_tables.py. A prose draft of 2026-10-11 is in the commit 7e98cbc.
+% Each section is a file in sections/. The tables in tables/ are written by scripts/paper_tables.py. A prose draft of 2026-10-11 is in the commit 7e98cbc.
 %
 % Build: tectonic paper/main.tex
 % Style: neurips_2026.sty, from the NeurIPS 2026 formatting instructions, downloaded on 2026-10-11 from
@@ -48,257 +48,22 @@
 \maketitle
 
 \begin{abstract}
-\begin{itemize}
-\item A decision model gets a query and a list of options and returns one probability per option. Question: can that probability be read as the probability that the option is correct?
-\item Models: Jev, Liquid d1, GPT-6 Luna Decisions. Datasets: MetaTool, MMLU, HotpotQA, ECtHR, and 24 support tickets after TypeSafe's example.
-\item Several correct options: the highest gets a mean of 0.66 to 0.85, the lowest 0.11 to 0.19. The 0.25 threshold of TypeSafe's example code keeps every correct option in 15\% to 35\% of the answers.
-\item Five identical copies of one correct option: Jev gives its highest copy 0.29 to 0.34 and its lowest 0.10 to 0.12. The two other models give their highest copy 0.50 to 0.81.
-\item No correct option: Jev and Liquid d1 answer every list, with a mean top probability of 0.49 to 0.87.
-\item One correct option: the mean top probability is within 0.14 of the accuracy.
-\item Claim: the probability is the option's share of the list. It does not reliably say whether the option is correct.
-\end{itemize}
+\input{sections/abstract}
 \end{abstract}
 
-\section{Introduction}
-\begin{itemize}
-\item Decision models do not write text. Input: a query, an instruction, a list of options. Output: one probability per option, summing to 1. Jev (TypeSafe AI), Liquid d1~\citep{liquid2026introducing} and GPT-6 Luna Decisions~\citep{openai2026decisions} share this interface.
-\item How vendors present the numbers. TypeSafe's primer: ``outcomes assigned a probability of \texttt{0.2} should occur about 20\% of the time''~\citep{typesafe2026primer}. TypeSafe's Choice page: a ticket about a wrong shoe size and a double charge gets 0.61 (returns) and 0.35 (billing); the page says ``the ticket belongs to two teams''; its example code notifies a second team above 0.25~\citep{typesafe2026choice}.
-\item That use reads each number as the probability that one option is correct. We test this reading.
-\item The opening example (Table~\ref{tab:example}): each of a ticket's two problems, sent alone, gets its team 1.00. Sent together, the two teams get 0.68 and 0.32 on Jev. Both teams are still correct.
-\item Design: lists in which the number of correct options is known: one, several, none, or five copies of the same one.
-\item Result 1, several correct options: one gets 0.66 to 0.85, the lowest 0.11 to 0.19, close to the highest distractor. A 0.25 threshold keeps every correct option in 15\% to 35\% of the answers.
-\item Result 2, identical options: the copies do not get equal probabilities on any model.
-\item Result 3, no correct option: Jev and Liquid d1 answer every list, with a mean confidence of 0.49 to 0.87.
-\item Result 4, one correct option: mean confidence is within 0.14 of the accuracy. The documented reading works here.
-\item Explanation: when the highest correct option is removed, the second one rises from between 0.11 and 0.19 to between 0.53 and 0.71. The number is a share of the list.
-\item Wording of the claim: the probabilities are not reliable as probabilities of being correct. We do not say that they are always wrong.
-\end{itemize}
+\input{sections/introduction}
 
-% The ticket is tickets/two_issues/11, and its two problems are tickets/one_issue/10 and tickets/one_issue/11, in
-% results/tickets_removal*/2026-10-11_01. The probabilities are rounded to two decimals.
-\begin{table}[t]
-\caption{One support ticket with two problems, with each problem also sent alone. Both teams are correct for the full ticket. The numbers are the probabilities that each model gives the returns team and the shipping team. Every model gives the billing team a probability of 0.00.}
-\label{tab:example}
-\centering
-\small
-\begin{tabular}{p{0.46\linewidth}rrrrrr}
-\toprule
- & \multicolumn{2}{c}{Jev} & \multicolumn{2}{c}{Liquid d1} & \multicolumn{2}{c}{GPT-6 Luna Dec.} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Ticket & Ret. & Ship. & Ret. & Ship. & Ret. & Ship. \\
-\midrule
-``The boots are a size too small and I need the next size up.'' & 1.00 & 0.00 & 1.00 & 0.00 & 1.00 & 0.00 \\
-``The tracking page has shown no update for nine days.'' & 0.00 & 1.00 & 0.00 & 1.00 & 0.00 & 1.00 \\
-Both sentences in one ticket & 0.68 & 0.32 & 0.65 & 0.35 & 0.86 & 0.14 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\input{sections/setup}
 
-\section{Setup}
-\paragraph{The Choice question.}
-\begin{itemize}
-\item A request has a state (our query) and a question of type \texttt{choice}: an instruction and a list of named options, each with a description.
-\item The answer has the selected option, one probability per option, and a \texttt{confidence} field.
-\item Our terms: the prediction is the selected option. The confidence of an answer is its highest probability. This is not the \texttt{confidence} field, which TypeSafe computes from the highest probability and the number of options~\citep{typesafe2026confidence}.
-\end{itemize}
+\input{sections/results}
 
-\paragraph{Models.}
-\begin{itemize}
-\item Jev \texttt{jev-1.13.0} through TypeSafe's API. Liquid d1 (\texttt{liquid/d1}) and GPT-6 Luna Decisions (\texttt{openai/gpt-6-luna-decisions}) through Vercel AI Gateway~\citep{vercel2026models}, which accepts the same requests and takes no model version.
-\item All runs on 11 October 2026. The three models got the same requests. Each request was sent once.
-\item Each model got 38,221 requests with 202,088 questions.
-\item Jev and GPT-6 Luna Decisions return probabilities with two decimals. Liquid d1 returns full floating-point values.
-\item GPT-6 Luna Decisions can return an answer of type \texttt{refusal}, with no probabilities. Jev and Liquid d1 refused none of their 202,088 questions.
-\item A fourth model, Laya, was left out: in the runs of 9 October 2026 it rejected 2,784 of 7,667 lists as too long, and its accuracy on MMLU with four choices was 0.24.
-\end{itemize}
+\input{sections/related_work}
 
-\paragraph{Datasets.}
-\begin{itemize}
-\item MetaTool~\citep{huang2024metatool}: a query and a list of tools, with one or two correct tools.
-\item MMLU~\citep{hendrycks2021mmlu}: a question and four choices, one correct. A seeded sample of 1,000 questions.
-\item HotpotQA, distractor setting~\citep{yang2018hotpotqa}: a question and up to ten passages, two of which support the answer. The 7,405 validation questions.
-\item ECtHR Task~A of LexGLUE~\citep{chalkidis2022lexglue}: the facts of a case and ten articles. Of 1,000 test cases, 655 have one violated article, 192 have two to four, 153 have none.
-\item 24 support tickets written after TypeSafe's example (Section~\ref{sec:tickets}, Appendix~\ref{app:tickets}).
-\end{itemize}
+\input{sections/limitations}
 
-\paragraph{Lists.}
-\begin{itemize}
-\item Several correct options: the example's list as released (MetaTool queries with two correct tools, HotpotQA questions, ECtHR cases with two to four violated articles).
-\item Identical options: five copies of one correct option, in the five cyclic permutations of the list.
-\item No correct option: five random options from other examples, or the example's own list without its correct options. Also the same lists with a ``none of the above'' option added.
-\item One correct option: the example's list.
-\item Removal: the list with several correct options, without its highest correct option.
-\item Yes/no: one question per option, asked alone (500 HotpotQA questions, the 1,000 ECtHR cases).
-\item When several options are correct, the instruction asks for all of them, for example ``Choose every passage in the list that supports the answer to the question.'' Every instruction is in Appendix~\ref{app:lists}.
-\end{itemize}
+\input{sections/conclusion}
 
-\paragraph{Measures.}
-\begin{itemize}
-\item Accuracy: the share of answers whose prediction is a correct option.
-\item For several correct options: the mean probability of the highest correct option, of the lowest correct option and of the highest distractor.
-\item The share of answers in which every correct option is above 0.25, the threshold in TypeSafe's example code.
-\item All figures are means over the lists that a model answered.
-\end{itemize}
-
-\section{Results}
-
-\subsection{Several correct options}
-\begin{table}[t]
-\caption{Lists with several correct options. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest correct option. \emph{Distr.} is the mean probability of the highest distractor. \emph{All $>$0.25} is the share of answers in which every correct option is above 0.25. MetaTool: 497 queries with two correct tools. HotpotQA: 7,405 questions with two supporting passages. ECtHR: 192 cases with two to four violated articles.}
-\label{tab:allocation}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/allocation}}
-\end{table}
-
-\begin{itemize}
-\item One correct option takes most of the probability: the highest gets a mean of 0.66 to 0.85, the lowest 0.11 to 0.19 (Table~\ref{tab:allocation}).
-\item The highest distractor gets 0.04 to 0.17. The two ranges overlap. For GPT-6 Luna Decisions on MetaTool the highest distractor (0.17) is above the lowest correct tool (0.11).
-\item The ranking is good. The prediction is a correct option in 0.82 to 0.98 of the answers. The two highest options are exactly the two correct ones in 0.52 to 0.85 of the answers.
-\item The 0.25 threshold keeps every correct option in 15\% to 35\% of the answers, so it misses a correct option in 65\% to 85\%.
-\item Against the primer's reading: the lowest correct option gets 0.11 to 0.19 on average, and the dataset labels it correct in every one of these lists.
-\item The instruction does not change this. MetaTool, Jev: ``Choose one of them.'' gives the lowest correct tool 0.14 and ``Choose both.'' gives it 0.15. HotpotQA: ``may support'', ``supports'' and ``definitely supports'' give the lowest supporting passage 0.18, 0.17 and 0.17.
-\end{itemize}
-
-\paragraph{The documented example.}\label{sec:tickets}
-\begin{itemize}
-\item TypeSafe's own ticket, sent once: Jev returns 0.65 (returns), 0.31 (billing), 0.04 (shipping). The page shows 0.61, 0.35, 0.04. The documented answer holds for this ticket.
-\item The same ticket on the other models: Liquid d1 0.20, 0.75, 0.05. GPT-6 Luna Decisions 0.49, 0.50, 0.01. Sent a second time, Jev returned 0.58 and 0.37.
-\item 24 tickets written the same way: two problems for two different teams, from 12 pairs, each pair in both orders (Table~\ref{tab:tickets}).
-\item The second team is above 0.25 in 11 of 24 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions.
-\item Each of the 24 problems sent alone gets its team 0.99 to 1.00. The third team gets 0.00 to 0.01 in the tickets with two problems.
-\item With one of the two correct teams taken out of the list, the other gets 0.98 to 0.99.
-\item The order of the two problems changes the prediction in 1 of 12 pairs on Jev, 4 on Liquid d1 and 3 on GPT-6 Luna Decisions.
-\item Reading: the models know which teams apply. They do not give the two teams that apply a number that says so.
-\end{itemize}
-
-\begin{table}[t]
-\caption{Support tickets written after TypeSafe's example. \emph{High} and \emph{Low} are the mean probabilities of the higher and the lower of the correct teams. \emph{Distr.} is the mean probability of the highest other team. \emph{All $>$0.25} is the share of the 24 tickets in which both correct teams are above 0.25.}
-\label{tab:tickets}
-\centering
-\small
-\input{tables/tickets}
-\end{table}
-
-\paragraph{Removing the highest correct option.}
-\begin{itemize}
-\item Each list is sent again without its highest correct option. The second correct option goes from between 0.11 and 0.19 to between 0.53 and 0.71 (Table~\ref{tab:removal}).
-\item The prediction on the shorter list is the remaining correct option in 0.67 to 0.86 of the MetaTool answers and 0.80 to 0.84 of the HotpotQA answers.
-\item Sharing out the removed probability in proportion predicts the rise. Liquid d1, which returns full precision: predicted 0.64, 0.80, 0.70 on MetaTool, HotpotQA, ECtHR; measured 0.61, 0.70, 0.67.
-\item Across the three models the predicted and the measured value are within 0.13 in all nine cells. Jev and Liquid d1 give the second correct option less than predicted in all six of their cells. GPT-6 Luna Decisions gives it more on MetaTool and ECtHR and 0.01 less on HotpotQA.
-\item Jev and GPT-6 Luna Decisions return two decimals, so this comparison uses the examples in which the remaining options hold 0.10 or more.
-\item The models follow Luce's choice axiom~\citep{luce1959individual} approximately. The second correct option was low because the first held the probability.
-\item This explains the direction of the rise. It does not explain why the first split is uneven (0.80 against 0.15, not 0.50 each).
-\end{itemize}
-
-\subsection{Identical options}
-\begin{table}[t]
-\caption{Each list contains five copies of one correct option and is sent in its five cyclic permutations. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest copy. \emph{First} is the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20\%.}
-\label{tab:copies}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/copies}}
-\end{table}
-
-\begin{itemize}
-\item Five copies of one correct option are equally correct. Equal probabilities are 0.20 each. No model gives them (Table~\ref{tab:copies}).
-\item Jev: highest copy 0.29 to 0.34, lowest copy 0.10 to 0.12. The highest gets 2.4 to 3.3 times the lowest.
-\item Liquid d1: 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions: 0.67 to 0.79 and 0.01 to 0.02.
-\item Mean entropy: 2.18 to 2.24 bits on Jev, 1.03 to 1.85 on Liquid d1, 1.00 to 1.35 on GPT-6 Luna Decisions. Equal probabilities give 2.32 bits.
-\item The position decides which copy is highest. Liquid d1 and GPT-6 Luna Decisions predict the first copy in 86\% to 100\% of their answers. Jev predicts the last copy in 74\% of its answers on MMLU and 59\% on ECtHR.
-\item TypeSafe's notes on \texttt{jev-1.13} say that the model leans toward the option that comes first~\citep{typesafe2026jev}. On these lists Jev prefers the last position on two of four datasets.
-\item Five paraphrases of one MetaTool tool, written in five styles: the highest gets 0.47, 0.52 and 0.59, the lowest 0.05, 0.06 and 0.03. Position 1 is predicted in 26\%, 74\% and 87\% of the answers.
-\item Link to ordinary lists: with one correct tool among distractors, the accuracy of GPT-6 Luna Decisions is 0.80 with the tool first and 0.67 with it last. Jev: 0.78 and 0.80. Liquid d1: 0.69 and 0.74.
-\end{itemize}
-
-\subsection{No correct option}
-\begin{table}[t]
-\caption{Lists with no correct option and no ``none of the above'' option. \emph{Refused} is the share of lists that the model refused. \emph{Conf.} is the mean confidence on the lists that it answered. Each list contains five random options or the example's own options without the correct ones.}
-\label{tab:abstention}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/abstention}}
-\end{table}
-
-\begin{itemize}
-\item Jev and Liquid d1 answer every list with no correct option, with a mean confidence of 0.49 to 0.87 (Table~\ref{tab:abstention}).
-\item On lists with one correct option, Jev's mean confidence is 0.86 to 0.94 and Liquid d1's is 0.81 to 0.89. A confidence threshold does not separate the two kinds of lists.
-\item Tickets: a problem sent with only the two teams that it does not concern gets a mean confidence of 0.95 on Jev and 0.83 on Liquid d1. GPT-6 Luna Decisions refuses 4 of these 24 lists and has 0.95 on the other 20.
-\item GPT-6 Luna Decisions refuses 58\% to 98\% of the lists of random options and 1\% to 27\% of the lists made of the example's own options. On the lists that it answers, its mean confidence is 0.65 to 0.87. The API gives no reason (Appendix~\ref{app:refusals}).
-\item With a ``none of the above'' option and four random options, the models predict it in 0.93 to 1.00 of the answers.
-\item With a ``none of the above'' option and the example's own distractors, they predict it less often: 0.54 to 0.72 on MMLU and 0.79 to 0.88 on HotpotQA. For the 153 ECtHR cases with no violated article: 0.37, 0.07 and 0.17.
-\item OpenAI's guide advises a fallback option such as ``other''~\citep{openai2026decisions}. The figures above say when that works: for options unrelated to the query, less for near misses.
-\end{itemize}
-
-\subsection{One correct option}
-\begin{itemize}
-\item Mean confidence minus accuracy: $+0.08$, $+0.09$, $+0.14$ on MetaTool for Jev, Liquid d1, GPT-6 Luna Decisions. $+0.02$, $+0.05$, $+0.04$ on MMLU. $-0.03$, $-0.01$, $0.00$ on ECtHR (Table~\ref{tab:calibration}).
-\item Expected calibration error with 10 bins: 0.01 to 0.15.
-\item This is the setting in which calibration is usually measured~\citep{guo2017calibration}, and the one case where the documented reading holds. It agrees with \citet{deusser2026evaluating}.
-\item It does not carry over. With several correct options the mean confidence is 0.08 to 0.23 below the accuracy. With no correct option the accuracy is 0 and the mean confidence is 0.49 to 0.87.
-\end{itemize}
-
-\subsection{Asking about one option at a time}
-\begin{itemize}
-\item A yes/no question about one option does not share a list. We asked one per option.
-\item ECtHR: a violated article gets a mean probability of yes of 0.67, 0.89 and 0.74. It is at 0.50 or more for 964 of 1,090 on Jev, 1,050 of 1,090 on Liquid d1 and 818 of 1,018 on GPT-6 Luna Decisions. An article that was not violated is at 0.50 or more for 607 of 8,910, 790 of 8,910 and 374 of 8,868.
-\item HotpotQA: a supporting passage gets 0.45, 0.40 and 0.52, and is at 0.50 or more for 396, 375 and 508 of 1,000. A passage that does not support is at 0.50 or more for 131 of 3,955, 125 of 3,955 and 181 of 3,951.
-\item Reading: asking per option finds 80\% to 96\% of the violated articles, and 38\% to 51\% of the supporting passages. One supporting passage alone often does not answer a two-step question, so the HotpotQA label is a weaker test of ``correct on its own''.
-\end{itemize}
-
-\section{Related work}
-\paragraph{Tests of Jev's probabilities.}
-\begin{itemize}
-\item \citet{deusser2026evaluating}: Jev's Choice probabilities are well calibrated on 37 datasets with one correct label. Our one-correct-option lists agree.
-\item \citet{shankaranarayana2026beyond}: with no information about the answer, Jev gives one option up to 0.80.
-\item \citet{zhong2026when}: with an explicit rejection option, Jev rejects 7\% of arithmetic lists that lack the correct answer.
-\item \citet{lu2026benchmarking}: rejection thresholds do not carry over from one task to another.
-\item \citet{porcedda2026jev}, \citet{li2026beyond}: the same question asked in several forms; Jev's probabilities do not fit together as probabilities should.
-\item \citet{li2026readout}: on open models built after Jev, renormalising the first answer over a changed list predicts the new accuracy within 4.2 points, but a probability-level estimate is off by 21.0 points. Our removal test compares mean probabilities on three hosted models: within 0.13.
-\end{itemize}
-
-\paragraph{Option lists in language models.}
-\begin{itemize}
-\item Option order changes answers to multiple-choice questions~\citep{zheng2024large,pezeshkpour2024large}.
-\item Among equivalent tools, models fix on one provider or prefer tools listed earlier~\citep{blankenstein2026biasbusters}.
-\item Accuracy falls when ``none of the above'' is the correct answer~\citep{tam2025none}.
-\item With several correct answers, the best of 27 models selects exactly the correct set in 41.8\% of questions~\citep{xu2025sata}.
-\end{itemize}
-
-\paragraph{This paper.}
-\begin{itemize}
-\item One design measures the whole Choice distribution of three decision models on lists whose number of correct options is known: one, several, none, and five copies of the same one.
-\item It tests the vendor's documented threshold on the vendor's own example.
-\end{itemize}
-
-\section{Limitations}
-\begin{itemize}
-\item Each request was sent once. In an earlier run on a subset, a second send of the same MetaTool requests gave Jev the same prediction in 1,526 of 1,550 answers.
-\item No margins of error yet.
-\item Three models, one day. The gateway gives no version for two of them.
-\item HotpotQA labels mark a passage that contains a supporting sentence. Asked alone, such a passage gets a mean probability of yes of 0.45, 0.40 and 0.52, so some labelled passages may not be correct on their own.
-\item ECtHR labels are the Court's findings, not every article that the facts concern.
-\item A MetaTool example's distractors can include a tool that fits the query. The labels of that run were read for 50 queries only.
-\item The tickets avoid the label problem (each problem alone gets its team 0.99 to 1.00), but there are 24 of them. Claude Opus 5.5 wrote them, and no second reader checked them.
-\item The copies in a list of identical options have names that differ by trailing spaces, which the API needs.
-\item Jev and GPT-6 Luna Decisions return two decimals, so the renormalised values are exact only for Liquid d1.
-\item MMLU runs use 1,000 questions. Some HotpotQA runs use 1,000 of the 7,345 questions with ten passages.
-\item The figures of GPT-6 Luna Decisions cover only the lists that it answers.
-\end{itemize}
-
-\section{Conclusion}
-\begin{itemize}
-\item A decision model divides a total probability of 1 among the options of a list. That share ranks the options well.
-\item It says whether an option is correct only when exactly one option in the list is correct.
-\item With several correct options, identical options or no correct option, the number does not mean what the documentation says it means.
-\item Practical point 1: do not apply a fixed threshold to the probability of a second option.
-\item Practical point 2: to know whether each option applies, ask about each option separately. This found 80\% to 96\% of the violated ECtHR articles, and fewer of the HotpotQA passages.
-\end{itemize}
-
-\section*{Code and data availability}
-\begin{itemize}
-\item Code: \url{https://github.com/Rushab1/gr-jev}. It builds every list, sends the requests, and computes every figure and table.
-\item The repository has the 24 tickets and every instruction.
-\item The saved model responses are not in the repository.
-\item To decide: licence, and the commit that the paper names.
-\end{itemize}
+\input{sections/availability}
 
 \begin{ack}
 % Acknowledgments, funding and the use of AI assistance. To be written.
@@ -310,83 +75,7 @@ Both sentences in one ticket & 0.68 & 0.32 & 0.65 & 0.35 & 0.86 & 0.14 \\
 % ---------------------------------------------------------------------------------------------------------------------
 \appendix
 
-\section{Terms and measures}
-\label{app:terms}
-\begin{itemize}
-\item Option: one entry of the list sent with a query (a tool, a choice, a passage, an article, a team).
-\item Correct option: an option that the dataset labels as correct for the query. Distractor: any other option.
-\item Prediction: the option in the \texttt{choice} field of the answer.
-\item Confidence: the highest probability of an answer.
-\item Accuracy: the share of answers whose prediction is a correct option.
-\item Refused list: a list for which the model returns an answer of type \texttt{refusal} and no probabilities.
-\end{itemize}
-
-\section{Lists and instructions}
-\label{app:lists}
-\begin{itemize}
-\item A list of identical options or of random options is sent in each of its cyclic permutations, so every option is at every position once.
-\item The MetaTool lists with one correct tool end with the option ``None'', as in the dataset.
-\item MetaTool repeats queries across its test files. An answer to a repeated request is counted once per example.
-\end{itemize}
-
-\begin{table}[h]
-\caption{The instruction sent with each kind of list.}
-\label{tab:instructions}
-\centering
-\small
-\begin{tabular}{p{0.27\linewidth}p{0.67\linewidth}}
-\toprule
-Lists & Instruction \\
-\midrule
-MetaTool, one correct tool & ``Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None.'' \\
-MetaTool, two correct tools & ``Choose every tool in the list that is needed to solve the user's query.'' \\
-MetaTool, copies and random tools & ``Pick all the tools in the list that are relevant to the task at hand.'' \\
-MMLU & ``Choose the correct answer to the question.'' \\
-HotpotQA & ``Choose every passage in the list that supports the answer to the question.'' \\
-ECtHR & ``Choose every article in the list that the European Court of Human Rights found violated in this case.'' \\
-Tickets & ``Which team should handle this?'' \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{One correct option and the removal test}
-\label{app:tables}
-\begin{table}[h]
-\caption{Accuracy (\emph{Acc.}) and mean confidence (\emph{Conf.}) on lists with one correct option and on lists with several. A prediction is correct when it is one of the correct options.}
-\label{tab:calibration}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/calibration}}
-\end{table}
-
-\begin{table}[h]
-\caption{The second correct option. \emph{Before} is its mean probability in the full list, and \emph{After} is its mean probability in the list without the highest correct option. The last two columns use only the examples in which the options other than the removed one hold 0.10 or more. \emph{Renorm.} is its probability in the full list divided by the probability of those options, and \emph{After$^*$} is its probability after the removal on the same examples.}
-\label{tab:removal}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/removal}}
-\end{table}
-
-\section{Refusals of GPT-6 Luna Decisions}
-\label{app:refusals}
-\begin{itemize}
-\item 24,286 of 202,088 questions refused (12.0\%).
-\item By kind of list: 18,639 of 26,460 lists of random options; 3,458 of 17,231 lists made of the example's distractors; 1,545 of 39,530 lists with only correct options; 526 of the 103,912 other lists; 118 of 14,955 yes/no questions.
-\item A refusal has no probabilities and no reason.
-\item One refused request was sent again seven times, with one change each time. The model answered the same passages when the query was changed to one that a passage fits. It answered the same query when a ``none of the above'' option or a fitting passage was added.
-\end{itemize}
-
-\section{Support tickets}
-\label{app:tickets}
-\begin{itemize}
-\item Teams and descriptions, from TypeSafe's example: returns (``Exchanges, wrong or damaged items''), shipping (``Delivery status, delays, lost packages''), billing (``Charges, invoices, payment problems''). Instruction: ``Which team should handle this?''
-\item Claude Opus 5.5 wrote 24 problems, eight per team, on 11 October 2026.
-\item 12 pairs of problems for two different teams, each pair sent in both orders: 24 tickets.
-\item Every problem and pair is in \texttt{src/grjev/stimuli/tickets.json}.
-\end{itemize}
-
-\section{Cost}
-\begin{itemize}
-\item 38,221 requests per model. At list prices: about \$5.46 on Jev, \$6.48 on Liquid d1, \$10.86 on GPT-6 Luna Decisions.
-\end{itemize}
+\input{sections/appendix}
 
 % A submission to the main track of NeurIPS also needs the checklist of the formatting instructions:
 % \input{checklist.tex}

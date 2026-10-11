@@ -1,0 +1,45 @@
+\section{Setup}
+\paragraph{The Choice question.}
+\begin{itemize}
+\item A request has a state (our query) and a question of type \texttt{choice}: an instruction and a list of named options, each with a description.
+\item The answer has the selected option, one probability per option, and a \texttt{confidence} field.
+\item Our terms: the prediction is the selected option. The confidence of an answer is its highest probability. This is not the \texttt{confidence} field, which TypeSafe computes from the highest probability and the number of options~\citep{typesafe2026confidence}.
+\end{itemize}
+
+\paragraph{Models.}
+\begin{itemize}
+\item Jev \texttt{jev-1.13.0} through TypeSafe's API. Liquid d1 (\texttt{liquid/d1}) and GPT-6 Luna Decisions (\texttt{openai/gpt-6-luna-decisions}) through Vercel AI Gateway~\citep{vercel2026models}, which accepts the same requests and takes no model version.
+\item All runs on 11 October 2026. The three models got the same requests. Each request was sent once.
+\item Each model got 38,221 requests with 202,088 questions.
+\item Jev and GPT-6 Luna Decisions return probabilities with two decimals. Liquid d1 returns full floating-point values.
+\item GPT-6 Luna Decisions can return an answer of type \texttt{refusal}, with no probabilities. Jev and Liquid d1 refused none of their 202,088 questions.
+\item A fourth model, Laya, was left out: in the runs of 9 October 2026 it rejected 2,784 of 7,667 lists as too long, and its accuracy on MMLU with four choices was 0.24.
+\end{itemize}
+
+\paragraph{Datasets.}
+\begin{itemize}
+\item MetaTool~\citep{huang2024metatool}: a query and a list of tools, with one or two correct tools.
+\item MMLU~\citep{hendrycks2021mmlu}: a question and four choices, one correct. A seeded sample of 1,000 questions.
+\item HotpotQA, distractor setting~\citep{yang2018hotpotqa}: a question and up to ten passages, two of which support the answer. The 7,405 validation questions.
+\item ECtHR Task~A of LexGLUE~\citep{chalkidis2022lexglue}: the facts of a case and ten articles. Of 1,000 test cases, 655 have one violated article, 192 have two to four, 153 have none.
+\item 24 support tickets written after TypeSafe's example (Section~\ref{sec:tickets}, Appendix~\ref{app:tickets}).
+\end{itemize}
+
+\paragraph{Lists.}
+\begin{itemize}
+\item Several correct options: the example's list as released (MetaTool queries with two correct tools, HotpotQA questions, ECtHR cases with two to four violated articles).
+\item Identical options: five copies of one correct option, in the five cyclic permutations of the list.
+\item No correct option: five random options from other examples, or the example's own list without its correct options. Also the same lists with a ``none of the above'' option added.
+\item One correct option: the example's list.
+\item Removal: the list with several correct options, without its highest correct option.
+\item Yes/no: one question per option, asked alone (500 HotpotQA questions, the 1,000 ECtHR cases).
+\item When several options are correct, the instruction asks for all of them, for example ``Choose every passage in the list that supports the answer to the question.'' Every instruction is in Appendix~\ref{app:lists}.
+\end{itemize}
+
+\paragraph{Measures.}
+\begin{itemize}
+\item Accuracy: the share of answers whose prediction is a correct option.
+\item For several correct options: the mean probability of the highest correct option, of the lowest correct option and of the highest distractor.
+\item The share of answers in which every correct option is above 0.25, the threshold in TypeSafe's example code.
+\item All figures are means over the lists that a model answered.
+\end{itemize}
