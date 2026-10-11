@@ -8,6 +8,7 @@
   "Abstention. On lists with no correct option, Jev and Liquid d1 answer every list with a mean confidence of 0.49 to 0.87. GPT-6 Luna Decisions refuses 58% to 98% of the lists of random options and 1% to 27% of the lists of distractors of the example. Strong for random options.",
   "Dependence on the list. When the correct option with the highest probability is removed, the mean probability of the second correct option goes from 0.11 to 0.19 up to 0.53 to 0.71. Strong.",
   "Calibration. With one correct option the mean confidence is within 0.14 of the accuracy. It is 0.08 to 0.23 below the accuracy with several correct options. Weak as a finding of its own: it follows from the two findings above.",
+  "The documented example. TypeSafe's documentation reads 0.61 and 0.35 as a ticket for two teams and notifies a second team above 0.25. Jev returns 0.65 and 0.31 for that ticket. On 24 tickets written the same way, the second team is above 0.25 in 11 on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions. Moderate: the example holds, and the rule built on it finds the second team about half of the time.",
   "For the paper: findings on order, dependence on the list and abstention carry it, and each holds on four datasets or three. Before a submission the figures need intervals, a second run of the same requests, a check of the labels named under the limits, and the related work on option order and on questions with several correct answers."
  ],
  "findings": [
@@ -272,6 +273,51 @@
     ],
     "about": "The question of finding 2, after the removal."
    }
+  },
+  {
+   "title": "6. The documented example: a ticket for two teams",
+   "conclusion": "TypeSafe's documentation of the Choice question shows a ticket with a wrong size and a double charge that gets 0.61 for returns and 0.35 for billing, says that the ticket belongs to two teams, and notifies a second team above 0.25 in its example code. Jev gives that answer again. On 24 tickets written the same way, the rule finds the second team in about half of them on Jev and Liquid d1 and in 3 on GPT-6 Luna Decisions.",
+   "strength": "moderate, and it qualifies finding 2. The documented answer holds, so the paper cannot say that the example is wrong. The rule that the example code builds on it is not dependable: an issue that gets its team at 1.00 alone gets it below 0.25 in 13 of 24 tickets with a second issue on Jev. 24 tickets are a small sample.",
+   "evidence": [
+    "TypeSafe's example request, sent once on 2026-10-11: Jev returns 0.65 for returns, 0.31 for billing and 0.04 for shipping. The documentation shows 0.61, 0.35 and 0.04. Liquid d1 returns 0.20, 0.75 and 0.05, and GPT-6 Luna Decisions 0.49, 0.50 and 0.01.",
+    "24 tickets with two issues, mean probability of the higher and of the lower of the two teams: 0.76 and 0.24 on Jev, 0.71 and 0.28 on Liquid d1, 0.87 and 0.12 on GPT-6 Luna Decisions.",
+    "The second team is above 0.25 in 11 of 24 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions.",
+    "The same 24 issues, one per ticket: the team of the issue gets a mean of 1.00, 0.99 and 1.00.",
+    "The team that a ticket with two issues does not concern gets 0.00 to 0.01. The models separate the teams that apply from the one that does not, and split unevenly between the two that apply.",
+    "The order of the two issues in the ticket changes the prediction in 1 of 12 pairs on Jev, 4 on Liquid d1 and 3 on GPT-6 Luna Decisions.",
+    "TypeSafe's ticket also states a late delivery, and shipping gets 0.04, 0.05 and 0.01."
+   ],
+   "limits": [
+    "Claude Opus 5.5 wrote the 24 issues on 2026-10-11, and no second reader checked that each concerns one team only.",
+    "Two issues of a ticket need not weigh the same, and no reference gives the right split.",
+    "Each request was sent once. The team question of TypeSafe's ticket, sent again inside the run of the tickets, got 0.58 and 0.37 on Jev.",
+    "One vendor's example and three teams. The four datasets of findings 1 to 5 carry the general claim."
+   ],
+   "chart": {
+    "kind": "correct_span",
+    "title": "Mean probability of the lower and of the higher correct team",
+    "runs": [
+     [
+      "Tickets: two issues for two teams",
+      "Tickets with two issues for two teams"
+     ],
+     [
+      "Tickets: one issue for one team",
+      "The same issues, one per ticket"
+     ]
+    ]
+   },
+   "example": {
+    "run": "Tickets: two issues for two teams",
+    "id": "tickets/two_issues/11",
+    "lists": [
+     [
+      "full",
+      "The 3 teams of TypeSafe's example"
+     ]
+    ],
+    "about": "The ticket with two issues closest to the means of the three models."
+   }
   }
  ],
  "terms": [
@@ -352,7 +398,8 @@
   "The MMLU runs use a seeded sample of 1,000 of the 13,096 questions whose choices can be moved. The HotpotQA runs with 5 cyclic permutations and the HotpotQA run with 4 distractors and NOTA use a seeded sample of 1,000 of the 7,345 questions with 10 passages. The other runs use every example.",
   "MetaTool repeats queries across its test files. The 1,767 examples of the run with paraphrases give 1,047 different requests, and the 3,292 examples of the run with duplicates 3,275. An answer to a repeated request is counted once per example.",
   "The labels of ECtHR are the articles that the Court found violated in a case, and a case with no label is one in which it found no violation of the 10 articles.",
-  "The yes/no question of a HotpotQA passage is sent for 500 questions, and that of an ECtHR article for the 1,000 test cases."
+  "The yes/no question of a HotpotQA passage is sent for 500 questions, and that of an ECtHR article for the 1,000 test cases.",
+  "The tickets are in `src/grjev/stimuli/tickets.json` with TypeSafe's example request and its documented answer. `python scripts/typesafe_example.py` sends that request."
  ],
  "models": [
   "jev-1.13.0",
@@ -805,6 +852,67 @@
    "about": "Each of the 10 articles is asked about in a yes/no question of its own. The 10 questions of a case are sent in one request.",
    "figures": "yes_no",
    "instruction": "Did the European Court of Human Rights find a violation of this article in this case? Article: <name of the option>: <text of the option>"
+  },
+  {
+   "label": "Tickets: two issues for two teams",
+   "folder": "results/tickets_removal/2026-10-11_01",
+   "lists_text": "test file `two_issues`, list `full`",
+   "test_file": "two_issues",
+   "lists": [
+    "full"
+   ],
+   "group": "6. The documented example: support tickets for TypeSafe's team question",
+   "about": "A ticket states two issues, one for each of two teams, and each pair of issues is sent in both orders. The list holds the 3 teams of TypeSafe's example in its order: returns, shipping and billing.",
+   "instruction": "Which team should handle this?"
+  },
+  {
+   "label": "Tickets: one issue for one team",
+   "folder": "results/tickets_removal/2026-10-11_01",
+   "lists_text": "test file `one_issue`, list `full`",
+   "test_file": "one_issue",
+   "lists": [
+    "full"
+   ],
+   "group": "6. The documented example: support tickets for TypeSafe's team question",
+   "about": "A ticket states one of the issues of the tickets above alone. The list holds the 3 teams of TypeSafe's example in its order: returns, shipping and billing.",
+   "instruction": "Which team should handle this?"
+  },
+  {
+   "label": "Tickets: two issues, the list without one of the two teams",
+   "folder": "results/tickets_removal/2026-10-11_01",
+   "lists_text": "test file `two_issues`, lists `without_1` and `without_2`",
+   "test_file": "two_issues",
+   "lists": [
+    "without_1",
+    "without_2"
+   ],
+   "group": "6. The documented example: support tickets for TypeSafe's team question",
+   "about": "The tickets with two issues, with a list of 2 teams: one of the two teams of the ticket and the third team.",
+   "instruction": "Which team should handle this?"
+  },
+  {
+   "label": "Tickets: one issue, the list without its team",
+   "folder": "results/tickets_removal/2026-10-11_01",
+   "lists_text": "test file `one_issue`, list `without_all`",
+   "test_file": "one_issue",
+   "lists": [
+    "without_all"
+   ],
+   "group": "6. The documented example: support tickets for TypeSafe's team question",
+   "about": "The tickets with one issue, with a list of the 2 teams that the issue does not concern.",
+   "instruction": "Which team should handle this?"
+  },
+  {
+   "label": "Tickets: the ticket of TypeSafe's example",
+   "folder": "results/tickets_removal/2026-10-11_01",
+   "lists_text": "test file `typesafe_example`, list `full`",
+   "test_file": "typesafe_example",
+   "lists": [
+    "full"
+   ],
+   "group": "6. The documented example: support tickets for TypeSafe's team question",
+   "about": "The ticket of TypeSafe's documentation, which states a late delivery, a wrong size and a double charge. The list holds the 3 teams of TypeSafe's example in its order: returns, shipping and billing. The three teams are labelled as correct.",
+   "instruction": "Which team should handle this?"
   }
  ]
 }

@@ -86,6 +86,8 @@ def test_the_figures_of_lists_with_several_correct_options_leave_out_a_list_with
     assert found.ranked_correct == pytest.approx((0.55, 0.25))
     assert (found.highest_correct, found.lowest_correct) == (pytest.approx(0.55), pytest.approx(0.25))
     assert found.highest_distractor == pytest.approx(0.2)
+    # The lowest correct option is above 0.25 in one of the two lists with a distractor: 0.1 and 0.4.
+    assert found.every_correct_above == 0.5
     assert found.by_position is None and found.predicted_at is None
 
 
@@ -104,6 +106,7 @@ def test_lists_of_duplicates_have_no_accuracy_and_give_the_probability_at_each_p
     assert found.kind is Kind.ALL and found.measured == 2
     assert (found.accuracy, found.overconfidence, found.ece, found.exact_match) == (None, None, None, None)
     assert (found.lowest_margin, found.highest_margin, found.highest_distractor) == (None, None, None)
+    assert found.every_correct_above is None
     assert found.spread == pytest.approx((0.6 + 0.4) / 2)
     assert found.ranked_correct == pytest.approx((0.6, 0.3, 0.1))
     assert found.by_position == pytest.approx((0.6, 0.15, 0.25))

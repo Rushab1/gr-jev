@@ -10,7 +10,14 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-from grjev.constants import ECE_BINS, FULL_LIST, PROBABILITY_DECIMALS, WITHOUT_LIST, YES_PROBABILITY
+from grjev.constants import (
+    ECE_BINS,
+    FULL_LIST,
+    PROBABILITY_DECIMALS,
+    SECOND_TEAM_PROBABILITY,
+    WITHOUT_LIST,
+    YES_PROBABILITY,
+)
 from grjev.metrics import NONE_NAMES, entropy, top_gap
 from grjev.runs import ListAnswer, Row, offered_labels
 
@@ -50,7 +57,8 @@ class Distribution:
     `lowest_margin` the lowest of a correct option minus the highest of a distractor, and `highest_margin` the
     highest of a correct option minus the highest of a distractor. `ranked_correct` holds the mean probability of
     the correct options from the highest down, when every measured answer has the same number of them. A figure is
-    None when the lists have no option that it needs.
+    None when the lists have no option that it needs. `every_correct_above` is the share of the measured answers
+    whose correct options are all above SECOND_TEAM_PROBABILITY, for lists with several correct options.
 
     `by_position` is the mean probability at each position of the list and `predicted_at` the number of predictions
     there. They are None when the lists differ in length.
@@ -75,6 +83,7 @@ class Distribution:
     highest_correct: float | None
     lowest_correct: float | None
     highest_distractor: float | None
+    every_correct_above: float | None
     by_position: tuple[float, ...] | None
     predicted_at: tuple[int, ...] | None
 
@@ -198,6 +207,9 @@ def distribution(answers: Sequence[tuple[Row, ListAnswer]]) -> Distribution:
         highest_correct=mean(part.correct[0] for part in measured) if held else None,
         lowest_correct=mean(part.correct[-1] for part in measured) if held else None,
         highest_distractor=mean(part.distractors[0] for part in measured) if kind is not Kind.ALL else None,
+        every_correct_above=(
+            mean(part.correct[-1] > SECOND_TEAM_PROBABILITY for part in measured) if kind is Kind.SEVERAL else None
+        ),
         by_position=placed[0] if placed else None,
         predicted_at=placed[1] if placed else None,
     )

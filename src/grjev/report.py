@@ -10,7 +10,13 @@ from math import log2
 from pathlib import Path
 
 from grjev.charts import bars_chart, positions_chart, spans_chart
-from grjev.constants import MODEL_TITLES, POSITIONS_SHOWN_BELOW, PROCESSED_DIRS, REPO_ROOT
+from grjev.constants import (
+    MODEL_TITLES,
+    POSITIONS_SHOWN_BELOW,
+    PROCESSED_DIRS,
+    REPO_ROOT,
+    SECOND_TEAM_PROBABILITY,
+)
 from grjev.distribution import Distribution, Kind, correct_names, distribution, second_after_removal, yes_figures
 from grjev.examples import Example, read_dataset
 from grjev.tables import (
@@ -91,6 +97,9 @@ COLUMNS: dict[str, Callable[[Distribution], str | None]] = {
         margin(found, found.lowest_margin) if found.kind is Kind.SEVERAL else None
     ),
     "Mean probability of each correct option, from the highest": ranked,
+    f"Answers with every correct option above {SECOND_TEAM_PROBABILITY}": lambda found: (
+        None if found.every_correct_above is None else f"{found.every_correct_above:.0%}"
+    ),
     "Mean probability of the highest distractor": lambda found: (
         None if found.highest_distractor is None or found.kind is Kind.NONE else f"{found.highest_distractor:.3f}"
     ),
