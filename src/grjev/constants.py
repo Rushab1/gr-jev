@@ -553,6 +553,38 @@ YES_PROBABILITY = 0.5
 # A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
 # set is less than 10".
 POSITIONS_SHOWN_BELOW = 10
+# The runs of `docs/paper_plan.md`, each as the arguments of scripts/run_experiment.py: the experiment, the dataset,
+# and the test files or the sample where the run does not send every example of the experiment. MMLU is run on
+# 1,000 questions, and so are the HotpotQA runs with 5 cyclic permutations and the HotpotQA run with "None". The
+# HotpotQA yes/no control is run on 500 questions.
+PAPER_RUNS: tuple[tuple[str, ...], ...] = (
+    ("copied", "metatool"),
+    ("copied", "mmlu", "--examples", "1000"),
+    ("copied", "hotpotqa", "--examples", "1000"),
+    ("copied", "ecthr"),
+    ("rotated", "metatool"),
+    ("position", "metatool", "--test-files", "similar_tools", "scenario", "reliability"),
+    ("own", "mmlu", "--examples", "1000"),
+    ("position", "metatool", "--test-files", "multi_tool"),
+    ("position", "metatool", "--test-files", "multi_tool", "--two-tool-wording", "both"),
+    ("removal", "metatool"),
+    ("removal", "hotpotqa"),
+    ("removal", "ecthr"),
+    ("own", "ecthr"),
+    ("unrelated", "metatool"),
+    ("unrelated", "mmlu", "--examples", "1000"),
+    ("unrelated", "hotpotqa", "--examples", "1000"),
+    ("distractors", "metatool"),
+    ("distractors", "mmlu", "--examples", "1000"),
+    ("absent_random", "metatool"),
+    ("absent_random", "mmlu", "--examples", "1000"),
+    ("absent_random", "hotpotqa", "--examples", "1000"),
+    ("absent", "mmlu", "--examples", "1000"),
+    ("absent", "hotpotqa", "--examples", "1000"),
+    ("with_none", "ecthr"),
+    ("yes_no", "hotpotqa", "--examples", "500"),
+    ("yes_no", "ecthr"),
+)
 # The definitions of the tables of runs: the title, the text and the rows of each table.
 TABLES_DIR = Path(__file__).parent / "definitions"
 
