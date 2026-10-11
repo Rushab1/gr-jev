@@ -157,7 +157,7 @@ The two lists with passages removed, with the wording "is needed":
 
 ## Runs on every example
 
-Rushab, 2026-10-10: the recommended setup. MMLU is run on 1,000 questions, a seeded sample of the 13,096. The yes/no questions are a control on 500 HotpotQA questions and on the ECtHR test cases. The full HotpotQA list is asked with three wordings. The other three datasets are run on every example, and the three HotpotQA runs with 5 cyclic permutations on 1,000 questions.
+Rushab, 2026-10-10: the recommended setup. MMLU is run on 1,000 questions, a seeded sample of the 13,096. The yes/no questions are a control on 500 HotpotQA questions and on the ECtHR test cases. The full HotpotQA list is asked with three wordings. The other three datasets are run on every example, and the three HotpotQA runs with 5 cyclic permutations on 1,000 questions. The HotpotQA run with the distractors of the example and NOTA is on 1,000 questions too. Rushab had not chosen between 1,000 questions and every question when the runs started on 2026-10-11, and Claude Code took 1,000. A later run on every question reads the answers of the 1,000 from the saved responses.
 
 One request holds every list of one example. A HotpotQA question is one request for its full list in 3 wordings, its 2 lists without one supporting passage, and its list without both.
 
@@ -184,21 +184,21 @@ One request holds every list of one example. A HotpotQA question is one request 
 | 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | MMLU, 1,000 questions | 1,000 |
 | 3 Abstention | 4 random distractors and NOTA, 5 cyclic permutations | HotpotQA, 1,000 questions | 1,000 |
 | 3 Abstention | The distractors of the example and NOTA | MMLU, 1,000 questions | 1,000 |
-| 3 Abstention | The distractors of the example and NOTA | HotpotQA | 7,405 |
+| 3 Abstention | The distractors of the example and NOTA | HotpotQA, 1,000 questions | 1,000 |
 | 3 Abstention | The list of 10 articles and NOTA | ECtHR | 1,000 |
 | 5 Dependence, control | A yes/no question per passage, wording "supports" | HotpotQA, 500 questions | 500 |
 | 5 Dependence, control | A yes/no question per article | ECtHR | 1,000 |
-| | **Total** | | **44,626** |
+| | **Total** | | **38,221** |
 
 | Dataset | Requests per model | Cost, three models |
 |---|---|---|
-| MetaTool | 15,622 | $4.00 |
-| MMLU | 6,000 | $0.70 |
-| HotpotQA | 18,310 | $11.17 |
-| ECtHR | 4,694 | $2.38 |
-| **Total** | **44,626** | **about $18.25** |
+| MetaTool | 15,622 | $3.75 |
+| MMLU | 6,000 | $0.65 |
+| HotpotQA | 11,905 | $13.73 |
+| ECtHR | 4,694 | $4.77 |
+| **Total** | **38,221** | **about $22.90** |
 
-- The cost is an estimate: about $4.40 on Jev, $3.40 on Liquid d1 and $10.40 on GPT-6 Luna Decisions. The MetaTool and MMLU figures use the input tokens measured in the runs on 50 examples. The HotpotQA figure is scaled from one question, and the ECtHR figure from the 1,926 words of an average case. The pilot replaces both.
+- The cost is an estimate from the input tokens measured in the runs on 50 examples: about $5.53 on Jev, $6.34 on Liquid d1 and $11.03 on GPT-6 Luna Decisions.
 - HotpotQA wordings. The three list instructions are "Choose every passage in the list that may support the answer to the question.", the same with "supports", and the same with "definitely supports". The labels of HotpotQA mark sentences that support the answer, and a passage with such a sentence can support an answer without being needed for it. The three wordings are reported separately. The lists without a supporting passage and the yes/no questions use "supports".
 - ECtHR wording. The labels are the articles that the Court found violated, not every article that the facts could concern. The instruction asks for the Court's finding, and a case with no label is a case in which the Court found no violation of the 10 articles. Its wording is fixed in the pilot.
 - On ECtHR one run with the list of 10 articles covers three properties: its cases have one, several or no violated article.
@@ -219,11 +219,11 @@ Rushab, 2026-10-09: decided later. Possibly a short section at the end of the pa
 ## Steps
 
 1. The figures in the repository. Done on 2026-10-10. `src/grjev/distribution.py` computes the figures of `docs/all_runs.md` and `src/grjev/tables.py` builds its tables, with tests. `python scripts/runs_table.py all_runs --out docs/all_runs.md` rebuilds the file. The rebuilt tables are identical to those of the script outside the repository, which they replace. `scripts/results_figures.py` prints the same figures for one run.
-2. HotpotQA and ECtHR in the repository: a pinned download and a converter to the common format with its test, for each.
-3. The new runs in the runner, with tests: the lists without correct options, a yes/no question per option, and the distractors of the example with no correct option. The runs with duplicates, random distractors and NOTA exist and need their entries for HotpotQA and ECtHR.
-4. A pilot on 50 examples per dataset and model, about 900 Jev calls. One exact request of HotpotQA and one of ECtHR are shown to Rushab before it.
-5. Rushab raises `JEV_CALL_LIMIT` for the runs on every example. It is 5,000 since 2026-10-09 and 2,023 calls are saved. The runs need 44,626 Jev calls.
-6. The runs on every example. Vercel AI Gateway credit: Rushab added $25 on 2026-10-08, about $24 is left, and the runs need about $14 for the two gateway models.
+2. HotpotQA and ECtHR in the repository: a pinned download and a converter to the common format with its test, for each. Done on 2026-10-10.
+3. The new runs in the runner, with tests: the lists without correct options, a yes/no question per option, and the distractors of the example with no correct option. The runs with duplicates, random distractors and NOTA exist and need their entries for HotpotQA and ECtHR. Done on 2026-10-10.
+4. A pilot on 50 examples per dataset and model. One exact request of HotpotQA and one of ECtHR are shown to Rushab before it. Done on 2026-10-10 with 700 Jev calls: 14 runs on each of the three models. Its figures are not in this file yet.
+5. Rushab raises `JEV_CALL_LIMIT` for the runs on every example. It is 5,000 since 2026-10-09 and 2,723 calls are saved. The runs send 38,221 requests to Jev, and 36,789 of them have no saved response, so the limit has to be at least 39,512.
+6. The runs on every example. `python scripts/run_paper.py --model <model>` starts the runs of the table above for one model, from `PAPER_RUNS` in `src/grjev/constants.py`. They started on 2026-10-11 on Liquid d1 and GPT-6 Luna Decisions, and the Jev runs wait for step 5. Vercel AI Gateway credit: Rushab added $25 on 2026-10-08, and the runs need about $17.36 for the two gateway models.
 
 ## Not decided
 
