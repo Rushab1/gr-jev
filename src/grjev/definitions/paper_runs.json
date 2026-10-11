@@ -75,7 +75,8 @@
        "Highest correct option",
        "Lowest correct option",
        "Predictions at the first position"
-      ]
+      ],
+      "short": "MetaTool"
      },
      {
       "run": "MMLU: 5 duplicates of the correct choice",
@@ -84,7 +85,8 @@
        "Highest correct option",
        "Lowest correct option",
        "Predictions at the first position"
-      ]
+      ],
+      "short": "MMLU"
      },
      {
       "run": "HotpotQA: 5 duplicates of one supporting passage",
@@ -93,7 +95,8 @@
        "Highest correct option",
        "Lowest correct option",
        "Predictions at the first position"
-      ]
+      ],
+      "short": "HotpotQA"
      },
      {
       "run": "ECtHR: 5 duplicates of one violated article",
@@ -102,9 +105,11 @@
        "Highest correct option",
        "Lowest correct option",
        "Predictions at the first position"
-      ]
+      ],
+      "short": "ECtHR"
      }
-    ]
+    ],
+    "file": "copies"
    }
   },
   {
@@ -166,7 +171,8 @@
        "Lowest correct option",
        "Highest distractor",
        "Answers with every correct option above 0.25"
-      ]
+      ],
+      "short": "MetaTool"
      },
      {
       "run": "HotpotQA: the passages of the question, \"supports\"",
@@ -176,7 +182,8 @@
        "Lowest correct option",
        "Highest distractor",
        "Answers with every correct option above 0.25"
-      ]
+      ],
+      "short": "HotpotQA"
      },
      {
       "run": "ECtHR: cases with 2 to 4 violated articles",
@@ -186,9 +193,11 @@
        "Lowest correct option",
        "Highest distractor",
        "Answers with every correct option above 0.25"
-      ]
+      ],
+      "short": "ECtHR"
      }
-    ]
+    ],
+    "file": "allocation"
    }
   },
   {
@@ -262,7 +271,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "MetaTool",
+      "group": "5 random options"
      },
      {
       "run": "MMLU: 5 random choices, no NOTA",
@@ -270,7 +281,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "MMLU",
+      "group": "5 random options"
      },
      {
       "run": "HotpotQA: 5 random passages, no NOTA",
@@ -278,7 +291,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "HotpotQA",
+      "group": "5 random options"
      },
      {
       "run": "MetaTool: 4 distractors of the example, no \"None\"",
@@ -286,7 +301,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "MetaTool",
+      "group": "Options of the example, none correct"
      },
      {
       "run": "MMLU: the 3 distractors of the question, no NOTA",
@@ -294,7 +311,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "MMLU",
+      "group": "Options of the example, none correct"
      },
      {
       "run": "HotpotQA: the passages without the supporting passages",
@@ -302,7 +321,9 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "HotpotQA",
+      "group": "Options of the example, none correct"
      },
      {
       "run": "ECtHR: cases with no violated article, no NOTA",
@@ -310,9 +331,12 @@
       "columns": [
        "Lists refused",
        "Mean confidence"
-      ]
+      ],
+      "short": "ECtHR",
+      "group": "Options of the example, none correct"
      }
-    ]
+    ],
+    "file": "abstention"
    }
   },
   {
@@ -380,7 +404,9 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "MetaTool",
+      "group": "One correct option"
      },
      {
       "run": "MMLU: the 4 choices of the question",
@@ -388,7 +414,9 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "MMLU",
+      "group": "One correct option"
      },
      {
       "run": "ECtHR: cases with 1 violated article",
@@ -396,7 +424,9 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "ECtHR",
+      "group": "One correct option"
      },
      {
       "run": "MetaTool: two correct tools, every needed tool is asked for",
@@ -404,7 +434,9 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "MetaTool",
+      "group": "Several correct options"
      },
      {
       "run": "HotpotQA: the passages of the question, \"supports\"",
@@ -412,7 +444,9 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "HotpotQA",
+      "group": "Several correct options"
      },
      {
       "run": "ECtHR: cases with 2 to 4 violated articles",
@@ -420,9 +454,12 @@
       "columns": [
        "Accuracy",
        "Mean confidence"
-      ]
+      ],
+      "short": "ECtHR",
+      "group": "Several correct options"
      }
-    ]
+    ],
+    "file": "calibration"
    }
   },
   {
@@ -481,7 +518,8 @@
        "After the removal",
        "Full list, renormalised",
        "After the removal, same examples"
-      ]
+      ],
+      "short": "MetaTool"
      },
      {
       "run": "HotpotQA: the second correct option before and after the removal",
@@ -491,7 +529,8 @@
        "After the removal",
        "Full list, renormalised",
        "After the removal, same examples"
-      ]
+      ],
+      "short": "HotpotQA"
      },
      {
       "run": "ECtHR: the second correct option before and after the removal",
@@ -501,9 +540,11 @@
        "After the removal",
        "Full list, renormalised",
        "After the removal, same examples"
-      ]
+      ],
+      "short": "ECtHR"
      }
-    ]
+    ],
+    "file": "removal"
    }
   },
   {
@@ -561,7 +602,8 @@
        "Lowest correct option",
        "Highest distractor",
        "Answers with every correct option above 0.25"
-      ]
+      ],
+      "short": "Two issues per ticket"
      },
      {
       "run": "Tickets: one issue for one team",
@@ -569,9 +611,11 @@
       "columns": [
        "Highest correct option",
        "Highest distractor"
-      ]
+      ],
+      "short": "One issue per ticket"
      }
-    ]
+    ],
+    "file": "tickets"
    }
   }
  ],

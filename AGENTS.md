@@ -48,6 +48,8 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `src/grjev/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page. `docs/paper_runs.pdf` is that page printed from a browser.
 
+`python scripts/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
+
 `python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. `python scripts/compare_runs.py <folder> <folder>` compares the answers of two results folders to the same examples, such as two runs of the same requests. The code is in `src/grjev/metrics.py`.
 
 An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES` and `SEVERAL_TOOL_TEST_FILES` in `constants.py`, and in `LIST_LENGTHS` for the length experiment.

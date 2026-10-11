@@ -341,24 +341,97 @@ PAPER_COLUMNS: dict[str, Callable[[Selected, Distribution | None], str | None]] 
 }
 
 
+def paper_cells(table: PaperTableSpec, runs: dict[str, dict[str, Selected]]) -> dict[str, list[list[str]]]:
+    """Return the cells of the table of a finding: for each model, the texts of the columns of each part."""
+    cells: dict[str, list[list[str]]] = {}
+    for part in table.parts:
+        figures = figures_of(runs[part.run])
+        for model, own in runs[part.run].items():
+            texts = [PAPER_COLUMNS[header](own, figures.get(model)) or NOT_MEASURED for header in part.columns]
+            cells.setdefault(model, []).append(texts)
+    return cells
+
+
 def paper_table(table: PaperTableSpec, runs: dict[str, dict[str, Selected]]) -> str:
     """Return the table of a finding for the paper: the models as rows, and the columns of each run under its name."""
     names = "".join(f'<th class="edge" colspan="{len(part.columns)}">{marked(part.name)}</th>' for part in table.parts)
-    heads, cells = "", dict[str, str]()
-    for part in table.parts:
-        figures = figures_of(runs[part.run])
-        for place, header in enumerate(part.columns):
-            edge = "" if place else ' class="edge"'
-            heads += f"<th{edge}>{marked(header)}</th>"
-            for model, own in runs[part.run].items():
-                text = PAPER_COLUMNS[header](own, figures.get(model)) or NOT_MEASURED
-                cells[model] = cells.get(model, "") + f"<td{edge}>{text}</td>"
-    body = "".join(f"<tr><th>{marked(MODEL_TITLES[model])}</th>{own}</tr>" for model, own in cells.items())
+    edges = [("" if place else ' class="edge"') for part in table.parts for place in range(len(part.columns))]
+    headers = [header for part in table.parts for header in part.columns]
+    heads = "".join(f"<th{edge}>{marked(header)}</th>" for edge, header in zip(edges, headers, strict=True))
+    body = ""
+    for model, parts in paper_cells(table, runs).items():
+        texts = [text for part in parts for text in part]
+        row = "".join(f"<td{edge}>{text}</td>" for edge, text in zip(edges, texts, strict=True))
+        body += f"<tr><th>{marked(MODEL_TITLES[model])}</th>{row}</tr>"
     return (
         f'<div class="paper"><h3>Table for the paper</h3><p class="caption">{marked(table.caption)}</p>'
         f'<table><thead><tr><th rowspan="2">Model</th>{names}</tr><tr>{heads}</tr></thead>'
         f"<tbody>{body}</tbody></table></div>"
     )
+
+
+# Column header -> its short header in the LaTeX table of a finding. The caption of the table in the paper says
+# what each one means.
+PAPER_LATEX_HEADERS = {
+    "Lists refused": "Refused",
+    "Accuracy": "Acc.",
+    "Mean confidence": "Conf.",
+    "Predictions at the first position": "First",
+    "Predictions at the last position": "Last",
+    "Highest correct option": "High",
+    "Lowest correct option": "Low",
+    "Highest distractor": "Distr.",
+    f"Answers with every correct option above {SECOND_TEAM_PROBABILITY}": f"All $>${SECOND_TEAM_PROBABILITY}",
+    "Second correct option in the full list": "Before",
+    "After the removal": "After",
+    "Full list, renormalised": "Renorm.",
+    "After the removal, same examples": "After$^*$",
+}
+
+
+def latex(text: str) -> str:
+    """Return text with the characters that LaTeX reads as commands escaped."""
+    return re.sub(r"([%&#_])", r"\\\1", text)
+
+
+def spans(names: list[str], widths: list[int]) -> list[str]:
+    """Return a LaTeX header row of names over groups of columns, and the rules under the names that are not empty.
+
+    Neighbouring groups with the same name share one cell. The first column of the table holds the model.
+    """
+    cells, rules, start = [], [], 2
+    for place, name in enumerate(names):
+        if place and name == names[place - 1]:
+            continue
+        end = start
+        for later in range(place, len(names)):
+            if names[later] != name:
+                break
+            end += widths[later]
+        cells.append(rf"\multicolumn{{{end - start}}}{{c}}{{{name}}}")
+        if name:
+            rules.append(rf"\cmidrule(lr){{{start}-{end - 1}}}")
+        start = end
+    return [" & " + " & ".join(cells) + r" \\", " ".join(rules)]
+
+
+def paper_latex(table: PaperTableSpec, runs: dict[str, dict[str, Selected]]) -> str:
+    """Return the table of a finding as a LaTeX `tabular` with the rules of the booktabs package.
+
+    The models are the rows. The header has the group of each part when one is given, the name of each part, and
+    the short header of each column from PAPER_LATEX_HEADERS.
+    """
+    widths = [len(part.columns) for part in table.parts]
+    lines = [rf"\begin{{tabular}}{{l{'r' * sum(widths)}}}", r"\toprule"]
+    if any(part.group for part in table.parts):
+        lines += spans([latex(part.group) for part in table.parts], widths)
+    lines += spans([latex(part.short or part.name) for part in table.parts], widths)
+    heads = [PAPER_LATEX_HEADERS[header] for part in table.parts for header in part.columns]
+    lines += ["Model & " + " & ".join(heads) + r" \\", r"\midrule"]
+    for model, parts in paper_cells(table, runs).items():
+        texts = [latex(text) for part in parts for text in part]
+        lines.append(f"{latex(MODEL_TITLES[model])} & " + " & ".join(texts) + r" \\")
+    return "\n".join([*lines, r"\bottomrule", r"\end{tabular}"]) + "\n"
 
 
 def cut(text: str, characters: int) -> str:

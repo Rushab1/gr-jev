@@ -87,18 +87,27 @@ class ExampleSpec(BaseModel):
 
 
 class PartSpec(BaseModel):
-    """The columns that one run gives to the table of a finding. `name` is the heading over them."""
+    """The columns that one run gives to the table of a finding. `name` is the heading over them.
+
+    The LaTeX table uses `short` in place of `name` when it is given, and puts `group` over the parts that share it.
+    """
 
     run: str
     name: str
     columns: list[str]
+    short: str = ""
+    group: str = ""
 
 
 class PaperTableSpec(BaseModel):
-    """The table of a finding for the paper: the models as rows, and the figures of each of its runs as columns."""
+    """The table of a finding for the paper: the models as rows, and the figures of each of its runs as columns.
+
+    `file` names the LaTeX file of the table in the folder of the paper.
+    """
 
     caption: str
     parts: list[PartSpec]
+    file: str = ""
 
 
 class FindingSpec(BaseModel):

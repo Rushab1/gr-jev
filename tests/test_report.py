@@ -8,11 +8,13 @@ from grjev.report import (
     ENTROPY_HEADER,
     MEASURED_HEADER,
     PAPER_COLUMNS,
+    PAPER_LATEX_HEADERS,
     POSITION_HEADERS,
     chart_svg,
     finding_html,
     lists_table,
     page,
+    paper_latex,
     paper_table,
     run_html,
     second_correct_table,
@@ -262,3 +264,24 @@ def test_the_definition_of_the_runs_on_every_example_names_48_tables_for_three_m
     parts = [part for found in definition.findings if found.table for part in found.table.parts]
     assert all(found.table for found in definition.findings) and all(part.run in labels for part in parts)
     assert all(header in PAPER_COLUMNS for part in parts for header in part.columns)
+
+
+def test_the_latex_table_of_a_finding_groups_its_parts_and_escapes_the_percent_sign(tmp_path: Path) -> None:
+    own = spec(lists=("full",), positions=True)
+    runs = {"Set": chosen(results(tmp_path), own)}
+    parts = [
+        {"run": "Set", "name": "Set, full list", "short": "Set", "group": "One group", "columns": ["Lists refused"]},
+        {"run": "Set", "name": "Again", "group": "One group", "columns": ["Highest correct option", "Mean confidence"]},
+    ]
+    lines = paper_latex(PaperTableSpec.model_validate({"caption": "Two parts.", "parts": parts}), runs).splitlines()
+    assert lines[:2] == [r"\begin{tabular}{lrrr}", r"\toprule"]
+    assert lines[2:4] == [r" & \multicolumn{3}{c}{One group} \\", r"\cmidrule(lr){2-4}"]
+    assert lines[4] == r" & \multicolumn{1}{c}{Set} & \multicolumn{2}{c}{Again} \\"
+    assert lines[5:8] == [r"\cmidrule(lr){2-2} \cmidrule(lr){3-4}", r"Model & Refused & High & Conf. \\", r"\midrule"]
+    assert lines[8:] == [
+        r"Jev & 0\% & 0.70 & 0.70 \\",
+        r"Liquid d1 & 0\% & 0.70 & 0.70 \\",
+        r"\bottomrule",
+        r"\end{tabular}",
+    ]
+    assert set(PAPER_COLUMNS) == set(PAPER_LATEX_HEADERS)
