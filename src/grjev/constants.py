@@ -50,6 +50,8 @@ LUNA_MODEL = "openai/gpt-6-luna-decisions"
 GATEWAY_MODELS = (LAYA_MODEL, D1_MODEL, LUNA_MODEL)
 # The name of a gateway model in the name of its results folders.
 RESULTS_MODEL_NAMES = {LAYA_MODEL: "laya", D1_MODEL: "d1", LUNA_MODEL: "gpt-6-luna-decisions"}
+# The name of a model in a document.
+MODEL_TITLES = {JEV_MODEL: "Jev", LAYA_MODEL: "Laya", D1_MODEL: "Liquid d1", LUNA_MODEL: "GPT-6 Luna Decisions"}
 # Laya on the gateway rejects a request when one of its tool lists is too long for the model, with one of these
 # statuses. Each list goes to Laya in a request of its own, and a rejected list is saved as rejected. On 2026-10-08
 # Laya answered a list of 16 APIs with descriptions (463 input tokens) and rejected the same list with 20.
@@ -541,6 +543,18 @@ INTERVAL_TAIL = Fraction(1, 40)
 # An answer counts as confident in the figures of a run when its highest probability is at least this. It is the
 # value at which arXiv 2609.26550 counts. Rushab has not decided the threshold.
 CONFIDENT_PROBABILITY = 0.9
+# The figures of the probability distribution round a probability to this many decimals first. Jev returns values
+# such as 0.33999999999999997 for 0.34, which would hide a tie.
+PROBABILITY_DECIMALS = 6
+# The expected calibration error puts the answers in this many bins of equal width by confidence.
+ECE_BINS = 10
+# A yes/no answer counts as yes when its probability of yes is at least this.
+YES_PROBABILITY = 0.5
+# A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
+# set is less than 10".
+POSITIONS_SHOWN_BELOW = 10
+# The definitions of the tables of runs: the title, the text and the rows of each table.
+TABLES_DIR = Path(__file__).parent / "definitions"
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
