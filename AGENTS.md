@@ -139,6 +139,11 @@ Keep text that states a fact the block cannot show: a tool that is absent from a
 
 `docs/dashboard.html` records Rushab's understanding of the datasets and the decisions. Each dataset tab opens with a plain explanation of the dataset, followed by sections named by topic, with two examples from each test file. It is light mode only. Check every number and quote on it against the raw files.
 
+## Code reviews
+
+- Report the full list of findings, including lower-severity findings. For each finding, give its severity, type (such as logical, functional, security or cosmetic), source of failure, and exact file and line number. Include a short example of the effect.
+- Distinguish silent wrong results from explicit failures. Prefer a clear failure at the source over a plausible but incorrect result, and flag failures that occur only after a model run has spent calls.
+
 ## Effort
 
 Do not spend 90% of the time on 5% of the detail. If a detail seems to need that much work, confirm with Rushab first, in one short question.
