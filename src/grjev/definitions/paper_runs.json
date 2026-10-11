@@ -533,5 +533,134 @@
    "figures": "yes_no",
    "instruction": "Did the European Court of Human Rights find a violation of this article in this case? Article: <name of the option>: <text of the option>"
   }
+ ],
+ "charts": [
+  {
+   "kind": "positions",
+   "title": "Order: share of the predictions at each position of a list of 5 duplicates",
+   "about": "The list holds 5 copies of one correct option and is sent in its 5 cyclic permutations, so each copy is at each position once.",
+   "runs": [
+    [
+     "MetaTool: 5 duplicates of one correct tool",
+     "MetaTool"
+    ],
+    [
+     "MMLU: 5 duplicates of the correct choice",
+     "MMLU"
+    ],
+    [
+     "HotpotQA: 5 duplicates of one supporting passage",
+     "HotpotQA"
+    ],
+    [
+     "ECtHR: 5 duplicates of one violated article",
+     "ECtHR"
+    ]
+   ]
+  },
+  {
+   "kind": "correct_span",
+   "title": "Allocation: mean probability of the lowest and of the highest correct option",
+   "about": "Lists that hold several correct options and distractors.",
+   "runs": [
+    [
+     "MetaTool: two correct tools, every needed tool is asked for",
+     "MetaTool, 2 correct tools"
+    ],
+    [
+     "HotpotQA: the passages of the question, \"supports\"",
+     "HotpotQA, 2 supporting passages"
+    ],
+    [
+     "ECtHR: cases with 2 to 4 violated articles",
+     "ECtHR, 2 to 4 violated articles"
+    ]
+   ]
+  },
+  {
+   "kind": "second_correct",
+   "title": "Dependence on the list: mean probability of the second correct option, before and after the removal of the correct option with the highest probability",
+   "about": "The second correct option is the correct option with the second-highest probability in the full list.",
+   "runs": [
+    [
+     "MetaTool: the second correct option before and after the removal",
+     "MetaTool, 2 correct tools"
+    ],
+    [
+     "HotpotQA: the second correct option before and after the removal",
+     "HotpotQA, 2 supporting passages"
+    ],
+    [
+     "ECtHR: the second correct option before and after the removal",
+     "ECtHR, 2 to 4 violated articles"
+    ]
+   ]
+  },
+  {
+   "kind": "confidence",
+   "title": "Abstention: mean confidence on lists with no correct option and no NOTA",
+   "about": "Confidence is the highest probability of an answer. The bar of a model is over the lists that it answered.",
+   "runs": [
+    [
+     "MetaTool: 4 distractors of the example, no \"None\"",
+     "MetaTool, distractors of the example"
+    ],
+    [
+     "MMLU: the 3 distractors of the question, no NOTA",
+     "MMLU, distractors of the question"
+    ],
+    [
+     "HotpotQA: the passages without the supporting passages",
+     "HotpotQA, distractors of the question"
+    ],
+    [
+     "ECtHR: cases with no violated article, no NOTA",
+     "ECtHR, no violated article"
+    ],
+    [
+     "MetaTool: 5 random tools, no \"None\"",
+     "MetaTool, 5 random tools"
+    ],
+    [
+     "MMLU: 5 random choices, no NOTA",
+     "MMLU, 5 random choices"
+    ],
+    [
+     "HotpotQA: 5 random passages, no NOTA",
+     "HotpotQA, 5 random passages"
+    ]
+   ]
+  },
+  {
+   "kind": "overconfidence",
+   "title": "Calibration: mean confidence minus accuracy",
+   "about": "A bar to the right of 0 is overconfidence. Accuracy is the share of the answers whose prediction is a correct option.",
+   "runs": [
+    [
+     "MetaTool: one correct tool, the 6 orders of the list",
+     "MetaTool, 1 correct tool"
+    ],
+    [
+     "MMLU: the 4 choices of the question",
+     "MMLU, 1 correct choice"
+    ],
+    [
+     "ECtHR: cases with 1 violated article",
+     "ECtHR, 1 violated article"
+    ],
+    [
+     "MetaTool: two correct tools, every needed tool is asked for",
+     "MetaTool, 2 correct tools"
+    ],
+    [
+     "HotpotQA: the passages of the question, \"supports\"",
+     "HotpotQA, 2 supporting passages"
+    ],
+    [
+     "ECtHR: cases with 2 to 4 violated articles",
+     "ECtHR, 2 to 4 violated articles"
+    ]
+   ]
+  }
  ]
 }

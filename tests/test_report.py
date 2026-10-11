@@ -15,7 +15,7 @@ from grjev.report import (
 )
 from grjev.results import write_run
 from grjev.runs import ListAnswer, Row, RunConfig
-from grjev.tables import RowSpec, TableSpec, read_spec, selected
+from grjev.tables import ChartSpec, RowSpec, TableSpec, read_spec, selected
 
 JEV_FOLDER = "results/set_removal/2026-10-01_01"
 D1_FOLDER = "results/set_removal_d1/2026-10-02_01"
@@ -101,7 +101,7 @@ def test_the_yes_no_table_and_the_table_of_the_second_correct_option_have_one_ro
 
 def test_the_block_of_a_run_names_its_lists_its_instruction_and_its_folder(tmp_path: Path) -> None:
     own = spec(lists=("full",), about="The list of the example.", instruction="Choose <one> tool.")
-    block = run_html(own, (JEV_MODEL, D1_MODEL), results(tmp_path))
+    block = run_html(own, chosen(results(tmp_path), own))
     assert "<h3>Set</h3>" in block and 'Instruction: "Choose &lt;one&gt; tool."' in block
     assert "The list of the example. 1 examples, 1 lists. Options in a list: 3. Correct options in a list: 2." in block
     assert f"<code>{JEV_FOLDER}</code>, every list" in block and block.count("<tr>") == 3
@@ -126,9 +126,35 @@ def test_the_page_puts_the_runs_under_their_groups_between_the_terms_and_the_not
     assert text.index("<h2>2. Yes or no</h2>") < text.index("<h2>Notes</h2>") < text.index("<li>A note.</li>")
 
 
+def test_the_page_draws_the_charts_of_its_definition_before_the_terms(tmp_path: Path) -> None:
+    runs = [("Set", "Set, full list")]
+    definition = TableSpec(
+        title="Runs",
+        intro="One run.",
+        terms=[],
+        notes=[],
+        models=(JEV_MODEL, D1_MODEL),
+        rows=[spec(lists=("full",), positions=True)],
+        charts=[
+            ChartSpec(kind=kind, title=f"Chart of {kind}", about="What it shows.", runs=runs)
+            for kind in ("positions", "correct_span", "second_correct", "confidence", "overconfidence")
+        ],
+    )
+    text = page(definition, results(tmp_path))
+    assert text.count("<figure") == 5 and text.count("<svg") == 5 and text.count('<figure class="wide">') == 1
+    assert (
+        text.index("<h2>Summary charts</h2>") < text.index("<h3>Chart of positions</h3>") < text.index("<h2>Terms</h2>")
+    )
+    # The lowest and the highest correct option of the full list, and its second correct option after the removal.
+    assert all(f">{value}</text>" in text for value in ("0.10", "0.70", "0.60", "Set, full list"))
+    assert "<h2>Summary charts</h2>" not in page(definition.model_copy(update={"charts": []}), tmp_path)
+
+
 def test_the_definition_of_the_runs_on_every_example_names_43_tables_for_three_models() -> None:
     definition = read_spec(TABLES_DIR / "paper_runs.json")
     assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 43
     assert len({row.label for row in definition.rows}) == 43 and len({row.group for row in definition.rows}) == 5
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
     assert all(row.about and "/2026-10-11_" in row.folder for row in definition.rows)
+    labels = {row.label for row in definition.rows}
+    assert len(definition.charts) == 5 and all(run in labels for chart in definition.charts for run, _ in chart.runs)

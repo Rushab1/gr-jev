@@ -9,9 +9,11 @@ from collections.abc import Callable
 from math import log2
 from pathlib import Path
 
+from grjev.charts import bars_chart, positions_chart, spans_chart
 from grjev.constants import MODEL_TITLES, POSITIONS_SHOWN_BELOW, REPO_ROOT
 from grjev.distribution import Distribution, Kind, distribution, second_after_removal, yes_figures
 from grjev.tables import (
+    ChartSpec,
     RowSpec,
     Selected,
     TableSpec,
@@ -29,6 +31,8 @@ NOT_MEASURED = "none"
 ENTROPY_HEADER = "Mean entropy in bits"
 MEASURED_HEADER = "Lists with a correct option and a distractor"
 POSITION_HEADERS = ("Mean probability at each position", "Predictions at each position")
+# The chart of the overconfidence runs from minus this value to plus this value.
+OVERCONFIDENCE_SHOWN = 0.3
 
 
 def ranked(found: Distribution) -> str | None:
@@ -204,9 +208,63 @@ def table_html(table: list[list[str]]) -> str:
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
-def run_html(spec: RowSpec, models: tuple[str, ...], root: Path) -> str:
+def figures_of(chosen: dict[str, Selected]) -> dict[str, Distribution]:
+    """Return the figures of the lists of a run for each model that answered one."""
+    answers = {model: list(answers_of(own).values()) for model, own in chosen.items()}
+    return {model: distribution(found) for model, found in answers.items() if found}
+
+
+def confidence_text(found: Distribution, own: Selected) -> str:
+    """Return the mean confidence of a model, with the share of the lists that it refused when it refused one."""
+    refused = sum(unanswered(own))
+    share_refused = f", refused {refused / (found.answers + refused):.0%}" if refused else ""
+    return two(found.confidence) + share_refused
+
+
+def chart_html(chart: ChartSpec, runs: dict[str, dict[str, Selected]]) -> str:
+    """Return one chart of the report with its title and what it shows, from the runs that its definition names."""
+    chosen = {name: runs[run] for run, name in chart.runs}
+    found = {name: figures_of(own) for name, own in chosen.items()}
+    about = f"{chart.title}. {chart.about}"
+    if chart.kind == "positions":
+        shares = {
+            name: {model: [count / own.answers for count in own.predicted_at or ()] for model, own in models.items()}
+            for name, models in found.items()
+        }
+        drawn = positions_chart(about, shares)
+    elif chart.kind == "correct_span":
+        spans = {
+            name: {model: (own.lowest_correct or 0.0, own.highest_correct or 0.0) for model, own in models.items()}
+            for name, models in found.items()
+        }
+        drawn = spans_chart(about, spans, ("lowest correct option", "highest correct option"))
+    elif chart.kind == "second_correct":
+        moved = {
+            name: {model: second_after_removal(own.rows) for model, own in models.items()}
+            for name, models in chosen.items()
+        }
+        kept = {name: {model: pair[:2] for model, pair in models.items() if pair} for name, models in moved.items()}
+        drawn = spans_chart(about, kept, ("before the removal", "after the removal"))
+    elif chart.kind == "confidence":
+        bars = {
+            name: {model: (own.confidence, confidence_text(own, chosen[name][model])) for model, own in models.items()}
+            for name, models in found.items()
+        }
+        drawn = bars_chart(about, bars, 0.0, 1.0)
+    else:
+        over = {
+            name: {
+                model: (own.overconfidence or 0.0, signed(own.overconfidence or 0.0)) for model, own in models.items()
+            }
+            for name, models in found.items()
+        }
+        drawn = bars_chart(about, over, -OVERCONFIDENCE_SHOWN, OVERCONFIDENCE_SHOWN)
+    wide = ' class="wide"' if chart.kind == "positions" else ""
+    return f"<figure{wide}><h3>{marked(chart.title)}</h3><p>{marked(chart.about)}</p>{drawn}</figure>"
+
+
+def run_html(spec: RowSpec, chosen: dict[str, Selected]) -> str:
     """Return the block of one run: its name, what its lists hold, its instruction and its table."""
-    chosen = {model: selected(spec, model, root) for model in spec.models or models}
     first = next(iter(chosen.values()))
     counted = lists_held(first) if spec.figures == "lists" else ""
     instruction = f'<p class="said">Instruction: "{marked(spec.instruction)}"</p>' if spec.instruction else ""
@@ -230,6 +288,10 @@ ul { margin: 4px 0 8px; padding-left: 18px; }
 li { margin: 1px 0; }
 code { font: 8.5pt ui-monospace, Menlo, monospace; background: #f1f1ef; padding: 0 3px; border-radius: 3px; }
 section { margin: 12px 0 16px; break-inside: avoid; }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px; align-items: start; }
+figure { margin: 6px 0 0; break-inside: avoid; }
+figure.wide { grid-column: 1 / -1; }
+figure p { color: #5f5e5b; }
 .said { color: #5f5e5b; }
 .source { color: #9b9a97; font-size: 8pt; margin-top: 3px; }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-top: 4px; }
@@ -242,17 +304,20 @@ tbody td { white-space: nowrap; }
 
 def page(spec: TableSpec, root: Path = REPO_ROOT) -> str:
     """Return the report of a definition as a web page: the terms, the runs under their groups, and the notes."""
+    runs = {row.label: {model: selected(row, model, root) for model in row.models or spec.models} for row in spec.rows}
     parts = []
     group = ""
     for row in spec.rows:
         if row.group != group:
             group = row.group
             parts.append(f"<h2>{marked(group)}</h2>")
-        parts.append(run_html(row, spec.models, root))
+        parts.append(run_html(row, runs[row.label]))
+    drawn = "".join(chart_html(chart, runs) for chart in spec.charts)
+    charts = f'<h2>Summary charts</h2><div class="charts">{drawn}</div>' if drawn else ""
     terms = "".join(f"<li><b>{marked(term)}</b>: {marked(text)}</li>" for term, text in spec.terms)
     notes = "".join(f"<li>{marked(text)}</li>" for text in spec.notes)
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(spec.title)}</title>'
         f"<style>{STYLE}</style></head><body><h1>{marked(spec.title)}</h1><p>{marked(spec.intro)}</p>"
-        f"<h2>Terms</h2><ul>{terms}</ul>{''.join(parts)}<h2>Notes</h2><ul>{notes}</ul></body></html>\n"
+        f"{charts}<h2>Terms</h2><ul>{terms}</ul>{''.join(parts)}<h2>Notes</h2><ul>{notes}</ul></body></html>\n"
     )

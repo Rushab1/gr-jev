@@ -54,6 +54,9 @@ GATEWAY_MODELS = (LAYA_MODEL, D1_MODEL, LUNA_MODEL)
 RESULTS_MODEL_NAMES = {LAYA_MODEL: "laya", D1_MODEL: "d1", LUNA_MODEL: "gpt-6-luna-decisions"}
 # The name of a model in a document.
 MODEL_TITLES = {JEV_MODEL: "Jev", LAYA_MODEL: "Laya", D1_MODEL: "Liquid d1", LUNA_MODEL: "GPT-6 Luna Decisions"}
+# The colour of a model in a chart. The three colours of the report were checked on 2026-10-11 against the six
+# checks of a categorical palette on a white page, for colour-blind readers too.
+MODEL_COLORS = {JEV_MODEL: "#2a78d6", D1_MODEL: "#eb6834", LUNA_MODEL: "#1baf7a", LAYA_MODEL: "#8a6fd1"}
 # Laya on the gateway rejects a request when one of its tool lists is too long for the model, with one of these
 # statuses. Each list goes to Laya in a request of its own, and a rejected list is saved as rejected. On 2026-10-08
 # Laya answered a list of 16 APIs with descriptions (463 input tokens) and rejected the same list with 20.

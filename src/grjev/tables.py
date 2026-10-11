@@ -60,8 +60,22 @@ class RowSpec(BaseModel):
     positions: bool = False
 
 
+class ChartSpec(BaseModel):
+    """One chart of a report. `runs` holds the label of each run that it draws and the name of the run in the chart.
+
+    `kind` names the figure: the share of the predictions at each position, the mean probability of the lowest and
+    of the highest correct option, the mean confidence, the overconfidence, or the second correct option before and
+    after the top one is removed.
+    """
+
+    kind: Literal["positions", "correct_span", "confidence", "overconfidence", "second_correct"]
+    title: str
+    about: str
+    runs: list[tuple[str, str]]
+
+
 class TableSpec(BaseModel):
-    """The definition of a document with one table per model."""
+    """The definition of a document with one table per model, or of a report with one table per run and charts."""
 
     title: str
     intro: str
@@ -69,6 +83,7 @@ class TableSpec(BaseModel):
     notes: list[str]
     models: tuple[str, ...]
     rows: list[RowSpec]
+    charts: list[ChartSpec] = []
 
 
 def read_spec(path: Path) -> TableSpec:
