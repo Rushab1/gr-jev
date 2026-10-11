@@ -23,6 +23,15 @@ wording of the instruction. Its columns:
 
 The lines under a table give CSR on one group of lists minus CSR on another, in points.
 
+A second table gives the figures of the probability distribution for the same rows, over every answer of the group
+and with the probabilities rounded: accuracy, calibration, the differences between correct options and distractors,
+and the probabilities by position. `grjev.distribution.Distribution` describes them, and `docs/all_runs.md` defines
+the terms.
+
+A removal run also gets the mean probability of the second correct option before and after the correct option with
+the highest probability is removed. A yes/no run gets the mean probability of yes for the correct options and for
+the distractors.
+
 A run whose lists hold rewordings or copies of one tool also gets the mean probability of the entries from the highest
 of an answer to the lowest, the mean probability at each place of the list, and the answers that select each place.
 A run with rotated orders gets the last two by entry too, in the order of the first list, and the examples by the
@@ -40,7 +49,9 @@ from grjev.constants import (
     LIST_LENGTHS,
     REWORDED_LIST,
     ROTATED_LIST,
+    YES_PROBABILITY,
 )
+from grjev.distribution import distribution, rounded, second_after_removal, yes_figures
 from grjev.examples import read_jsonl
 from grjev.metrics import (
     Figures,
@@ -56,6 +67,7 @@ from grjev.metrics import (
     row_groups,
 )
 from grjev.runs import Row, RunConfig
+from grjev.tables import COLUMNS as DISTRIBUTION_COLUMNS
 
 
 def mean_text(value: float | None) -> str:
@@ -122,6 +134,40 @@ def print_rewordings(rows: list[Row], lists: list[str]) -> None:
         print(f"most selected entry: {most_selected(rows, lists)}")
 
 
+def print_distribution(rows: list[Row], groups: dict[str, list[str]]) -> None:
+    """Print the figures of the probability distribution of each group of tool lists, over every answer it has."""
+    table = [["tool lists", "answers", *DISTRIBUTION_COLUMNS]]
+    for group, lists in groups.items():
+        answers = [(row, row.answers[name]) for row in map(rounded, rows) for name in lists if name in row.answers]
+        found = distribution(answers)
+        table.append([group, f"{len(answers):,}", *(cell(found) for cell in DISTRIBUTION_COLUMNS.values())])
+    print()
+    print_table(table)
+
+
+def print_removal(rows: list[Row]) -> None:
+    """Print the mean probability of the second correct option before and after the top correct option is removed."""
+    found = second_after_removal(rows)
+    if found is not None:
+        before, after, examples = found
+        print(f"\nsecond correct option, {examples:,} examples with several correct options: mean probability")
+        print(f"{before:.3f} in the full list, {after:.3f} in the list without the correct option with the highest")
+
+
+def print_yes_no(rows: list[Row]) -> None:
+    """Print the mean probability of yes and the answers of yes, for the correct options and for the distractors."""
+    found = yes_figures(rows)
+    counted = {
+        "correct options": (found.correct, found.correct_mean, found.correct_yes),
+        "distractors": (found.distractors, found.distractor_mean, found.distractor_yes),
+    }
+    for name, (answers, mean, yes) in counted.items():
+        if mean is not None:
+            print(
+                f"{name}: {answers:,} answers, mean probability of yes {mean:.3f}, {yes:,} at {YES_PROBABILITY} or more"
+            )
+
+
 def print_run(folder: Path) -> None:
     """Print the input tokens of one run and their price, then the figures of each of its test files."""
     config = RunConfig.model_validate_json((folder / "config.json").read_text())
@@ -154,9 +200,12 @@ def print_run(folder: Path) -> None:
             points, low, high = difference(own, groups[first], groups[second], BOOTSTRAP_SEED)
             # Adding 0.0 turns a rounded -0.0 into 0.0.
             print(f"{comparison}: {round(points, 1) + 0.0:+.1f} points, 95% interval {low:.1f} to {high:.1f}")
+        print_distribution(own, groups)
     rewordings = [name for name in list_names(rows) if name.split("_")[0] in (REWORDED_LIST, ROTATED_LIST)]
     if rewordings:
         print_rewordings(rows, rewordings)
+    print_removal(rows)
+    print_yes_no(rows)
     print()
 
 

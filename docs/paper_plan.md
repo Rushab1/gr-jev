@@ -218,7 +218,7 @@ Rushab, 2026-10-09: decided later. Possibly a short section at the end of the pa
 
 ## Steps
 
-1. The figures in the repository. They come from a script that is not in the repository and has no test: the three differences between correct options and distractors, the probabilities by position, overconfidence and ECE with its 10 bins. The code goes into `src/grjev/metrics.py` with tests and must give the figures of `docs/all_runs.md` again.
+1. The figures in the repository. Done on 2026-10-10. `src/grjev/distribution.py` computes the figures of `docs/all_runs.md` and `src/grjev/tables.py` builds its tables, with tests. `python scripts/runs_table.py all_runs --out docs/all_runs.md` rebuilds the file. The rebuilt tables are identical to those of the script outside the repository, which they replace. `scripts/results_figures.py` prints the same figures for one run.
 2. HotpotQA and ECtHR in the repository: a pinned download and a converter to the common format with its test, for each.
 3. The new runs in the runner, with tests: the lists without correct options, a yes/no question per option, and the distractors of the example with no correct option. The runs with duplicates, random distractors and NOTA exist and need their entries for HotpotQA and ECtHR.
 4. A pilot on 50 examples per dataset and model, about 900 Jev calls. One exact request of HotpotQA and one of ECtHR are shown to Rushab before it.

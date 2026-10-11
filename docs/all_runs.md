@@ -1,6 +1,6 @@
 # Figures by run and model
 
-Computed on 2026-10-09 from the answers saved in `results/`. Jev was asked through TypeSafe's API from 2026-10-05 to 2026-10-08. Laya, Liquid d1 and GPT-6 Luna Decisions were asked through Vercel AI Gateway on 2026-10-09 with the requests of the Jev runs. The gateway takes no model version. The script that computes the figures is not in the repository, and no test covers it.
+Computed on 2026-10-09 from the answers saved in `results/`. Jev was asked through TypeSafe's API from 2026-10-05 to 2026-10-08. Laya, Liquid d1 and GPT-6 Luna Decisions were asked through Vercel AI Gateway on 2026-10-09 with the requests of the Jev runs. The gateway takes no model version. `python scripts/runs_table.py all_runs --out docs/all_runs.md` rebuilds this file from the results folders and `src/grjev/definitions/all_runs.json`.
 
 ## Terms
 
