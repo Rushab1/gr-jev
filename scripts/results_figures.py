@@ -149,9 +149,10 @@ def print_removal(rows: list[Row]) -> None:
     """Print the mean probability of the second correct option before and after the top correct option is removed."""
     found = second_after_removal(rows)
     if found is not None:
-        before, after, examples = found
-        print(f"\nsecond correct option, {examples:,} examples with several correct options: mean probability")
-        print(f"{before:.3f} in the full list, {after:.3f} in the list without the correct option with the highest")
+        print(f"\nsecond correct option, {found.examples:,} examples with several correct options: mean probability")
+        print(f"{found.before:.3f} in the full list, {found.after:.3f} in the list without the top correct option")
+        if found.renormalised is not None:
+            print(f"{found.renormalised:.3f} renormalised over the full list without it, {found.shared:,} examples")
 
 
 def print_yes_no(rows: list[Row]) -> None:

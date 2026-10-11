@@ -215,25 +215,49 @@ def distribution(answers: Sequence[tuple[Row, ListAnswer]]) -> Distribution:
     )
 
 
-def second_after_removal(rows: Sequence[Row], full: str = FULL_LIST) -> tuple[float, float, int] | None:
-    """Return the mean probability of the second correct option before and after the top one is removed.
+@dataclass(frozen=True)
+class Removal:
+    """The second correct option of the examples of a run, before and after the top correct option is removed.
+
+    `before` and `after` are its mean probabilities in the full list and in the list without the top correct
+    option, over `examples` examples. `renormalised` is the mean of its probability in the full list divided by the
+    probability that the full list gives to the options other than the top correct one. It is the value that the
+    full list gives when the probability of the removed option is shared out in proportion. It is computed over the
+    `shared` examples whose top correct option has less than 1, and is None when there is none.
+    """
+
+    before: float
+    after: float
+    examples: int
+    renormalised: float | None
+    shared: int
+
+
+def second_after_removal(rows: Sequence[Row], full: str = FULL_LIST) -> Removal | None:
+    """Return the figures of the second correct option before and after the top one is removed.
 
     The second correct option of an example is the correct option with the second-highest probability in the list
     named `full`. The list without the correct option that has the highest probability there gives the value after.
-    The third value is the number of examples with several correct options and an answer to both lists. Return None
-    when there is none.
+    The examples are those with several correct options and an answer to both lists. Return None when there is none.
     """
-    before, after = [], []
+    before, after, shares = [], [], []
     for row in rows:
         answer = row.answers.get(full)
         if answer is None or len(row.labels) < 2:
             continue
         ranked = sorted(row.labels, key=lambda label: answer.probabilities[label], reverse=True)
         removed = row.answers.get(f"{WITHOUT_LIST}_{row.labels.index(ranked[0]) + 1}")
-        if removed is not None:
-            before.append(answer.probabilities[ranked[1]])
-            after.append(removed.probabilities[ranked[1]])
-    return (statistics.fmean(before), statistics.fmean(after), len(before)) if before else None
+        if removed is None:
+            continue
+        top, second = answer.probabilities[ranked[0]], answer.probabilities[ranked[1]]
+        before.append(second)
+        after.append(removed.probabilities[ranked[1]])
+        if top < 1:
+            shares.append(second / (1 - top))
+    if not before:
+        return None
+    renormalised = statistics.fmean(shares) if shares else None
+    return Removal(statistics.fmean(before), statistics.fmean(after), len(before), renormalised, len(shares))
 
 
 def yes_figures(rows: Sequence[Row]) -> YesFigures:

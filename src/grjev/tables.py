@@ -86,10 +86,25 @@ class ExampleSpec(BaseModel):
     about: str
 
 
+class PartSpec(BaseModel):
+    """The columns that one run gives to the table of a finding. `name` is the heading over them."""
+
+    run: str
+    name: str
+    columns: list[str]
+
+
+class PaperTableSpec(BaseModel):
+    """The table of a finding for the paper: the models as rows, and the figures of each of its runs as columns."""
+
+    caption: str
+    parts: list[PartSpec]
+
+
 class FindingSpec(BaseModel):
     """One finding of a report: the conclusion, how strong it is for the paper, its evidence and its limits.
 
-    The finding is shown with a chart and with one example.
+    The finding is shown with a chart and with one example, and with its table for the paper when it has one.
     """
 
     title: str
@@ -99,6 +114,7 @@ class FindingSpec(BaseModel):
     limits: list[str]
     chart: ChartSpec
     example: ExampleSpec
+    table: PaperTableSpec | None = None
 
 
 class TableSpec(BaseModel):

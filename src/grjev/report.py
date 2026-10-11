@@ -17,12 +17,21 @@ from grjev.constants import (
     REPO_ROOT,
     SECOND_TEAM_PROBABILITY,
 )
-from grjev.distribution import Distribution, Kind, correct_names, distribution, second_after_removal, yes_figures
+from grjev.distribution import (
+    Distribution,
+    Kind,
+    Removal,
+    correct_names,
+    distribution,
+    second_after_removal,
+    yes_figures,
+)
 from grjev.examples import Example, read_dataset
 from grjev.tables import (
     ChartSpec,
     ExampleSpec,
     FindingSpec,
+    PaperTableSpec,
     RowSpec,
     Selected,
     TableSpec,
@@ -178,12 +187,26 @@ def second_correct_table(spec: RowSpec, chosen: dict[str, Selected]) -> list[lis
             "Examples with both lists answered",
             "Mean probability of the second correct option in the full list",
             "Its mean probability in the list without the correct option that has the highest probability",
+            "Its mean probability in the full list, renormalised over the options other than the removed one",
+            "Examples with a renormalised value: the removed option has less than 1.00",
         ]
     ]
     for model, own in chosen.items():
         found = second_after_removal(own.rows)
-        texts = [f"{found[2]:,}", two(found[0]), two(found[1])] if found else ["0", NOT_MEASURED, NOT_MEASURED]
-        table.append([MODEL_TITLES[model], *texts])
+        if found is None:
+            table.append([MODEL_TITLES[model], "0", *[NOT_MEASURED] * 3, "0"])
+            continue
+        shared = NOT_MEASURED if found.renormalised is None else two(found.renormalised)
+        table.append(
+            [
+                MODEL_TITLES[model],
+                f"{found.examples:,}",
+                two(found.before),
+                two(found.after),
+                shared,
+                f"{found.shared:,}",
+            ]
+        )
     return table
 
 
@@ -201,8 +224,8 @@ def lists_held(chosen: Selected) -> str:
         return counted + "."
     found = distribution(answers)
     return (
-        f"{counted}, {lists:,} lists. Options in a list: {spanned(found.options)}. "
-        f"Correct options in a list: {spanned(found.correct_options)}."
+        f"{counted} and {lists:,} lists. Each list has {spanned(found.options)} options. "
+        f"The number of correct options in a list is {spanned(found.correct_options)}."
     )
 
 
@@ -255,7 +278,10 @@ def chart_svg(chart: ChartSpec, runs: dict[str, dict[str, Selected]]) -> str:
             name: {model: second_after_removal(own.rows) for model, own in models.items()}
             for name, models in chosen.items()
         }
-        kept = {name: {model: pair[:2] for model, pair in models.items() if pair} for name, models in moved.items()}
+        kept = {
+            name: {model: (pair.before, pair.after) for model, pair in models.items() if pair}
+            for name, models in moved.items()
+        }
         return spans_chart(chart.title, kept, ("before the removal", "after the removal"))
     if chart.kind == "calibration":
         spans = {
@@ -268,6 +294,78 @@ def chart_svg(chart: ChartSpec, runs: dict[str, dict[str, Selected]]) -> str:
         for name, models in found.items()
     }
     return spans_chart(chart.title, spans, ("lowest correct option", "highest correct option"))
+
+
+def position_share(found: Distribution | None, place: int) -> str | None:
+    """Return the share of the predictions at one position, or None for lists that have no figure by position."""
+    if found is None or found.predicted_at is None:
+        return None
+    return f"{found.predicted_at[place] / found.answers:.1%}"
+
+
+def refused_share(own: Selected) -> str:
+    """Return the share of the lists of a run that the model refused."""
+    refused = unanswered(own)[1]
+    return f"{refused / (len(answers_of(own)) + sum(unanswered(own))):.0%}"
+
+
+def removal_text(own: Selected, value: Callable[[Removal], float | None]) -> str | None:
+    """Return one figure of the second correct option before and after the removal, or None without one."""
+    found = second_after_removal(own.rows)
+    figure = None if found is None else value(found)
+    return None if figure is None else two(figure)
+
+
+def of_lists(value: Callable[[Distribution], float | None]) -> Callable[[Selected, Distribution | None], str | None]:
+    """Return the column of one figure of the lists of a run, with two decimals."""
+
+    def cell(own: Selected, found: Distribution | None) -> str | None:
+        figure = None if found is None else value(found)
+        return None if figure is None else two(figure)
+
+    return cell
+
+
+# Column header -> the text of the column in the table of a finding, from the examples of one model in a run and
+# the figures of its lists. The text is None when the run has no such figure for the model.
+PAPER_COLUMNS: dict[str, Callable[[Selected, Distribution | None], str | None]] = {
+    "Lists refused": lambda own, found: refused_share(own),
+    "Accuracy": of_lists(lambda found: found.accuracy),
+    "Mean confidence": of_lists(lambda found: found.confidence),
+    "ECE": of_lists(lambda found: found.ece),
+    "Prediction minus runner-up": of_lists(lambda found: found.runner_up),
+    "Predictions at the first position": lambda own, found: position_share(found, 0),
+    "Predictions at the last position": lambda own, found: position_share(found, -1),
+    "Highest correct option": of_lists(lambda found: found.highest_correct),
+    "Lowest correct option": of_lists(lambda found: found.lowest_correct),
+    "Highest distractor": of_lists(lambda found: found.highest_distractor),
+    f"Answers with every correct option above {SECOND_TEAM_PROBABILITY}": lambda own, found: (
+        None if found is None or found.every_correct_above is None else f"{found.every_correct_above:.0%}"
+    ),
+    "Second correct option in the full list": lambda own, found: removal_text(own, lambda moved: moved.before),
+    "After the removal": lambda own, found: removal_text(own, lambda moved: moved.after),
+    "Full list, renormalised": lambda own, found: removal_text(own, lambda moved: moved.renormalised),
+}
+
+
+def paper_table(table: PaperTableSpec, runs: dict[str, dict[str, Selected]]) -> str:
+    """Return the table of a finding for the paper: the models as rows, and the columns of each run under its name."""
+    names = "".join(f'<th class="edge" colspan="{len(part.columns)}">{marked(part.name)}</th>' for part in table.parts)
+    heads, cells = "", dict[str, str]()
+    for part in table.parts:
+        figures = figures_of(runs[part.run])
+        for place, header in enumerate(part.columns):
+            edge = "" if place else ' class="edge"'
+            heads += f"<th{edge}>{marked(header)}</th>"
+            for model, own in runs[part.run].items():
+                text = PAPER_COLUMNS[header](own, figures.get(model)) or NOT_MEASURED
+                cells[model] = cells.get(model, "") + f"<td{edge}>{text}</td>"
+    body = "".join(f"<tr><th>{marked(MODEL_TITLES[model])}</th>{own}</tr>" for model, own in cells.items())
+    return (
+        f'<div class="paper"><h3>Table for the paper</h3><p class="caption">{marked(table.caption)}</p>'
+        f'<table><thead><tr><th rowspan="2">Model</th>{names}</tr><tr>{heads}</tr></thead>'
+        f"<tbody>{body}</tbody></table></div>"
+    )
 
 
 def cut(text: str, characters: int) -> str:
@@ -334,7 +432,10 @@ def finding_html(
     root: Path,
     processed: dict[str, Path],
 ) -> str:
-    """Return the block of one finding: the conclusion, its strength, evidence and limits, a chart and an example."""
+    """Return the block of one finding: the conclusion, its strength, evidence and limits, a chart and an example.
+
+    The table of the finding for the paper follows them when the finding has one.
+    """
     evidence = "".join(f"<li>{marked(text)}</li>" for text in finding.evidence)
     limits = "".join(f"<li>{marked(text)}</li>" for text in finding.limits)
     example = example_html(finding.example, specs[finding.example.run], runs[finding.example.run], root, processed)
@@ -342,8 +443,9 @@ def finding_html(
         f'<div class="finding"><h2>{marked(finding.title)}</h2><p class="lead">{marked(finding.conclusion)}</p>'
         f"<p><b>Strength for the paper:</b> {marked(finding.strength)}</p>"
         f'<div class="pair"><div><h3>{marked(finding.chart.title)}</h3>{chart_svg(finding.chart, runs)}'
-        f"<h3>Evidence</h3><ul>{evidence}</ul><h3>Limits</h3><ul>{limits}</ul></div>"
-        f"<div><h3>One example</h3>{example}</div></div></div>"
+        f"<h3>Evidence</h3><ul>{evidence}</ul></div>"
+        f"<div><h3>One example</h3>{example}<h3>Limits</h3><ul>{limits}</ul></div></div>"
+        f"{paper_table(finding.table, runs) if finding.table else ''}</div>"
     )
 
 
@@ -392,6 +494,12 @@ table.example th, table.example td { padding: 3px 4px; vertical-align: top; }
 table.example thead th { font-size: 7.2pt; white-space: normal; }
 table.example td:nth-child(2), table.example th:nth-child(2) { text-align: left; white-space: normal; }
 table.example td:first-child { color: #9b9a97; }
+.paper { break-inside: avoid; margin-top: 6px; }
+.paper .caption { margin-top: 0; font-weight: 400; }
+.paper thead th { white-space: normal; text-align: center; vertical-align: bottom; }
+.paper thead tr + tr th { font-weight: 400; text-align: right; }
+.paper thead tr + tr th:first-child { white-space: normal; text-align: right; }
+.paper .edge { border-left: 1px solid #d3d1cb; }
 .tables { page: tables; }
 @media screen { body { padding: 18px; max-width: 760px; } .tables { width: 1180px; } }
 """

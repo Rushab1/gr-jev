@@ -7,18 +7,20 @@ from grjev.examples import Example, Option, write_jsonl
 from grjev.report import (
     ENTROPY_HEADER,
     MEASURED_HEADER,
+    PAPER_COLUMNS,
     POSITION_HEADERS,
     chart_svg,
     finding_html,
     lists_table,
     page,
+    paper_table,
     run_html,
     second_correct_table,
     yes_no_table,
 )
 from grjev.results import write_run
 from grjev.runs import ListAnswer, Row, RunConfig
-from grjev.tables import FindingSpec, RowSpec, TableSpec, read_spec, selected
+from grjev.tables import FindingSpec, PaperTableSpec, RowSpec, TableSpec, read_spec, selected
 
 JEV_FOLDER = "results/set_removal/2026-10-01_01"
 D1_FOLDER = "results/set_removal_d1/2026-10-02_01"
@@ -99,14 +101,44 @@ def test_the_yes_no_table_and_the_table_of_the_second_correct_option_have_one_ro
     assert yes_no[2] == ["Liquid d1", "0", "4", "none", "0 of 0", "none", "0 of 0"]
     second = second_correct_table(spec(), chosen(root, spec()))
     # The top correct option of the full list is a, the first label, so the list without it is `without_1`.
-    assert second[1] == ["Jev", "1", "0.10", "0.60"] and second[2] == ["Liquid d1", "0", "none", "none"]
+    # The options other than a hold 0.3 of the full list, and b holds 0.1 of it.
+    assert second[1] == ["Jev", "1", "0.10", "0.60", "0.33", "1"]
+    assert second[2] == ["Liquid d1", "0", "none", "none", "none", "0"]
+
+
+def test_the_table_of_a_finding_has_one_row_per_model_and_the_columns_of_each_run_under_its_name(
+    tmp_path: Path,
+) -> None:
+    own = spec(lists=("full",), positions=True)
+    removal = spec(label="Removal", figures="second_correct")
+    root = results(tmp_path)
+    runs = {"Set": chosen(root, own), "Removal": chosen(root, removal)}
+    columns = ["Predictions at the first position", "Highest correct option", "Lowest correct option", "Lists refused"]
+    moved = ["After the removal", "Full list, renormalised"]
+    table = PaperTableSpec.model_validate(
+        {
+            "caption": "Two runs.",
+            "parts": [
+                {"run": "Set", "name": "The full list", "columns": columns},
+                {"run": "Removal", "name": "Without a", "columns": moved},
+            ],
+        }
+    )
+    block = paper_table(table, runs)
+    assert '<p class="caption">Two runs.</p>' in block and block.count("<tr>") == 4
+    assert '<th class="edge" colspan="4">The full list</th><th class="edge" colspan="2">Without a</th>' in block
+    jev = '<td class="edge">100.0%</td><td>0.70</td><td>0.10</td><td>0%</td><td class="edge">0.60</td><td>0.33</td>'
+    assert f"<tr><th>Jev</th>{jev}</tr>" in block
+    # Liquid d1 refused the list without a, and the run of the removal counts its 2 refused lists of 3.
+    assert '<td>0%</td><td class="edge">none</td><td>none</td></tr>' in block
 
 
 def test_the_block_of_a_run_names_its_lists_its_instruction_and_its_folder(tmp_path: Path) -> None:
     own = spec(lists=("full",), about="The list of the example.", instruction="Choose <one> tool.")
     block = run_html(own, chosen(results(tmp_path), own))
     assert "<h3>Set</h3>" in block and 'Instruction: "Choose &lt;one&gt; tool."' in block
-    assert "The list of the example. 1 examples, 1 lists. Options in a list: 3. Correct options in a list: 2." in block
+    assert "The list of the example. 1 examples and 1 lists. Each list has 3 options." in block
+    assert "The number of correct options in a list is 2." in block
     assert f"<code>{JEV_FOLDER}</code>, every list" in block and block.count("<tr>") == 3
 
 
@@ -168,6 +200,10 @@ def test_a_finding_has_its_conclusion_its_chart_and_one_example_with_the_probabi
     block = finding_html(finding(), {"Set": own}, runs, tmp_path, processed(tmp_path))
     assert "<h2>1. Allocation</h2>" in block and "<b>Strength for the paper:</b> strong." in block
     assert block.count("<svg") == 1 and "<li>0.70 and 0.10.</li>" in block and "<li>One run.</li>" in block
+    assert "Table for the paper" not in block
+    table = {"caption": "One run.", "parts": [{"run": "Set", "name": "Set", "columns": ["Mean confidence"]}]}
+    with_table = finding().model_copy(update={"table": PaperTableSpec.model_validate(table)})
+    assert "<h3>Table for the paper</h3>" in finding_html(with_table, {"Set": own}, runs, tmp_path, processed(tmp_path))
     # The query is shown on one line, and the options in the order sent with their text.
     assert "<b>Query.</b> Do a thing &lt;now&gt;." in block and "<b>Instruction.</b> Choose every tool." in block
     assert '<b>a</b> <span class="tag">correct</span> Does thing a, at length.' in block
@@ -223,3 +259,6 @@ def test_the_definition_of_the_runs_on_every_example_names_48_tables_for_three_m
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8
     assert all(run in labels for found in definition.findings for run, _ in found.chart.runs)
     assert all(found.example.run in labels and found.evidence and found.limits for found in definition.findings)
+    parts = [part for found in definition.findings if found.table for part in found.table.parts]
+    assert all(found.table for found in definition.findings) and all(part.run in labels for part in parts)
+    assert all(header in PAPER_COLUMNS for part in parts for header in part.columns)
