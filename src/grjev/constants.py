@@ -35,7 +35,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # subset. Raised to 1,962 on 2026-10-08 for four subsets of MMLU with 50 calls each: own, copied, unrelated and
 # absent_random. Raised to 2,012 the same day for the 50 calls of the absent subset of MMLU. Raised to 5,000 on
 # 2026-10-09 on Rushab's instruction ("increase jev limit to 5k"), when single HotpotQA questions needed Jev calls.
-JEV_CALL_LIMIT = 5000
+# Raised to 42,000 on 2026-10-11 for the runs on every example, which need 39,512: 2,723 saved calls and 36,789 new
+# ones. Claude Code proposed 42,000, and Rushab answered "you can cal jev".
+JEV_CALL_LIMIT = 42000
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
