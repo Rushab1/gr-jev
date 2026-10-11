@@ -6,7 +6,7 @@
   "Several correct options (finding 2, the main finding). When 2 to 4 options in a list are correct, one of them has a mean probability of 0.66 to 0.85. The correct option with the lowest probability has 0.11 to 0.19. This happens on three datasets and three models. TypeSafe's example code notifies a second team when its probability is above 0.25. Every correct option is above 0.25 in 15% to 35% of the answers. Strong.",
   "TypeSafe's example (finding 6). TypeSafe's example ticket has two issues. Jev gives their two teams 0.65 and 0.31. The documentation shows 0.61 and 0.35. On 24 tickets written the same way, both teams are above 0.25 in 11 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions. When an issue is sent alone, the models give its team 0.99 to 1.00. Moderate: 24 tickets.",
   "Why the second correct option is low (finding 5). Remove the correct option with the highest probability from the list. The second correct option then rises from between 0.11 and 0.19 to between 0.53 and 0.71. Divide its probability in the full list by the probability of the options that stay, and the result is 0.41 to 0.81. The first correct option held the probability. This supports finding 2. It is not a finding of its own.",
-  "Identical options (finding 1). In a list of 5 copies of one correct option, every copy is equally correct, and equal probabilities are 0.20. Liquid d1 gives one copy a mean of 0.50 to 0.81, and GPT-6 Luna Decisions 0.67 to 0.79. It is the first copy in 86% to 100% of their answers. Jev gives its top copy 0.29 to 0.34. Strong for Liquid d1 and GPT-6 Luna Decisions.",
+  "Identical options (finding 1). In a list of 5 copies of one correct option, every copy is equally correct, and equal probabilities are 0.20. Jev gives its highest copy 0.29 to 0.34 and its lowest copy 0.10 to 0.12. Liquid d1 gives them 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions gives them 0.67 to 0.79 and 0.01 to 0.02. Liquid d1 and GPT-6 Luna Decisions pick the first copy in 86% to 100% of their answers. Strong.",
   "No correct option (finding 3). When no option in a list is correct, Jev and Liquid d1 answer every list. Their mean confidence is 0.49 to 0.87. GPT-6 Luna Decisions refuses 58% to 98% of the lists with random options. It refuses 1% to 27% of the lists with the example's distractors. Strong for random options.",
   "One correct option (finding 4). The mean confidence is within 0.14 of the accuracy. The probability works in this case. When several options are correct, the mean confidence is 0.08 to 0.23 below the accuracy.",
   "For the paper. Finding 2 carries the paper. Finding 6 tests it on TypeSafe's own example. Findings 1 and 3 show two more cases where the probability does not say whether an option is correct. Each request was sent once. No figure has a margin of error yet."
@@ -14,11 +14,12 @@
  "findings": [
   {
    "title": "1. Identical options: the copies do not get equal probabilities, and the position decides which copy gets the most",
-   "conclusion": "A list of 5 copies of one correct option has no better option, and equal probabilities are 0.20 each. Liquid d1 and GPT-6 Luna Decisions give one copy a mean of 0.50 to 0.81. It is the first copy in 86% to 100% of their answers. Jev stays closer to equal. Its top copy gets 0.29 to 0.34, and it is the last copy in 74% of the answers on MMLU and 59% on ECtHR.",
-   "strength": "strong for Liquid d1 and GPT-6 Luna Decisions. Jev is near equal probabilities and also shows a position bias, but its direction changes with the dataset. For Jev, the answer depends on position, but no single position always wins.",
+   "conclusion": "A list of 5 copies of one correct option has no better option, and equal probabilities are 0.20 each. No model gives equal probabilities. Jev gives its highest copy 0.29 to 0.34 and its lowest copy 0.10 to 0.12. Liquid d1 gives them 0.50 to 0.81 and 0.03 to 0.08, and GPT-6 Luna Decisions 0.67 to 0.79 and 0.01 to 0.02. The position decides which copy is highest.",
+   "strength": "strong for the three models. Identical options get different probabilities: the highest copy is ahead of the lowest copy by 0.17 to 0.23 on Jev, 0.42 to 0.78 on Liquid d1 and 0.65 to 0.78 on GPT-6 Luna Decisions. Liquid d1 and GPT-6 Luna Decisions put the highest copy first. Jev's preferred position changes with the dataset.",
    "evidence": [
-    "Liquid d1 gives the copy with the highest probability a mean of 0.50 to 0.81. GPT-6 Luna Decisions gives it 0.67 to 0.79. Equal probabilities are 0.20. Jev gives it 0.29 to 0.34.",
-    "The top copy is ahead of the second-highest copy by 0.31 to 0.73 on Liquid d1 and by 0.45 to 0.68 on GPT-6 Luna Decisions. On Jev it is ahead by 0.06 to 0.11.",
+    "Jev gives the highest copy a mean of 0.32, 0.33, 0.34 and 0.29 on MetaTool, MMLU, HotpotQA and ECtHR, and the lowest copy 0.11, 0.10, 0.11 and 0.12. The highest copy gets 2.4 to 3.3 times the probability of the lowest copy.",
+    "Liquid d1 gives the highest copy 0.81, 0.50, 0.73 and 0.55, and the lowest copy 0.03, 0.08, 0.04 and 0.07. GPT-6 Luna Decisions gives the highest copy 0.78, 0.74, 0.79 and 0.67, and the lowest copy 0.02, 0.01, 0.01 and 0.02.",
+    "The highest copy is ahead of the second-highest copy by 0.06 to 0.11 on Jev, 0.31 to 0.73 on Liquid d1 and 0.45 to 0.68 on GPT-6 Luna Decisions.",
     "The mean entropy is 1.03 to 1.85 bits on Liquid d1, 1.00 to 1.35 bits on GPT-6 Luna Decisions and 2.18 to 2.24 bits on Jev. Equal probabilities give 2.32 bits.",
     "Liquid d1 picks position 1 in 99.9%, 85.7%, 99.5% and 99.6% of answers on MetaTool, MMLU, HotpotQA and ECtHR, respectively. GPT-6 Luna Decisions picks it in 98.6%, 87.8%, 99.4% and 98.9% of answers, respectively. An equal share is 20%.",
     "Jev picks the last position in 73.9% of answers on MMLU, 59.3% on ECtHR, 35.5% on MetaTool and 29.5% on HotpotQA.",
@@ -65,14 +66,14 @@
     "about": "Of the 1,000 MMLU questions, this question has probabilities by position closest to the three models' means."
    },
    "table": {
-    "caption": "Each list has 5 copies of one correct option and is sent in its 5 cyclic permutations. The table shows the mean confidence, the mean of the prediction's probability minus the runner-up's, and the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20%.",
+    "caption": "Each list has 5 copies of one correct option and is sent in its 5 cyclic permutations. Every copy is a correct option. The table shows the mean probability of the highest copy and of the lowest copy, and the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20%.",
     "parts": [
      {
       "run": "MetaTool: 5 duplicates of one correct tool",
       "name": "MetaTool",
       "columns": [
-       "Mean confidence",
-       "Prediction minus runner-up",
+       "Highest correct option",
+       "Lowest correct option",
        "Predictions at the first position"
       ]
      },
@@ -80,8 +81,8 @@
       "run": "MMLU: 5 duplicates of the correct choice",
       "name": "MMLU",
       "columns": [
-       "Mean confidence",
-       "Prediction minus runner-up",
+       "Highest correct option",
+       "Lowest correct option",
        "Predictions at the first position"
       ]
      },
@@ -89,8 +90,8 @@
       "run": "HotpotQA: 5 duplicates of one supporting passage",
       "name": "HotpotQA",
       "columns": [
-       "Mean confidence",
-       "Prediction minus runner-up",
+       "Highest correct option",
+       "Lowest correct option",
        "Predictions at the first position"
       ]
      },
@@ -98,8 +99,8 @@
       "run": "ECtHR: 5 duplicates of one violated article",
       "name": "ECtHR",
       "columns": [
-       "Mean confidence",
-       "Prediction minus runner-up",
+       "Highest correct option",
+       "Lowest correct option",
        "Predictions at the first position"
       ]
      }

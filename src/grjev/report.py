@@ -332,8 +332,6 @@ PAPER_COLUMNS: dict[str, Callable[[Selected, Distribution | None], str | None]] 
     "Lists refused": lambda own, found: refused_share(own),
     "Accuracy": of_lists(lambda found: found.accuracy),
     "Mean confidence": of_lists(lambda found: found.confidence),
-    "ECE": of_lists(lambda found: found.ece),
-    "Prediction minus runner-up": of_lists(lambda found: found.runner_up),
     "Predictions at the first position": lambda own, found: position_share(found, 0),
     "Predictions at the last position": lambda own, found: position_share(found, -1),
     "Highest correct option": of_lists(lambda found: found.highest_correct),
