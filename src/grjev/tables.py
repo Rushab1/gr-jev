@@ -7,6 +7,7 @@ for another model the folder in which that model repeats the run.
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -37,6 +38,11 @@ class RowSpec(BaseModel):
     uses the examples of `test_file` whose number of labels is within `labels`, and the lists named in `lists` or
     whose name starts with `list_prefix`. Without one of these it uses all of them. `models` limits the row to
     some models.
+
+    A report shows a row as a table of its own, under the heading `group`, with `about`, which says what the lists
+    hold, and `instruction`, the instruction sent with them. `figures` names the figures of that table: those of
+    the lists, of the yes/no answers, or of the second correct option before and after the top one is removed.
+    `positions` says that the table gives the figures by position, which a run with cyclic permutations has.
     """
 
     label: str
@@ -47,6 +53,11 @@ class RowSpec(BaseModel):
     lists: tuple[str, ...] | None = None
     list_prefix: str = ""
     models: tuple[str, ...] | None = None
+    group: str = ""
+    about: str = ""
+    instruction: str = ""
+    figures: Literal["lists", "yes_no", "second_correct"] = "lists"
+    positions: bool = False
 
 
 class TableSpec(BaseModel):

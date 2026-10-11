@@ -1,0 +1,537 @@
+{
+ "title": "Runs on every example: figures by run and model",
+ "intro": "Runs of `docs/paper_plan.md`, made on 2026-10-11 on Jev, Liquid d1 and GPT-6 Luna Decisions. Each run has one table with the models as rows. `python scripts/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds this page from the results folders and `src/grjev/definitions/paper_runs.json`.",
+ "terms": [
+  [
+   "Option",
+   "one entry of the list sent with a query: a tool on MetaTool, a choice on MMLU, a passage on HotpotQA, an article on ECtHR."
+  ],
+  [
+   "Correct option",
+   "an option that the dataset labels as correct for the query."
+  ],
+  [
+   "Distractor",
+   "an option that is not a correct option."
+  ],
+  [
+   "NOTA",
+   "an option that says no other option is correct: \"None\" on MetaTool, \"None of the above\" on MMLU, \"None of the passages\" on HotpotQA, \"None of these articles\" on ECtHR. It is the correct option of a list that holds no other correct option."
+  ],
+  [
+   "Prediction",
+   "the option that the model selects, the field `choice` of its answer."
+  ],
+  [
+   "Confidence",
+   "the highest probability of an answer. It is not the field `confidence` of the model's answer."
+  ],
+  [
+   "Refused list",
+   "a list for which the model returns an answer of type `refusal` and no probabilities."
+  ],
+  [
+   "Accuracy",
+   "the share of the answers whose prediction is a correct option."
+  ],
+  [
+   "Exact match",
+   "for a list with k correct options, k being 2 or more: the share of the answers whose k options with the highest probabilities are the k correct options. A tie for place k is not a match."
+  ],
+  [
+   "Overconfidence",
+   "mean confidence minus accuracy."
+  ],
+  [
+   "ECE (expected calibration error)",
+   "the answers are put in 10 bins by confidence, from 0 to 0.1 up to 0.9 to 1.0. Each bin gives the distance between its mean confidence and its accuracy. ECE is the mean of the 10 distances, weighted by the number of answers in the bin."
+  ],
+  [
+   "Prediction minus runner-up",
+   "the highest probability of an answer minus its second-highest probability."
+  ],
+  [
+   "Highest correct minus lowest correct",
+   "the highest probability of a correct option minus the lowest probability of a correct option."
+  ],
+  [
+   "Highest correct minus highest distractor",
+   "the highest probability of a correct option minus the highest probability of a distractor."
+  ],
+  [
+   "Lowest correct minus highest distractor",
+   "the lowest probability of a correct option minus the highest probability of a distractor. It is negative when a distractor has a higher probability than a correct option."
+  ],
+  [
+   "Entropy",
+   "the sum of -p log2(p) over the probabilities p of an answer, in bits. It is 0 when one option has 1.00. Its maximum is log2 of the number of options, reached when every option has the same probability, and the header of the column gives it."
+  ],
+  [
+   "Position",
+   "the place of an option in the list sent, counted from the first."
+  ]
+ ],
+ "notes": [
+  "Jev is `jev-1.13.0`, asked through TypeSafe's API. Liquid d1 (`liquid/d1`) and GPT-6 Luna Decisions (`openai/gpt-6-luna-decisions`) are asked through Vercel AI Gateway, which takes no model version. The three models get the same requests.",
+  "Every figure of a row is computed over the lists that the model answered. A refused list has no answer. Jev and Liquid d1 refused no list.",
+  "A column is left out of a table when no model has that figure: a list with no correct option has no accuracy, and a list with only correct options has no distractor.",
+  "The three differences and the probabilities are computed for each answer and then averaged over the answers. The differences with a distractor use the answers to lists that hold a correct option and a distractor. Where a list of a run holds only correct options, the column \"Lists with a correct option and a distractor\" gives their number.",
+  "The MMLU runs use a seeded sample of 1,000 of the 13,096 questions whose choices can be moved. The HotpotQA runs with 5 cyclic permutations and the HotpotQA run with 4 distractors and NOTA use a seeded sample of 1,000 of the 7,345 questions with 10 passages. The other runs use every example.",
+  "MetaTool repeats queries across its test files. The 1,767 examples of the run with paraphrases give 1,047 different requests, and the 3,292 examples of the run with duplicates 3,275. An answer to a repeated request is counted once per example.",
+  "The labels of ECtHR are the articles that the Court found violated in a case, and a case with no label is one in which it found no violation of the 10 articles.",
+  "The yes/no question of a HotpotQA passage is sent for 500 questions, and that of an ECtHR article for the 1,000 test cases."
+ ],
+ "models": [
+  "jev-1.13.0",
+  "liquid/d1",
+  "openai/gpt-6-luna-decisions"
+ ],
+ "rows": [
+  {
+   "label": "MetaTool: 5 duplicates of one correct tool",
+   "folder": "results/metatool_copied/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The list holds 5 copies of one correct tool of the example. The names of the copies differ only by extra spaces. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Pick all the tools in the list that are relevant to the task at hand.",
+   "positions": true
+  },
+  {
+   "label": "MMLU: 5 duplicates of the correct choice",
+   "folder": "results/mmlu_copied/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The list holds 5 copies of the correct choice of the question. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "HotpotQA: 5 duplicates of one supporting passage",
+   "folder": "results/hotpotqa_copied/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The list holds 5 copies of one supporting passage of the question. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose every passage in the list that supports the answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "ECtHR: 5 duplicates of one violated article",
+   "folder": "results/ecthr_copied/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The list holds 5 copies of one article that the Court found violated in the case. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+   "positions": true
+  },
+  {
+   "label": "MetaTool: 5 paraphrases of one correct tool",
+   "folder": "results/metatool_rotated/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The list holds 5 descriptions of one correct tool in 5 styles, written by Claude Opus 5.5. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Pick all the tools in the list that are relevant to the task at hand.",
+   "positions": true
+  },
+  {
+   "label": "MetaTool: one correct tool at the first place of the list",
+   "folder": "results/metatool_position/2026-10-11_01",
+   "lists_text": "test files `similar_tools` and `scenario`, list `first`",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The tool list of the example with its correct tool moved to the first place. \"None\" is the last option. Test files `similar_tools` and `scenario`.",
+   "labels": [
+    1,
+    1
+   ],
+   "lists": [
+    "first"
+   ],
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+  },
+  {
+   "label": "MetaTool: one correct tool at the middle of the list",
+   "folder": "results/metatool_position/2026-10-11_01",
+   "lists_text": "test files `similar_tools` and `scenario`, list `middle`",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The tool list of the example with its correct tool moved to the middle. \"None\" is the last option. Test files `similar_tools` and `scenario`.",
+   "labels": [
+    1,
+    1
+   ],
+   "lists": [
+    "middle"
+   ],
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+  },
+  {
+   "label": "MetaTool: one correct tool at the last place of the list",
+   "folder": "results/metatool_position/2026-10-11_01",
+   "lists_text": "test files `similar_tools` and `scenario`, list `last`",
+   "group": "1. Order: lists whose options are all correct",
+   "about": "The tool list of the example with its correct tool moved to the last place. \"None\" is the last option. Test files `similar_tools` and `scenario`.",
+   "labels": [
+    1,
+    1
+   ],
+   "lists": [
+    "last"
+   ],
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+  },
+  {
+   "label": "MetaTool: two correct tools, \"Choose one of them.\"",
+   "folder": "results/metatool_position/2026-10-11_02",
+   "lists_text": "every list",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The tool list of the example, which holds two correct tools, in 9 orders: the released order, the two correct tools next to each other at 5 places, and apart at 3 pairs of places.",
+   "instruction": "Two tools in the list are appropriate to solve the user's query. Choose one of them."
+  },
+  {
+   "label": "MetaTool: two correct tools, \"Choose both.\"",
+   "folder": "results/metatool_position/2026-10-11_03",
+   "lists_text": "every list",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The tool list of the example, which holds two correct tools, in 9 orders: the released order, the two correct tools next to each other at 5 places, and apart at 3 pairs of places.",
+   "instruction": "Two tools in the list are appropriate to solve the user's query. Choose both."
+  },
+  {
+   "label": "MetaTool: two correct tools, every needed tool is asked for",
+   "folder": "results/metatool_removal/2026-10-11_01",
+   "lists_text": "list `full`",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The tool list of the example in the released order.",
+   "lists": [
+    "full"
+   ],
+   "instruction": "Choose every tool in the list that is needed to solve the user's query."
+  },
+  {
+   "label": "HotpotQA: the passages of the question, \"supports\"",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "list `full`",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The passages of the question in the released order. Two of them hold a supporting fact.",
+   "lists": [
+    "full"
+   ],
+   "instruction": "Choose every passage in the list that supports the answer to the question."
+  },
+  {
+   "label": "HotpotQA: the passages of the question, \"may support\"",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "list `full_may`",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The passages of the question in the released order. Two of them hold a supporting fact.",
+   "lists": [
+    "full_may"
+   ],
+   "instruction": "Choose every passage in the list that may support the answer to the question."
+  },
+  {
+   "label": "HotpotQA: the passages of the question, \"definitely supports\"",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "list `full_definitely`",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The passages of the question in the released order. Two of them hold a supporting fact.",
+   "lists": [
+    "full_definitely"
+   ],
+   "instruction": "Choose every passage in the list that definitely supports the answer to the question."
+  },
+  {
+   "label": "ECtHR: cases with 2 to 4 violated articles",
+   "folder": "results/ecthr_own/2026-10-11_01",
+   "lists_text": "cases with 2 to 4 labels, every list",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The 10 articles. Each example is sent with the 10 cyclic permutations of the list, so each option is at each position once.",
+   "labels": [
+    2,
+    99
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "MetaTool: 5 random tools, no \"None\"",
+   "folder": "results/metatool_unrelated/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 5 tools of the dataset that are not in the tool list of the example, chosen with a seed. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Pick all the tools in the list that are relevant to the task at hand.",
+   "positions": true
+  },
+  {
+   "label": "MMLU: 5 random choices, no NOTA",
+   "folder": "results/mmlu_unrelated/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 5 choices of other questions, chosen with a seed. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "HotpotQA: 5 random passages, no NOTA",
+   "folder": "results/hotpotqa_unrelated/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 5 passages of other questions, chosen with a seed. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose every passage in the list that supports the answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "MetaTool: 4 distractors of the example, no \"None\"",
+   "folder": "results/metatool_distractors/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 4 tools of the tool list of the example that are not correct. Each example is sent with the 4 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Pick all the tools in the list that are relevant to the task at hand.",
+   "positions": true
+  },
+  {
+   "label": "MMLU: the 3 distractors of the question, no NOTA",
+   "folder": "results/mmlu_distractors/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds the 3 choices of the question that are not correct. Each example is sent with the 3 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "MetaTool: the tool list without its two correct tools",
+   "folder": "results/metatool_removal/2026-10-11_01",
+   "lists_text": "list `without_all`",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The tool list of the example in the released order, without the two correct tools.",
+   "lists": [
+    "without_all"
+   ],
+   "instruction": "Choose every tool in the list that is needed to solve the user's query."
+  },
+  {
+   "label": "HotpotQA: the passages without the supporting passages",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "list `without_all`",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The passages of the question in the released order, without the passages that hold a supporting fact.",
+   "lists": [
+    "without_all"
+   ],
+   "instruction": "Choose every passage in the list that supports the answer to the question."
+  },
+  {
+   "label": "ECtHR: the articles without the violated articles",
+   "folder": "results/ecthr_removal/2026-10-11_01",
+   "lists_text": "list `without_all`",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The 10 articles in the released order, without the articles that the Court found violated.",
+   "lists": [
+    "without_all"
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "ECtHR: cases with no violated article, no NOTA",
+   "folder": "results/ecthr_own/2026-10-11_01",
+   "lists_text": "cases with no label, every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The 10 articles. Each example is sent with the 10 cyclic permutations of the list, so each option is at each position once.",
+   "labels": [
+    0,
+    0
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "MetaTool: 4 random tools and \"None\"",
+   "folder": "results/metatool_absent_random/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 4 tools of the dataset that are not in the tool list of the example, and \"None\", which is the correct option. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None.",
+   "positions": true
+  },
+  {
+   "label": "MMLU: 4 random choices and NOTA",
+   "folder": "results/mmlu_absent_random/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 4 choices of other questions and NOTA, which is the correct option. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "HotpotQA: 4 random passages and NOTA",
+   "folder": "results/hotpotqa_absent_random/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 4 passages of other questions and NOTA, which is the correct option. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose every passage in the list that supports the answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "MMLU: the 3 distractors of the question and NOTA",
+   "folder": "results/mmlu_absent/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds the 3 choices of the question that are not correct and NOTA, which is the correct option. Each example is sent with the 4 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "HotpotQA: 4 distractors of the question and NOTA",
+   "folder": "results/hotpotqa_absent/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The list holds 4 passages of the question that hold no supporting fact and NOTA, which is the correct option. Each example is sent with the 5 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose every passage in the list that supports the answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "MetaTool `reliability`: the tool list of the example and \"None\"",
+   "folder": "results/metatool_position/2026-10-11_01",
+   "lists_text": "test file `reliability`, list `released`",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The tool list of the example in the released order with \"None\" as the last option. No tool of the list is correct, and \"None\" is the correct option.",
+   "labels": [
+    0,
+    0
+   ],
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+  },
+  {
+   "label": "ECtHR: the 10 articles and NOTA, cases with no violated article",
+   "folder": "results/ecthr_with_none/2026-10-11_01",
+   "lists_text": "cases with no label, list `own`",
+   "group": "3. Abstention: lists with no correct option",
+   "about": "The 10 articles in the released order with NOTA as the last option, which is the correct option.",
+   "labels": [
+    0,
+    0
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "MetaTool: one correct tool, the 6 orders of the list",
+   "folder": "results/metatool_position/2026-10-11_01",
+   "lists_text": "test files `similar_tools` and `scenario`, every list",
+   "group": "4. Calibration: lists with one correct option",
+   "about": "The tool list of the example in the released order and with its correct tool at 5 places. \"None\" is the last option. Test files `similar_tools` and `scenario`.",
+   "labels": [
+    1,
+    1
+   ],
+   "instruction": "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+  },
+  {
+   "label": "MMLU: the 4 choices of the question",
+   "folder": "results/mmlu_own/2026-10-11_01",
+   "lists_text": "every list",
+   "group": "4. Calibration: lists with one correct option",
+   "about": "The 4 choices of the question. Each example is sent with the 4 cyclic permutations of the list, so each option is at each position once.",
+   "instruction": "Choose the correct answer to the question.",
+   "positions": true
+  },
+  {
+   "label": "ECtHR: cases with 1 violated article",
+   "folder": "results/ecthr_own/2026-10-11_01",
+   "lists_text": "cases with 1 label, every list",
+   "group": "4. Calibration: lists with one correct option",
+   "about": "The 10 articles. Each example is sent with the 10 cyclic permutations of the list, so each option is at each position once.",
+   "labels": [
+    1,
+    1
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "ECtHR: the 10 articles and NOTA, cases with 1 violated article",
+   "folder": "results/ecthr_with_none/2026-10-11_01",
+   "lists_text": "cases with 1 label, list `own`",
+   "group": "4. Calibration: lists with one correct option",
+   "about": "The 10 articles in the released order with NOTA as the last option.",
+   "labels": [
+    1,
+    1
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "MetaTool: the tool list without one of its two correct tools",
+   "folder": "results/metatool_removal/2026-10-11_01",
+   "lists_text": "lists `without_1` and `without_2`",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The tool list of the example in the released order without one correct tool. Each example gives 2 lists, one per removed tool.",
+   "lists": [
+    "without_1",
+    "without_2"
+   ],
+   "instruction": "Choose every tool in the list that is needed to solve the user's query."
+  },
+  {
+   "label": "HotpotQA: the passages without one supporting passage",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "lists `without_1` and `without_2`",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The passages of the question in the released order without one supporting passage. Each question gives one list per removed passage.",
+   "lists": [
+    "without_1",
+    "without_2"
+   ],
+   "instruction": "Choose every passage in the list that supports the answer to the question."
+  },
+  {
+   "label": "ECtHR: the articles without one violated article",
+   "folder": "results/ecthr_removal/2026-10-11_01",
+   "lists_text": "lists `without_1` to `without_4`",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The 10 articles in the released order without one violated article, for the cases with 2 to 4 violated articles. Each case gives one list per removed article.",
+   "lists": [
+    "without_1",
+    "without_2",
+    "without_3",
+    "without_4"
+   ],
+   "instruction": "Choose every article in the list that the European Court of Human Rights found violated in this case."
+  },
+  {
+   "label": "MetaTool: the second correct option before and after the removal",
+   "folder": "results/metatool_removal/2026-10-11_01",
+   "lists_text": "list `full` and the list without the correct option that has the highest probability there",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The second correct option of an example is the correct option with the second-highest probability in the full list.",
+   "figures": "second_correct"
+  },
+  {
+   "label": "HotpotQA: the second correct option before and after the removal",
+   "folder": "results/hotpotqa_removal/2026-10-11_01",
+   "lists_text": "list `full` and the list without the correct option that has the highest probability there",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The second correct option of an example is the correct option with the second-highest probability in the full list.",
+   "figures": "second_correct"
+  },
+  {
+   "label": "ECtHR: the second correct option before and after the removal",
+   "folder": "results/ecthr_removal/2026-10-11_01",
+   "lists_text": "list `full` and the list without the correct option that has the highest probability there",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The second correct option of an example is the correct option with the second-highest probability in the full list.",
+   "figures": "second_correct"
+  },
+  {
+   "label": "HotpotQA: a yes/no question per passage",
+   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "lists_text": "every question",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "Each passage of a question is asked about in a yes/no question of its own. The 10 questions of an example are sent in one request.",
+   "figures": "yes_no",
+   "instruction": "Does this passage support the answer to the question? Passage: <name of the option>: <text of the option>"
+  },
+  {
+   "label": "ECtHR: a yes/no question per article",
+   "folder": "results/ecthr_yes_no/2026-10-11_01",
+   "lists_text": "every question",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "Each of the 10 articles is asked about in a yes/no question of its own. The 10 questions of a case are sent in one request.",
+   "figures": "yes_no",
+   "instruction": "Did the European Court of Human Rights find a violation of this article in this case? Article: <name of the option>: <text of the option>"
+  }
+ ]
+}
