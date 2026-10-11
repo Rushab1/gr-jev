@@ -8,7 +8,15 @@
 \resizebox{\linewidth}{!}{\input{tables/allocation}}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\input{figures/allocation}
+\caption{Lists with several correct options. Each row shows the mean probability that a model gives the lowest correct option, the highest correct option and the highest distractor. The dashed arrow shows the second correct option in the full list and in the list without the highest correct option. The vertical line is the threshold of 0.25 in TypeSafe's example code.}
+\label{fig:allocation}
+\end{figure}
+
 \begin{itemize}
+\item Figure~\ref{fig:allocation}: every lowest correct option is left of the 0.25 threshold, next to the highest distractor. It crosses the threshold once the highest correct option is removed.
 \item One correct option takes most of the probability: the highest gets a mean of 0.66 to 0.85, the lowest 0.11 to 0.19 (Table~\ref{tab:allocation}).
 \item The highest distractor gets 0.04 to 0.17. The two ranges overlap. For GPT-6 Luna Decisions on MetaTool the highest distractor (0.17) is above the lowest correct tool (0.11).
 \item The ranking is good. The prediction is a correct option in 0.82 to 0.98 of the answers. The two highest options are exactly the two correct ones in 0.52 to 0.85 of the answers.

@@ -50,6 +50,8 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
 
+`python scripts/paper_figure.py paper_runs` writes the figure of the paper to `paper/figures/` as a TikZ picture: the lowest and the highest correct option of the lists with several correct options, the highest distractor, the second correct option before and after the removal, and the threshold of TypeSafe's example code. The code is in `src/grjev/figure.py`.
+
 `python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. `python scripts/compare_runs.py <folder> <folder>` compares the answers of two results folders to the same examples, such as two runs of the same requests. The code is in `src/grjev/metrics.py`.
 
 An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES` and `SEVERAL_TOOL_TEST_FILES` in `constants.py`, and in `LIST_LENGTHS` for the length experiment.

@@ -618,6 +618,8 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
 TABLES_DIR = Path(__file__).parent / "definitions"
 # The LaTeX tables of the paper, written by scripts/paper_tables.py.
 PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
+# The figure of the paper, written by scripts/paper_figure.py.
+PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"

@@ -1214,5 +1214,25 @@
    "about": "The ticket in TypeSafe's documentation describes a late delivery, a wrong size and a double charge. The list has the 3 teams from TypeSafe's example in the same order: returns, shipping and billing. The three teams are labelled as correct.",
    "instruction": "Which team should handle this?"
   }
- ]
+ ],
+ "figure": {
+  "file": "allocation",
+  "rows": [
+   {
+    "name": "MetaTool, 2 correct tools",
+    "run": "MetaTool: two correct tools, every needed tool is asked for",
+    "removal": "MetaTool: the second correct option before and after the removal"
+   },
+   {
+    "name": "HotpotQA, 2 supporting passages",
+    "run": "HotpotQA: the passages of the question, \"supports\"",
+    "removal": "HotpotQA: the second correct option before and after the removal"
+   },
+   {
+    "name": "ECtHR, 2 to 4 violated articles",
+    "run": "ECtHR: cases with 2 to 4 violated articles",
+    "removal": "ECtHR: the second correct option before and after the removal"
+   }
+  ]
+ }
 }
