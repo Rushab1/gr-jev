@@ -64,18 +64,45 @@ class ChartSpec(BaseModel):
     """One chart of a report. `runs` holds the label of each run that it draws and the name of the run in the chart.
 
     `kind` names the figure: the share of the predictions at each position, the mean probability of the lowest and
-    of the highest correct option, the mean confidence, the overconfidence, or the second correct option before and
-    after the top one is removed.
+    of the highest correct option, the mean confidence, the accuracy next to the mean confidence, or the second
+    correct option before and after the top one is removed.
     """
 
-    kind: Literal["positions", "correct_span", "confidence", "overconfidence", "second_correct"]
+    kind: Literal["positions", "correct_span", "confidence", "calibration", "second_correct"]
     title: str
-    about: str
     runs: list[tuple[str, str]]
 
 
+class ExampleSpec(BaseModel):
+    """One example of a run that a report shows with its options and the probabilities of each model.
+
+    `run` is the label of the run and `id` the id of the example. `lists` holds the name of each list of the example
+    that is shown, with the text written over it. `about` says how the example was chosen.
+    """
+
+    run: str
+    id: str
+    lists: list[tuple[str, str]]
+    about: str
+
+
+class FindingSpec(BaseModel):
+    """One finding of a report: the conclusion, how strong it is for the paper, its evidence and its limits.
+
+    The finding is shown with a chart and with one example.
+    """
+
+    title: str
+    strength: str
+    conclusion: str
+    evidence: list[str]
+    limits: list[str]
+    chart: ChartSpec
+    example: ExampleSpec
+
+
 class TableSpec(BaseModel):
-    """The definition of a document with one table per model, or of a report with one table per run and charts."""
+    """The definition of a document with one table per model, or of a report with findings and one table per run."""
 
     title: str
     intro: str
@@ -83,7 +110,8 @@ class TableSpec(BaseModel):
     notes: list[str]
     models: tuple[str, ...]
     rows: list[RowSpec]
-    charts: list[ChartSpec] = []
+    conclusions: list[str] = []
+    findings: list[FindingSpec] = []
 
 
 def read_spec(path: Path) -> TableSpec:

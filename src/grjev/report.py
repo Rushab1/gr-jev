@@ -10,14 +10,18 @@ from math import log2
 from pathlib import Path
 
 from grjev.charts import bars_chart, positions_chart, spans_chart
-from grjev.constants import MODEL_TITLES, POSITIONS_SHOWN_BELOW, REPO_ROOT
-from grjev.distribution import Distribution, Kind, distribution, second_after_removal, yes_figures
+from grjev.constants import MODEL_TITLES, POSITIONS_SHOWN_BELOW, PROCESSED_DIRS, REPO_ROOT
+from grjev.distribution import Distribution, Kind, correct_names, distribution, second_after_removal, yes_figures
+from grjev.examples import Example, read_dataset
 from grjev.tables import (
     ChartSpec,
+    ExampleSpec,
+    FindingSpec,
     RowSpec,
     Selected,
     TableSpec,
     answers_of,
+    config_of,
     selected,
     signed,
     spanned,
@@ -31,8 +35,8 @@ NOT_MEASURED = "none"
 ENTROPY_HEADER = "Mean entropy in bits"
 MEASURED_HEADER = "Lists with a correct option and a distractor"
 POSITION_HEADERS = ("Mean probability at each position", "Predictions at each position")
-# The chart of the overconfidence runs from minus this value to plus this value.
-OVERCONFIDENCE_SHOWN = 0.3
+# An example shows this many characters of its query and of the text of an option.
+EXAMPLE_QUERY, EXAMPLE_TEXT = 420, 84
 
 
 def ranked(found: Distribution) -> str | None:
@@ -221,46 +225,117 @@ def confidence_text(found: Distribution, own: Selected) -> str:
     return two(found.confidence) + share_refused
 
 
-def chart_html(chart: ChartSpec, runs: dict[str, dict[str, Selected]]) -> str:
-    """Return one chart of the report with its title and what it shows, from the runs that its definition names."""
+def chart_svg(chart: ChartSpec, runs: dict[str, dict[str, Selected]]) -> str:
+    """Return one chart of the report, drawn from the runs that its definition names."""
     chosen = {name: runs[run] for run, name in chart.runs}
     found = {name: figures_of(own) for name, own in chosen.items()}
-    about = f"{chart.title}. {chart.about}"
     if chart.kind == "positions":
         shares = {
             name: {model: [count / own.answers for count in own.predicted_at or ()] for model, own in models.items()}
             for name, models in found.items()
         }
-        drawn = positions_chart(about, shares)
-    elif chart.kind == "correct_span":
-        spans = {
-            name: {model: (own.lowest_correct or 0.0, own.highest_correct or 0.0) for model, own in models.items()}
+        return positions_chart(chart.title, shares)
+    if chart.kind == "confidence":
+        bars = {
+            name: {model: (own.confidence, confidence_text(own, chosen[name][model])) for model, own in models.items()}
             for name, models in found.items()
         }
-        drawn = spans_chart(about, spans, ("lowest correct option", "highest correct option"))
-    elif chart.kind == "second_correct":
+        return bars_chart(chart.title, bars)
+    if chart.kind == "second_correct":
         moved = {
             name: {model: second_after_removal(own.rows) for model, own in models.items()}
             for name, models in chosen.items()
         }
         kept = {name: {model: pair[:2] for model, pair in models.items() if pair} for name, models in moved.items()}
-        drawn = spans_chart(about, kept, ("before the removal", "after the removal"))
-    elif chart.kind == "confidence":
-        bars = {
-            name: {model: (own.confidence, confidence_text(own, chosen[name][model])) for model, own in models.items()}
+        return spans_chart(chart.title, kept, ("before the removal", "after the removal"))
+    if chart.kind == "calibration":
+        spans = {
+            name: {model: (own.accuracy or 0.0, own.confidence) for model, own in models.items()}
             for name, models in found.items()
         }
-        drawn = bars_chart(about, bars, 0.0, 1.0)
-    else:
-        over = {
-            name: {
-                model: (own.overconfidence or 0.0, signed(own.overconfidence or 0.0)) for model, own in models.items()
-            }
-            for name, models in found.items()
-        }
-        drawn = bars_chart(about, over, -OVERCONFIDENCE_SHOWN, OVERCONFIDENCE_SHOWN)
-    wide = ' class="wide"' if chart.kind == "positions" else ""
-    return f"<figure{wide}><h3>{marked(chart.title)}</h3><p>{marked(chart.about)}</p>{drawn}</figure>"
+        return spans_chart(chart.title, spans, ("accuracy", "mean confidence"))
+    spans = {
+        name: {model: (own.lowest_correct or 0.0, own.highest_correct or 0.0) for model, own in models.items()}
+        for name, models in found.items()
+    }
+    return spans_chart(chart.title, spans, ("lowest correct option", "highest correct option"))
+
+
+def cut(text: str, characters: int) -> str:
+    """Return text on one line, cut after a number of characters with an ellipsis."""
+    line = " ".join(text.split())
+    return line if len(line) <= characters else line[:characters].rstrip() + "…"
+
+
+def example_of(folder: Path, example_id: str, processed: dict[str, Path]) -> tuple[Example, dict[str, str]]:
+    """Return an example of a run from its processed dataset, and the description of every option by its name."""
+    config = config_of(folder)
+    examples, tools = read_dataset(processed[config.dataset], config.test_files)
+    found = next(example for own in examples.values() for example in own if example.id == example_id)
+    texts = {tool.name: tool.description for tool in tools} | {tool.name: tool.description for tool in found.options}
+    return found, texts
+
+
+def list_html(name: str, caption: str, chosen: dict[str, Selected], example_id: str, texts: dict[str, str]) -> str:
+    """Return one list of an example as a table: its options in the order sent, and the probability of each model.
+
+    The probability of the prediction of a model is bold. A model that refused the list has "refused" in its place.
+    """
+    rows = {model: next(row for row in own.rows if row.id == example_id) for model, own in chosen.items()}
+    answers = {model: row.answers.get(name) for model, row in rows.items()}
+    first_model, first = next((model, answer) for model, answer in answers.items() if answer is not None)
+    correct = set(correct_names(rows[first_model], first))
+    mixed = 0 < len(correct) < len(first.candidates)
+    head = "".join(f"<th>{marked(MODEL_TITLES[model])}</th>" for model in chosen)
+    body = ""
+    for place, option in enumerate(first.candidates, 1):
+        shown = " ".join(option.split())
+        text = cut(texts.get(shown, ""), EXAMPLE_TEXT)
+        tag = ' <span class="tag">correct</span>' if mixed and option in correct else ""
+        cells = ""
+        for answer in answers.values():
+            value = "refused" if answer is None else two(answer.probabilities[option])
+            bold = answer is not None and answer.choice == option
+            cells += f"<td>{'<b>' + value + '</b>' if bold else value}</td>"
+        body += f"<tr><td>{place}</td><td><b>{marked(shown)}</b>{tag} {marked(text)}</td>{cells}</tr>"
+    return (
+        f'<p class="caption">{marked(caption)}</p><table class="example"><thead><tr><th>#</th><th>Option</th>'
+        f"{head}</tr></thead><tbody>{body}</tbody></table>"
+    )
+
+
+def example_html(
+    example: ExampleSpec, spec: RowSpec, chosen: dict[str, Selected], root: Path, processed: dict[str, Path]
+) -> str:
+    """Return one example of a run: its query, the instruction, and each of its lists with the probabilities."""
+    first = next(iter(chosen.values()))
+    found, texts = example_of(root / first.folder, example.id, processed)
+    lists = "".join(list_html(name, caption, chosen, example.id, texts) for name, caption in example.lists)
+    return (
+        f'<p class="about">{marked(example.about)}</p><p><b>Query.</b> {marked(cut(found.query, EXAMPLE_QUERY))}</p>'
+        f"<p><b>Instruction.</b> {marked(spec.instruction)}</p>{lists}"
+        f'<p class="source">{marked(f"`{example.id}` in `{first.folder}`")}</p>'
+    )
+
+
+def finding_html(
+    finding: FindingSpec,
+    specs: dict[str, RowSpec],
+    runs: dict[str, dict[str, Selected]],
+    root: Path,
+    processed: dict[str, Path],
+) -> str:
+    """Return the block of one finding: the conclusion, its strength, evidence and limits, a chart and an example."""
+    evidence = "".join(f"<li>{marked(text)}</li>" for text in finding.evidence)
+    limits = "".join(f"<li>{marked(text)}</li>" for text in finding.limits)
+    example = example_html(finding.example, specs[finding.example.run], runs[finding.example.run], root, processed)
+    return (
+        f'<div class="finding"><h2>{marked(finding.title)}</h2><p class="lead">{marked(finding.conclusion)}</p>'
+        f"<p><b>Strength for the paper:</b> {marked(finding.strength)}</p>"
+        f'<div class="pair"><div><h3>{marked(finding.chart.title)}</h3>{chart_svg(finding.chart, runs)}'
+        f"<h3>Evidence</h3><ul>{evidence}</ul><h3>Limits</h3><ul>{limits}</ul></div>"
+        f"<div><h3>One example</h3>{example}</div></div></div>"
+    )
 
 
 def run_html(spec: RowSpec, chosen: dict[str, Selected]) -> str:
@@ -276,35 +351,51 @@ def run_html(spec: RowSpec, chosen: dict[str, Selected]) -> str:
 
 
 STYLE = """
-@page { size: A4 landscape; margin: 11mm 10mm; }
+@page { size: A4 portrait; margin: 13mm 12mm; }
+@page tables { size: A4 landscape; margin: 11mm 10mm; }
 * { box-sizing: border-box; }
-body { font: 9.5pt/1.45 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #37352f; background: #ffffff;
-  margin: 0 auto; max-width: 1180px; padding: 16px; }
-h1 { font-size: 19pt; margin: 0 0 6px; }
-h2 { font-size: 13.5pt; margin: 22px 0 4px; padding-top: 8px; border-top: 2px solid #37352f; break-after: avoid; }
-h3 { font-size: 10.5pt; margin: 0 0 2px; }
+body { font: 9pt/1.42 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #37352f; background: #ffffff;
+  margin: 0 auto; max-width: 1180px; padding: 0; }
+h1 { font-size: 17pt; margin: 0 0 6px; }
+h2 { font-size: 12.5pt; margin: 16px 0 5px; padding-top: 8px; border-top: 2px solid #37352f; break-after: avoid; }
+h3 { font-size: 9.5pt; margin: 8px 0 3px; break-after: avoid; }
 p { margin: 0 0 4px; }
-ul { margin: 4px 0 8px; padding-left: 18px; }
-li { margin: 1px 0; }
-code { font: 8.5pt ui-monospace, Menlo, monospace; background: #f1f1ef; padding: 0 3px; border-radius: 3px; }
+ul, ol { margin: 3px 0 6px; padding-left: 16px; }
+li { margin: 2px 0; }
+code { font: 7.8pt ui-monospace, Menlo, monospace; background: #f1f1ef; padding: 0 3px; border-radius: 3px; }
+.lead { font-size: 10pt; }
+.finding { break-before: page; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; align-items: start; margin-top: 6px; }
+.pair > div + div { border-left: 1px solid #e9e9e7; padding-left: 20px; }
+.pair h3:first-child { margin-top: 0; }
+.about, .caption { color: #5f5e5b; }
+.caption { margin-top: 7px; font-weight: 600; }
+.tag { font-size: 7pt; background: #dbeddb; border-radius: 3px; padding: 0 3px; }
+.source { color: #9b9a97; font-size: 7.5pt; margin-top: 3px; }
 section { margin: 12px 0 16px; break-inside: avoid; }
-.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px; align-items: start; }
-figure { margin: 6px 0 0; break-inside: avoid; }
-figure.wide { grid-column: 1 / -1; }
-figure p { color: #5f5e5b; }
-.said { color: #5f5e5b; }
-.source { color: #9b9a97; font-size: 8pt; margin-top: 3px; }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-top: 4px; }
 th, td { border-bottom: 1px solid #e9e9e7; padding: 4px 7px; text-align: right; vertical-align: bottom; }
 thead th { background: #f7f6f3; font-weight: 600; font-size: 8pt; line-height: 1.25; border-bottom: 1px solid #d3d1cb; }
 tbody th, thead th:first-child { text-align: left; white-space: nowrap; font-weight: 600; }
 tbody td { white-space: nowrap; }
+table.example { font-size: 7.8pt; }
+table.example th, table.example td { padding: 3px 4px; vertical-align: top; }
+table.example thead th { font-size: 7.2pt; white-space: normal; }
+table.example td:nth-child(2), table.example th:nth-child(2) { text-align: left; white-space: normal; }
+table.example td:first-child { color: #9b9a97; }
+.tables { page: tables; }
+@media screen { body { padding: 18px; max-width: 760px; } .tables { width: 1180px; } }
 """
 
 
-def page(spec: TableSpec, root: Path = REPO_ROOT) -> str:
-    """Return the report of a definition as a web page: the terms, the runs under their groups, and the notes."""
+def page(spec: TableSpec, root: Path = REPO_ROOT, processed: dict[str, Path] = PROCESSED_DIRS) -> str:
+    """Return the report of a definition as a web page.
+
+    The conclusions and the findings come first, each finding with a chart and an example. The terms follow, then
+    the runs under their groups on pages of their own, and the notes.
+    """
     runs = {row.label: {model: selected(row, model, root) for model in row.models or spec.models} for row in spec.rows}
+    specs = {row.label: row for row in spec.rows}
     parts = []
     group = ""
     for row in spec.rows:
@@ -312,12 +403,15 @@ def page(spec: TableSpec, root: Path = REPO_ROOT) -> str:
             group = row.group
             parts.append(f"<h2>{marked(group)}</h2>")
         parts.append(run_html(row, runs[row.label]))
-    drawn = "".join(chart_html(chart, runs) for chart in spec.charts)
-    charts = f'<h2>Summary charts</h2><div class="charts">{drawn}</div>' if drawn else ""
+    points = "".join(f"<li>{marked(text)}</li>" for text in spec.conclusions)
+    conclusions = f"<h2>Conclusions</h2><ol>{points}</ol>" if points else ""
+    findings = "".join(finding_html(finding, specs, runs, root, processed) for finding in spec.findings)
     terms = "".join(f"<li><b>{marked(term)}</b>: {marked(text)}</li>" for term, text in spec.terms)
     notes = "".join(f"<li>{marked(text)}</li>" for text in spec.notes)
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(spec.title)}</title>'
         f"<style>{STYLE}</style></head><body><h1>{marked(spec.title)}</h1><p>{marked(spec.intro)}</p>"
-        f"{charts}<h2>Terms</h2><ul>{terms}</ul>{''.join(parts)}<h2>Notes</h2><ul>{notes}</ul></body></html>\n"
+        f'{conclusions}{findings}<div class="finding"><h2>Terms</h2><ul>{terms}</ul>'
+        f'<h2>Notes</h2><ul>{notes}</ul></div><div class="tables"><h1>Tables by run</h1>{"".join(parts)}</div>'
+        "</body></html>\n"
     )

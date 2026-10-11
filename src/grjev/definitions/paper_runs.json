@@ -1,6 +1,279 @@
 {
  "title": "Runs on every example: figures by run and model",
- "intro": "Runs of `docs/paper_plan.md`, made on 2026-10-11 on Jev, Liquid d1 and GPT-6 Luna Decisions. Each run has one table with the models as rows. `python scripts/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds this page from the results folders and `src/grjev/definitions/paper_runs.json`.",
+ "intro": "Runs of `docs/paper_plan.md`, made on 2026-10-11 on three decision models: Jev, Liquid d1 and GPT-6 Luna Decisions. The conclusions come first, then one page per finding with a chart, the evidence and one example, then the terms, and then one table per run with the models as rows. `python scripts/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds this document from the results folders and `src/grjev/definitions/paper_runs.json`. The conclusions and their strength are Claude Code's reading of the figures on 2026-10-11, and Rushab has not reviewed them.",
+ "conclusions": [
+  "The probabilities of a list answer rank the options well and do not say whether an option is correct. The prediction is a correct option in 0.82 to 0.98 of the answers to lists with several correct options, and the probability of a correct option still goes from 0.11 to 0.85 with its place in the list and with the other options.",
+  "Order. Among 5 identical options, Liquid d1 and GPT-6 Luna Decisions predict the first one in 86% to 100% of the answers on all four datasets. Jev predicts the last one in 74% of the answers on MMLU and 59% on ECtHR. Strong.",
+  "Allocation. In a list with several correct options, one of them gets a mean probability of 0.66 to 0.85 and the lowest one 0.11 to 0.19, on three datasets and three models. Strong as a measurement.",
+  "Abstention. On lists with no correct option, Jev and Liquid d1 answer every list with a mean confidence of 0.49 to 0.87. GPT-6 Luna Decisions refuses 58% to 98% of the lists of random options and 1% to 27% of the lists of distractors of the example. Strong for random options.",
+  "Dependence on the list. When the correct option with the highest probability is removed, the mean probability of the second correct option goes from 0.11 to 0.19 up to 0.53 to 0.71. Strong.",
+  "Calibration. With one correct option the mean confidence is within 0.14 of the accuracy. It is 0.08 to 0.23 below the accuracy with several correct options. Weak as a finding of its own: it follows from the two findings above.",
+  "For the paper: findings on order, dependence on the list and abstention carry it, and each holds on four datasets or three. Before a submission the figures need intervals, a second run of the same requests, a check of the labels named under the limits, and the related work on option order and on questions with several correct answers."
+ ],
+ "findings": [
+  {
+   "title": "1. Order: the position decides among identical options",
+   "conclusion": "A list of 5 copies of one correct option has no better option, and each model still prefers a position. Liquid d1 and GPT-6 Luna Decisions prefer the first position on every dataset. Jev prefers the last position on MMLU and ECtHR, the first and the last on MetaTool, and is near the equal share on HotpotQA.",
+   "strength": "strong for Liquid d1 and GPT-6 Luna Decisions. For Jev the bias exists and its direction changes with the dataset, so the claim for Jev is that the answer depends on the position, not that one position wins.",
+   "evidence": [
+    "Predictions at position 1: Liquid d1 99.9%, 85.7%, 99.5% and 99.6% on MetaTool, MMLU, HotpotQA and ECtHR. GPT-6 Luna Decisions 98.6%, 87.8%, 99.4% and 98.9%. An equal share is 20%.",
+    "Jev at the last position: 73.9% on MMLU, 59.3% on ECtHR, 35.5% on MetaTool, 29.5% on HotpotQA.",
+    "The copy with the highest probability gets a mean of 0.50 to 0.81 on Liquid d1 and 0.67 to 0.79 on GPT-6 Luna Decisions. Equal probabilities are 0.20. Jev gives it 0.29 to 0.34.",
+    "5 paraphrases of one MetaTool tool: position 1 is predicted in 74% of the answers on Liquid d1 and 87% on GPT-6 Luna Decisions, and 26% on Jev.",
+    "With one correct tool among distractors, the accuracy of GPT-6 Luna Decisions falls from 0.80 with the tool at the first place to 0.67 at the last. Jev goes from 0.78 to 0.80 and Liquid d1 from 0.69 to 0.74.",
+    "30,695 lists per model on four datasets, each list in its 5 cyclic permutations."
+   ],
+   "limits": [
+    "The copies have names that differ by extra spaces, which the API needs to tell them apart.",
+    "A list of identical options is not a list a user sends. The run with one correct tool among distractors is the link to real lists, and there the effect is 0.13 for one model and 0.05 or less for the two others.",
+    "Each request was sent once. Jev does not return the same answer to the same request every time."
+   ],
+   "chart": {
+    "kind": "positions",
+    "title": "Share of the predictions at each position, 5 duplicates of one correct option",
+    "runs": [
+     [
+      "MetaTool: 5 duplicates of one correct tool",
+      "MetaTool"
+     ],
+     [
+      "MMLU: 5 duplicates of the correct choice",
+      "MMLU"
+     ],
+     [
+      "HotpotQA: 5 duplicates of one supporting passage",
+      "HotpotQA"
+     ],
+     [
+      "ECtHR: 5 duplicates of one violated article",
+      "ECtHR"
+     ]
+    ]
+   },
+   "example": {
+    "run": "MMLU: 5 duplicates of the correct choice",
+    "id": "mmlu/test/13562",
+    "lists": [
+     [
+      "rotated_0",
+      "The list as sent: 5 copies of the correct choice"
+     ]
+    ],
+    "about": "The MMLU question, among the 1,000, whose probabilities by position are closest to the means of the three models."
+   }
+  },
+  {
+   "title": "2. Allocation: one of several correct options takes most of the probability",
+   "conclusion": "When a list holds 2 to 4 correct options, the models put most of the probability on one of them. The other correct options get about as much as a distractor would need to pass them. The wording of the instruction changes this by 0.01 to 0.02.",
+   "strength": "strong as a measurement: the same picture on three datasets and three models. The step from the measurement to a failure needs an argument. The probabilities of one answer sum to 1, so two correct options cannot both be near 1, and the instruction is the only place that says several options are wanted.",
+   "evidence": [
+    "Highest and lowest correct option, mean probability: 0.85 and 0.11 (Jev), 0.71 and 0.16 (Liquid d1), 0.66 and 0.11 (GPT-6 Luna Decisions) on MetaTool. 0.77 and 0.17, 0.74 and 0.19, 0.72 and 0.15 on HotpotQA. 0.72 and 0.15, 0.72 and 0.16, 0.73 and 0.13 on ECtHR.",
+    "The lowest correct option is 0.05 to 0.14 above the highest distractor on average, and 0.06 below it for GPT-6 Luna Decisions on MetaTool. A threshold on the probability does not separate the second correct option from the distractors.",
+    "The ranking is mostly right: the prediction is a correct option in 0.82 to 0.98 of the answers, and the 2 highest options are the 2 correct ones in 0.52 to 0.85 of them.",
+    "Wording: \"Choose one of them.\" and \"Choose both.\" give the lowest correct MetaTool tool 0.14 and 0.15 on Jev. \"may support\", \"supports\" and \"definitely supports\" give the lowest supporting HotpotQA passage 0.18, 0.17 and 0.17.",
+    "7,405 HotpotQA questions, 497 MetaTool queries and 192 ECtHR cases."
+   ],
+   "limits": [
+    "No reference says which probabilities are right for two correct options. 0.50 each is one reading of the instruction and not a fact about the model.",
+    "A HotpotQA label marks a passage that holds a supporting sentence. Such a passage can be needed for the answer without supporting it alone, as the yes/no questions of finding 5 show.",
+    "The ECtHR labels are the findings of the Court, not every article that the facts concern."
+   ],
+   "chart": {
+    "kind": "correct_span",
+    "title": "Mean probability of the lowest and of the highest correct option",
+    "runs": [
+     [
+      "MetaTool: two correct tools, every needed tool is asked for",
+      "MetaTool, 2 correct tools"
+     ],
+     [
+      "HotpotQA: the passages of the question, \"supports\"",
+      "HotpotQA, 2 supporting passages"
+     ],
+     [
+      "ECtHR: cases with 2 to 4 violated articles",
+      "ECtHR, 2 to 4 violated articles"
+     ]
+    ]
+   },
+   "example": {
+    "run": "HotpotQA: the passages of the question, \"supports\"",
+    "id": "hotpotqa/validation/5a7dcdea5542990b8f503abc",
+    "lists": [
+     [
+      "full",
+      "The 10 passages of the question"
+     ]
+    ],
+    "about": "The HotpotQA question closest to the means of the three models, among the questions with 10 passages in which the three models rank the same supporting passage first."
+   }
+  },
+  {
+   "title": "3. Abstention: confident answers to lists with no correct option",
+   "conclusion": "Jev and Liquid d1 answer every list that has no correct option, and their confidence there is close to their confidence on lists that have one. GPT-6 Luna Decisions declines many of these lists with an answer of type `refusal`, and is as confident as the two others on the lists that it answers. When NOTA is offered, the three models select it for random options and less often for the distractors of the example.",
+   "strength": "strong for lists of random options, where no option can be correct. Moderate for the distractors of the example, where the label decides that no option is correct. The refusals of GPT-6 Luna Decisions are a finding that the vendor does not document.",
+   "evidence": [
+    "Mean confidence on 5 random options: 0.78, 0.55 and 0.58 on Jev and 0.74, 0.60 and 0.49 on Liquid d1, for MetaTool, MMLU and HotpotQA.",
+    "Mean confidence on the distractors of the example: 0.61 to 0.83 on Jev and 0.67 to 0.87 on Liquid d1, on four datasets. On lists with one correct option it is 0.86 to 0.94 and 0.81 to 0.89.",
+    "GPT-6 Luna Decisions refuses 58%, 85% and 98% of the lists of random options, and 23%, 6%, 27% and 1% of the lists of distractors of the example. Jev and Liquid d1 refuse none of 202,088 questions each.",
+    "With NOTA and random options, NOTA is the prediction in 0.93 to 1.00 of the answers. With NOTA and the distractors of the example it is 0.54 to 0.72 on MMLU and 0.79 to 0.88 on HotpotQA. For ECtHR cases with no violated article it is 0.37, 0.07 and 0.17.",
+    "A request with one refused list was sent again 7 times with one change each: the same passages are answered with a query that one of them fits, and the same query is answered once NOTA or a fitting passage is in the list."
+   ],
+   "limits": [
+    "The distractors of a MetaTool example can hold a tool that fits the query: the label of that run was read for 50 queries only.",
+    "An ECtHR case with no label is a case in which the Court found no violation. Its facts can still point at an article.",
+    "The figures of GPT-6 Luna Decisions are over the lists that it answers, 2% to 99% of them.",
+    "No source states why the model refuses. The API returns no reason."
+   ],
+   "chart": {
+    "kind": "confidence",
+    "title": "Mean confidence on lists with no correct option and no NOTA",
+    "runs": [
+     [
+      "MetaTool: 4 distractors of the example, no \"None\"",
+      "MetaTool, 4 distractors of the example"
+     ],
+     [
+      "MMLU: the 3 distractors of the question, no NOTA",
+      "MMLU, the 3 distractors of the question"
+     ],
+     [
+      "HotpotQA: the passages without the supporting passages",
+      "HotpotQA, the passages without the supporting ones"
+     ],
+     [
+      "ECtHR: cases with no violated article, no NOTA",
+      "ECtHR, cases with no violated article"
+     ],
+     [
+      "MetaTool: 5 random tools, no \"None\"",
+      "MetaTool, 5 random tools"
+     ],
+     [
+      "MMLU: 5 random choices, no NOTA",
+      "MMLU, 5 random choices"
+     ],
+     [
+      "HotpotQA: 5 random passages, no NOTA",
+      "HotpotQA, 5 random passages"
+     ]
+    ]
+   },
+   "example": {
+    "run": "MetaTool: 5 random tools, no \"None\"",
+    "id": "metatool/scenario/1797",
+    "lists": [
+     [
+      "rotated_0",
+      "5 tools from outside the tool list of the query"
+     ]
+    ],
+    "about": "The MetaTool query closest to the mean confidence of Jev and Liquid d1, among the queries whose first list GPT-6 Luna Decisions refused."
+   }
+  },
+  {
+   "title": "4. Calibration: close with one correct option, and it does not carry over",
+   "conclusion": "On lists with one correct option the confidence of the three models is close to their accuracy. The same models are 0.08 to 0.23 under their accuracy when the list holds several correct options, and their confidence is 0.49 to 0.87 when it holds none. A confidence threshold set on one kind of list does not hold on another.",
+   "strength": "weak as a finding of its own. The figures are sound, and the gaps follow from findings 2 and 3: a shared probability lowers the confidence, and a list with no correct option has accuracy 0. It supports the paper as a consequence.",
+   "evidence": [
+    "One correct option, mean confidence minus accuracy: +0.08, +0.09 and +0.14 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. +0.02, +0.05 and +0.04 on MMLU. -0.03, -0.01 and 0.00 on ECtHR.",
+    "Several correct options: -0.12, -0.16 and -0.08 on MetaTool. -0.19, -0.21 and -0.20 on HotpotQA. -0.21, -0.23 and -0.21 on ECtHR.",
+    "ECE with 10 bins is 0.01 to 0.15 with one correct option.",
+    "16,770 MetaTool lists, 4,000 MMLU lists and 6,550 ECtHR lists with one correct option."
+   ],
+   "limits": [
+    "Accuracy counts a prediction as correct when it is one of the correct options. With several correct options another definition gives another gap.",
+    "MetaTool labels one tool per query, and the three models agree on another answer in some queries, as in the example.",
+    "No interval is computed yet."
+   ],
+   "chart": {
+    "kind": "calibration",
+    "title": "Accuracy and mean confidence",
+    "runs": [
+     [
+      "MetaTool: one correct tool, the 6 orders of the list",
+      "MetaTool, 1 correct tool"
+     ],
+     [
+      "MMLU: the 4 choices of the question",
+      "MMLU, 1 correct choice"
+     ],
+     [
+      "ECtHR: cases with 1 violated article",
+      "ECtHR, 1 violated article"
+     ],
+     [
+      "MetaTool: two correct tools, every needed tool is asked for",
+      "MetaTool, 2 correct tools"
+     ],
+     [
+      "HotpotQA: the passages of the question, \"supports\"",
+      "HotpotQA, 2 supporting passages"
+     ],
+     [
+      "ECtHR: cases with 2 to 4 violated articles",
+      "ECtHR, 2 to 4 violated articles"
+     ]
+    ]
+   },
+   "example": {
+    "run": "MetaTool: one correct tool, the 6 orders of the list",
+    "id": "metatool/scenario/0",
+    "lists": [
+     [
+      "released",
+      "The tool list of the query and \"None\", in the released order"
+     ]
+    ],
+    "about": "Among the MetaTool queries on which Jev is wrong with a confidence of 0.90 or more on the released order, the one with the shortest list and then the lowest id."
+   }
+  },
+  {
+   "title": "5. Dependence on the list: the second correct option rises when the first is removed",
+   "conclusion": "The probability of an option is a share of the list and not a judgement of the option alone. When the correct option with the highest probability is taken out, the second correct option gets most of what it had.",
+   "strength": "strong: all nine cells of three datasets and three models move the same way by 0.42 to 0.60, on 7,384 HotpotQA questions, 497 MetaTool queries and 192 ECtHR cases.",
+   "evidence": [
+    "Second correct option before and after the removal: 0.11 to 0.71, 0.16 to 0.62 and 0.11 to 0.53 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. 0.17 to 0.66, 0.19 to 0.68 and 0.16 to 0.60 on HotpotQA. 0.19 to 0.71, 0.16 to 0.68 and 0.15 to 0.68 on ECtHR.",
+    "On the list without one correct option, the prediction is the remaining correct option in 0.86, 0.78 and 0.67 of the MetaTool answers and in 0.84, 0.84 and 0.80 of the HotpotQA answers.",
+    "Asked alone in a yes/no question, a violated ECtHR article gets a mean probability of yes of 0.67, 0.89 and 0.74, and 80% to 96% of them get 0.50 or more.",
+    "A supporting HotpotQA passage asked alone gets 0.45, 0.40 and 0.52, and 38% to 51% of them get 0.50 or more."
+   ],
+   "limits": [
+    "A probability that sums to 1 over the list has to move when an option leaves. The finding is the size: the second correct option is not distinguishable from a distractor before the removal.",
+    "The yes/no figures of HotpotQA say that about half of the supporting passages are not judged to support the answer alone. This weakens the reading that both passages are correct options there.",
+    "The yes/no questions of HotpotQA cover 500 questions."
+   ],
+   "chart": {
+    "kind": "second_correct",
+    "title": "Mean probability of the second correct option, before and after the removal",
+    "runs": [
+     [
+      "MetaTool: the second correct option before and after the removal",
+      "MetaTool, 2 correct tools"
+     ],
+     [
+      "HotpotQA: the second correct option before and after the removal",
+      "HotpotQA, 2 supporting passages"
+     ],
+     [
+      "ECtHR: the second correct option before and after the removal",
+      "ECtHR, 2 to 4 violated articles"
+     ]
+    ]
+   },
+   "example": {
+    "run": "HotpotQA: the passages without one supporting passage",
+    "id": "hotpotqa/validation/5a7dcdea5542990b8f503abc",
+    "lists": [
+     [
+      "without_1",
+      "The question of finding 2 without Renáta Tomanová, the supporting passage with the highest probability. In the full list Tony Roche has 0.18, 0.20 and 0.08."
+     ]
+    ],
+    "about": "The question of finding 2, after the removal."
+   }
+  }
+ ],
  "terms": [
   [
    "Option",
@@ -532,135 +805,6 @@
    "about": "Each of the 10 articles is asked about in a yes/no question of its own. The 10 questions of a case are sent in one request.",
    "figures": "yes_no",
    "instruction": "Did the European Court of Human Rights find a violation of this article in this case? Article: <name of the option>: <text of the option>"
-  }
- ],
- "charts": [
-  {
-   "kind": "positions",
-   "title": "Order: share of the predictions at each position of a list of 5 duplicates",
-   "about": "The list holds 5 copies of one correct option and is sent in its 5 cyclic permutations, so each copy is at each position once.",
-   "runs": [
-    [
-     "MetaTool: 5 duplicates of one correct tool",
-     "MetaTool"
-    ],
-    [
-     "MMLU: 5 duplicates of the correct choice",
-     "MMLU"
-    ],
-    [
-     "HotpotQA: 5 duplicates of one supporting passage",
-     "HotpotQA"
-    ],
-    [
-     "ECtHR: 5 duplicates of one violated article",
-     "ECtHR"
-    ]
-   ]
-  },
-  {
-   "kind": "correct_span",
-   "title": "Allocation: mean probability of the lowest and of the highest correct option",
-   "about": "Lists that hold several correct options and distractors.",
-   "runs": [
-    [
-     "MetaTool: two correct tools, every needed tool is asked for",
-     "MetaTool, 2 correct tools"
-    ],
-    [
-     "HotpotQA: the passages of the question, \"supports\"",
-     "HotpotQA, 2 supporting passages"
-    ],
-    [
-     "ECtHR: cases with 2 to 4 violated articles",
-     "ECtHR, 2 to 4 violated articles"
-    ]
-   ]
-  },
-  {
-   "kind": "second_correct",
-   "title": "Dependence on the list: mean probability of the second correct option, before and after the removal of the correct option with the highest probability",
-   "about": "The second correct option is the correct option with the second-highest probability in the full list.",
-   "runs": [
-    [
-     "MetaTool: the second correct option before and after the removal",
-     "MetaTool, 2 correct tools"
-    ],
-    [
-     "HotpotQA: the second correct option before and after the removal",
-     "HotpotQA, 2 supporting passages"
-    ],
-    [
-     "ECtHR: the second correct option before and after the removal",
-     "ECtHR, 2 to 4 violated articles"
-    ]
-   ]
-  },
-  {
-   "kind": "confidence",
-   "title": "Abstention: mean confidence on lists with no correct option and no NOTA",
-   "about": "Confidence is the highest probability of an answer. The bar of a model is over the lists that it answered.",
-   "runs": [
-    [
-     "MetaTool: 4 distractors of the example, no \"None\"",
-     "MetaTool, distractors of the example"
-    ],
-    [
-     "MMLU: the 3 distractors of the question, no NOTA",
-     "MMLU, distractors of the question"
-    ],
-    [
-     "HotpotQA: the passages without the supporting passages",
-     "HotpotQA, distractors of the question"
-    ],
-    [
-     "ECtHR: cases with no violated article, no NOTA",
-     "ECtHR, no violated article"
-    ],
-    [
-     "MetaTool: 5 random tools, no \"None\"",
-     "MetaTool, 5 random tools"
-    ],
-    [
-     "MMLU: 5 random choices, no NOTA",
-     "MMLU, 5 random choices"
-    ],
-    [
-     "HotpotQA: 5 random passages, no NOTA",
-     "HotpotQA, 5 random passages"
-    ]
-   ]
-  },
-  {
-   "kind": "overconfidence",
-   "title": "Calibration: mean confidence minus accuracy",
-   "about": "A bar to the right of 0 is overconfidence. Accuracy is the share of the answers whose prediction is a correct option.",
-   "runs": [
-    [
-     "MetaTool: one correct tool, the 6 orders of the list",
-     "MetaTool, 1 correct tool"
-    ],
-    [
-     "MMLU: the 4 choices of the question",
-     "MMLU, 1 correct choice"
-    ],
-    [
-     "ECtHR: cases with 1 violated article",
-     "ECtHR, 1 violated article"
-    ],
-    [
-     "MetaTool: two correct tools, every needed tool is asked for",
-     "MetaTool, 2 correct tools"
-    ],
-    [
-     "HotpotQA: the passages of the question, \"supports\"",
-     "HotpotQA, 2 supporting passages"
-    ],
-    [
-     "ECtHR: cases with 2 to 4 violated articles",
-     "ECtHR, 2 to 4 violated articles"
-    ]
-   ]
   }
  ]
 }

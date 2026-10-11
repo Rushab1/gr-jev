@@ -2,11 +2,14 @@
 
 from pathlib import Path
 
-from grjev.constants import D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR
+from grjev.constants import D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR, TOOLS_FILE_NAME
+from grjev.examples import Example, Option, write_jsonl
 from grjev.report import (
     ENTROPY_HEADER,
     MEASURED_HEADER,
     POSITION_HEADERS,
+    chart_svg,
+    finding_html,
     lists_table,
     page,
     run_html,
@@ -15,7 +18,7 @@ from grjev.report import (
 )
 from grjev.results import write_run
 from grjev.runs import ListAnswer, Row, RunConfig
-from grjev.tables import ChartSpec, RowSpec, TableSpec, read_spec, selected
+from grjev.tables import FindingSpec, RowSpec, TableSpec, read_spec, selected
 
 JEV_FOLDER = "results/set_removal/2026-10-01_01"
 D1_FOLDER = "results/set_removal_d1/2026-10-02_01"
@@ -107,7 +110,7 @@ def test_the_block_of_a_run_names_its_lists_its_instruction_and_its_folder(tmp_p
     assert f"<code>{JEV_FOLDER}</code>, every list" in block and block.count("<tr>") == 3
 
 
-def test_the_page_puts_the_runs_under_their_groups_between_the_terms_and_the_notes(tmp_path: Path) -> None:
+def test_the_page_puts_the_runs_under_their_groups_after_the_terms_and_the_notes(tmp_path: Path) -> None:
     definition = TableSpec(
         title="Runs",
         intro="Two runs.",
@@ -121,33 +124,93 @@ def test_the_page_puts_the_runs_under_their_groups_between_the_terms_and_the_not
         ],
     )
     text = page(definition, results(tmp_path))
-    assert [text.count(tag) for tag in ("<h1>", "<h2>", "<section>", "<table>")] == [1, 4, 3, 3]
-    assert text.index("<h2>Terms</h2>") < text.index("<h2>1. Lists</h2>") < text.index("<h2>2. Yes or no</h2>")
-    assert text.index("<h2>2. Yes or no</h2>") < text.index("<h2>Notes</h2>") < text.index("<li>A note.</li>")
+    assert [text.count(tag) for tag in ("<h1>", "<h2>", "<section>", "<table>")] == [2, 4, 3, 3]
+    order = ["<h2>Terms</h2>", "<h2>Notes</h2>", "<li>A note.</li>", "<h1>Tables by run</h1>"]
+    order += ["<h2>1. Lists</h2>", "<h3>Pair</h3>", "<h2>2. Yes or no</h2>"]
+    assert [text.index(part) for part in order] == sorted(text.index(part) for part in order)
 
 
-def test_the_page_draws_the_charts_of_its_definition_before_the_terms(tmp_path: Path) -> None:
-    runs = [("Set", "Set, full list")]
+def processed(tmp_path: Path) -> dict[str, Path]:
+    """Write the processed files of the dataset of the runs: the two examples and their three options."""
+    options = [Option(name=name, description=f"Does thing {name}, at length.") for name in ("a", "b", "c")]
+    first = Example(id="set/file/0", query="Do   a thing <now>.", options=options, labels=["a", "b"], raw={})
+    second = Example(id="set/file/1", query="Do another thing.", options=options, labels=["a"], raw={})
+    folder = tmp_path / "processed"
+    write_jsonl(folder / "file.jsonl", [first, second])
+    write_jsonl(folder / TOOLS_FILE_NAME, options)
+    return {"set": folder}
+
+
+def finding(kind: str = "correct_span") -> FindingSpec:
+    return FindingSpec.model_validate(
+        {
+            "title": "1. Allocation",
+            "strength": "strong.",
+            "conclusion": "One correct option takes most.",
+            "evidence": ["0.70 and 0.10."],
+            "limits": ["One run."],
+            "chart": {"kind": kind, "title": "Lowest and highest", "runs": [("Set", "Set, full list")]},
+            "example": {
+                "run": "Set",
+                "id": "set/file/0",
+                "lists": [("full", "The full list"), ("without_1", "Without a")],
+                "about": "The first example.",
+            },
+        }
+    )
+
+
+def test_a_finding_has_its_conclusion_its_chart_and_one_example_with_the_probabilities_of_each_model(
+    tmp_path: Path,
+) -> None:
+    own = spec(lists=("full",), instruction="Choose every tool.")
+    runs = {"Set": chosen(results(tmp_path), own)}
+    block = finding_html(finding(), {"Set": own}, runs, tmp_path, processed(tmp_path))
+    assert "<h2>1. Allocation</h2>" in block and "<b>Strength for the paper:</b> strong." in block
+    assert block.count("<svg") == 1 and "<li>0.70 and 0.10.</li>" in block and "<li>One run.</li>" in block
+    # The query is shown on one line, and the options in the order sent with their text.
+    assert "<b>Query.</b> Do a thing &lt;now&gt;." in block and "<b>Instruction.</b> Choose every tool." in block
+    assert '<b>a</b> <span class="tag">correct</span> Does thing a, at length.' in block
+    assert "<b>c</b> Does thing c, at length." in block
+    # Jev predicts a in the full list and b without a. Liquid d1 refused the list without a.
+    assert "<td><b>0.70</b></td><td><b>0.70</b></td>" in block
+    assert "<td><b>0.60</b></td><td>refused</td>" in block and "<td>0.40</td><td>refused</td>" in block
+
+
+def test_each_kind_of_chart_is_drawn_from_the_runs_that_it_names(tmp_path: Path) -> None:
+    own = spec(lists=("full",), positions=True)
+    runs = {"Set": chosen(results(tmp_path), own)}
+    texts = {
+        "positions": ("100%", "Set, full list"),
+        "correct_span": ("0.10", "0.70", "lowest correct option"),
+        "second_correct": ("0.10", "0.60", "after the removal"),
+        "confidence": ("0.70",),
+        "calibration": ("1.00", "0.70", "mean confidence"),
+    }
+    for kind, expected in texts.items():
+        chart = chart_svg(finding(kind).chart, runs)
+        assert chart.startswith("<svg") and all(text in chart for text in expected), kind
+
+
+def test_the_page_puts_the_conclusions_and_the_findings_before_the_terms_and_the_tables(tmp_path: Path) -> None:
     definition = TableSpec(
         title="Runs",
         intro="One run.",
-        terms=[],
-        notes=[],
+        terms=[("Option", "one entry of a list.")],
+        notes=["A note."],
         models=(JEV_MODEL, D1_MODEL),
-        rows=[spec(lists=("full",), positions=True)],
-        charts=[
-            ChartSpec(kind=kind, title=f"Chart of {kind}", about="What it shows.", runs=runs)
-            for kind in ("positions", "correct_span", "second_correct", "confidence", "overconfidence")
-        ],
+        rows=[spec(lists=("full",))],
+        conclusions=["Order decides.", "One option takes most."],
+        findings=[finding()],
     )
-    text = page(definition, results(tmp_path))
-    assert text.count("<figure") == 5 and text.count("<svg") == 5 and text.count('<figure class="wide">') == 1
-    assert (
-        text.index("<h2>Summary charts</h2>") < text.index("<h3>Chart of positions</h3>") < text.index("<h2>Terms</h2>")
+    text = page(definition, results(tmp_path), processed(tmp_path))
+    order = ["<h2>Conclusions</h2>", "<li>Order decides.</li>", "<h2>1. Allocation</h2>", "<h2>Terms</h2>"]
+    order += ["<h2>Notes</h2>", '<div class="tables">', "<h3>Set</h3>"]
+    assert [text.index(part) for part in order] == sorted(text.index(part) for part in order)
+    assert "size: A4 portrait" in text and "size: A4 landscape" in text
+    assert "<h2>Conclusions</h2>" not in page(
+        definition.model_copy(update={"conclusions": [], "findings": []}), tmp_path
     )
-    # The lowest and the highest correct option of the full list, and its second correct option after the removal.
-    assert all(f">{value}</text>" in text for value in ("0.10", "0.70", "0.60", "Set, full list"))
-    assert "<h2>Summary charts</h2>" not in page(definition.model_copy(update={"charts": []}), tmp_path)
 
 
 def test_the_definition_of_the_runs_on_every_example_names_43_tables_for_three_models() -> None:
@@ -157,4 +220,6 @@ def test_the_definition_of_the_runs_on_every_example_names_43_tables_for_three_m
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
     assert all(row.about and "/2026-10-11_" in row.folder for row in definition.rows)
     labels = {row.label for row in definition.rows}
-    assert len(definition.charts) == 5 and all(run in labels for chart in definition.charts for run, _ in chart.runs)
+    assert len(definition.findings) == 5 and len(definition.conclusions) == 7
+    assert all(run in labels for found in definition.findings for run, _ in found.chart.runs)
+    assert all(found.example.run in labels and found.evidence and found.limits for found in definition.findings)
