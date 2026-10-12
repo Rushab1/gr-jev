@@ -114,6 +114,11 @@ def wrong_tools(example: Example, size: int, seed: int) -> list[Option]:
     return random.Random(f"{seed}/{example.id}/absent").sample(others, min(size, len(others)))
 
 
+def in_place_of(tools: list[Option], name: str, other: Option) -> list[Option]:
+    """Return the tools in their order with the other tool in the place of the named one."""
+    return [other if tool.name == name else tool for tool in tools]
+
+
 def outside_tools(example: Example, tools: list[Option], size: int, seed: int) -> list[Option]:
     """Return `size` tools of the dataset that are not in the list of the example, chosen with the seed."""
     listed = {option.name for option in example.options}

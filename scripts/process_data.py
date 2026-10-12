@@ -7,7 +7,7 @@ from grjev.constants import DOWNLOADS, PROCESSED_DIRS, TICKETS_FILE
 from grjev.ecthr import process_ecthr
 from grjev.hotpotqa import process_hotpotqa
 from grjev.metatool import process_metatool
-from grjev.mmlu import process_mmlu
+from grjev.mmlu import process_mmlu, process_mmlu_na
 from grjev.stabletoolbench import process_stabletoolbench
 from grjev.tickets import process_tickets
 
@@ -16,6 +16,7 @@ PROCESSORS = {
     "stabletoolbench": process_stabletoolbench,
     "bfcl": process_bfcl,
     "mmlu": process_mmlu,
+    "mmlu_na": process_mmlu_na,
     "hotpotqa": process_hotpotqa,
     "ecthr": process_ecthr,
     "tickets": process_tickets,

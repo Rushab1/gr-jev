@@ -272,6 +272,12 @@ MMLU_REFERRING_CHOICE = (
     r"\b(none|all|both|neither|either) of (the|these)|\b(above|the other)\b|^(I|II|III|IV)\b"
     r"|\b(A|B|C|D) and (A|B|C|D)\b"
 )
+# MMLU in the protocol of Tam et al. (2025), kept as a dataset of its own: the test questions outside the subject that
+# the paper leaves out, with 4 different choices and no choice that already says "none of the above". The paper also
+# keeps only the questions that it labels as suited to "None of the above". It does not publish these labels.
+MMLU_NA_PROCESSED_DIR = DATA_DIR / "mmlu_na" / "processed"
+MMLU_NA_EXCLUDED_SUBJECT = "moral_scenarios"
+MMLU_NONE_NAME = "None of the above"
 HOTPOTQA_PROCESSED_DIR = DATA_DIR / "hotpotqa" / "processed"
 # The processed file with every validation question, and the one with the questions that have 10 passages.
 HOTPOTQA_TEST_FILE = "validation"
@@ -398,6 +404,9 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "ecthr": (ECTHR_VIOLATED_FILE,),
     },
     "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,), "hotpotqa": (HOTPOTQA_TEN_FILE,)},
+    # "replaced" sends the list of the example, and the list with "None" in the place of the correct option and of
+    # one other option, in the order of the example.
+    "replaced": {"mmlu_na": (MMLU_TEST_FILE,)},
     "absent_random": {
         "metatool": ("similar_tools",),
         "mmlu": (MMLU_STANDALONE_FILE,),
@@ -428,6 +437,7 @@ NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "metatool": ("similar_tools", "scenario", "reliability"),
     "stabletoolbench": (),
     "mmlu": (),
+    "mmlu_na": (),
     "hotpotqa": (),
     "ecthr": (),
     "tickets": (),
@@ -436,7 +446,8 @@ NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
 # Dataset -> the name and the description of its "None" candidate, where the options are not tools.
 NONE_CANDIDATES = {
-    "mmlu": ("None of the above", ""),
+    "mmlu": (MMLU_NONE_NAME, ""),
+    "mmlu_na": (MMLU_NONE_NAME, ""),
     "hotpotqa": ("None of the passages", "No passage in the list supports the answer to the question."),
     "ecthr": ("None of these articles", "The Court found no violation of an article in the list."),
 }
@@ -444,6 +455,7 @@ NONE_CANDIDATES = {
 # mark the passages that support the answer, and those of ECtHR the articles that the Court found violated.
 DATASET_INSTRUCTIONS = {
     "mmlu": "Choose the correct answer to the question.",
+    "mmlu_na": "Choose the correct answer to the question.",
     "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
     "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
     # The instruction of the team question of TypeSafe's example, unchanged.
@@ -475,6 +487,7 @@ SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
     "metatool": ("multi_tool",),
     "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
     "mmlu": (),
+    "mmlu_na": (),
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,
@@ -508,6 +521,10 @@ GROWTH_LENGTHS = {"stabletoolbench": (20, 50, 100, 199)}
 GROWTH_WORDINGS = ("all", "every")
 # The name of the padded list of an example before it is grown.
 OWN_LIST = "own"
+# The other lists of a "replaced" run, after Tam et al. (2025): "None" in the place of the correct option, and "None"
+# in the place of one option that is not correct, chosen with the seed.
+NONE_AS_ANSWER_LIST = "none_as_answer"
+NONE_AS_DISTRACTOR_LIST = "none_as_distractor"
 # The "reworded" experiment. One correct tool of a query is chosen with the seed, and the list that is sent holds only
 # rewordings of its name and description, in a seeded order. Dataset -> the file of rewordings: the name of a tool ->
 # its 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06 and 2026-10-07. A rewording of a StableToolBench API
@@ -652,6 +669,7 @@ DOWNLOADS = {
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
     "mmlu": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
+    "mmlu_na": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
     "hotpotqa": (HOTPOTQA_BASE_URL, HOTPOTQA_SHA256, HOTPOTQA_RAW_DIR),
     "ecthr": (ECTHR_BASE_URL, ECTHR_SHA256, ECTHR_RAW_DIR),
 }
@@ -662,6 +680,7 @@ PROCESSED_DIRS = {
     "stabletoolbench": STABLETOOLBENCH_PROCESSED_DIR,
     "bfcl": BFCL_PROCESSED_DIR,
     "mmlu": MMLU_PROCESSED_DIR,
+    "mmlu_na": MMLU_NA_PROCESSED_DIR,
     "hotpotqa": HOTPOTQA_PROCESSED_DIR,
     "ecthr": ECTHR_PROCESSED_DIR,
     "tickets": TICKETS_PROCESSED_DIR,
@@ -672,6 +691,7 @@ TEST_FILES = {
     "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
     "bfcl": BFCL_TEST_FILES,
     "mmlu": MMLU_TEST_FILES,
+    "mmlu_na": (MMLU_TEST_FILE,),
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,

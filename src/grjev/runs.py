@@ -21,6 +21,8 @@ from grjev.constants import (
     JEV_WORKERS,
     LIST_LENGTHS,
     NO_ADDED_NONE_EXPERIMENTS,
+    NONE_AS_ANSWER_LIST,
+    NONE_AS_DISTRACTOR_LIST,
     NONE_CANDIDATES,
     NONE_DESCRIPTION,
     NONE_NAME,
@@ -63,6 +65,7 @@ from grjev.jev import (
 )
 from grjev.placement import (
     grown_orders,
+    in_place_of,
     length_orders,
     orders_of,
     outside_tools,
@@ -371,6 +374,25 @@ def with_none_lists(config: RunConfig, examples: dict[str, list[Example]], tools
             yield test_file, example, {OWN_LIST: [*example.options, none_option(config)]}, {OWN_LIST: instruction}
 
 
+def replaced_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its list, and with "None" in the place of its correct tool and of one other tool.
+
+    The protocol of Tam et al. (2025). Every list keeps the order of the example, and the other tool is chosen with
+    the seed. The yielded example keeps its label, and an answer is scored against the labels that its list holds:
+    "None" is the correct answer of the list without the correct tool.
+    """
+    instruction, none = instruction_of(config, ONE_TOOL_INSTRUCTIONS), none_option(config)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            (label,), (other,) = example.labels or [], wrong_tools(example, 1, config.seed)
+            lists = {
+                OWN_LIST: example.options,
+                NONE_AS_ANSWER_LIST: in_place_of(example.options, label, none),
+                NONE_AS_DISTRACTOR_LIST: in_place_of(example.options, other.name, none),
+            }
+            yield test_file, example, lists, dict.fromkeys(lists, instruction)
+
+
 # Experiment -> the function that yields the tool lists of its examples.
 LISTS = {
     "position": position_lists,
@@ -387,6 +409,7 @@ LISTS = {
     "distractors": distractor_lists,
     "removal": removal_lists,
     "with_none": with_none_lists,
+    "replaced": replaced_lists,
 }
 
 

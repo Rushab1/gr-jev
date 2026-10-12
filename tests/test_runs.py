@@ -52,6 +52,7 @@ from grjev.runs import (
     is_correct,
     offered_labels,
     plan,
+    row_of,
     run,
     sample_size,
     sampled,
@@ -311,6 +312,41 @@ def test_an_absent_run_asks_wrong_tools_and_none_in_every_rotation_and_none_is_c
     assert places == [5, 4, 3, 2, 1] and item.example.labels == []
     assert is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.2, NONE_NAME: 0.8}))
     assert not is_correct(run_config, "similar_tools", [], choice({"tool_1": 0.8, NONE_NAME: 0.2}))
+
+
+def test_a_replaced_run_puts_none_in_the_place_of_the_correct_choice_and_of_one_other_choice() -> None:
+    question = Example(id="mmlu_na/test/0", query="What is 2 + 2?", options=CHOICES, labels=["4"], raw={})
+    run_config = config("replaced", dataset="mmlu_na")
+    (item,) = plan(run_config, {"test": [question]}, [])
+    (request,) = item.requests
+    assert list(request.questions) == ["own", "none_as_answer", "none_as_distractor"]
+    names = {name: [tool.name for tool in tools] for name, tools in item.lists.items()}
+    assert names["own"] == [tool.name for tool in CHOICES]
+    place = names["own"].index("4")
+    assert names["none_as_answer"] == [*names["own"][:place], "None of the above", *names["own"][place + 1 :]]
+    moved = [(old, new) for old, new in zip(names["own"], names["none_as_distractor"], strict=True) if old != new]
+    assert len(moved) == 1 and moved[0][0] != "4" and moved[0][1] == "None of the above"
+    assert item == plan(run_config, {"test": [question]}, [])[0]
+    for sent in request.questions.values():
+        assert (
+            isinstance(sent, jev.ChoiceQuestion) and sent.instructions == "Choose the correct answer to the question."
+        )
+    none, four = {"3": 0.2, "None of the above": 0.8}, {"4": 0.7, "None of the above": 0.3}
+    answers: dict[str, jev.ChoiceAnswer | jev.NoulAnswer | jev.RefusalAnswer] = {
+        "own": choice({"3": 0.2, "4": 0.8}),
+        "none_as_answer": choice(none),
+        "none_as_distractor": choice(four),
+    }
+    usage = jev.Usage(input_tokens=10, output_tokens=1)
+    row = row_of(run_config, item, [jev.JevResponse(model="jev-1.13.0", answers=answers, usage=usage)])
+    assert all(answer.correct for answer in row.answers.values()) and row.labels == ["4"]
+    wrong: dict[str, jev.ChoiceAnswer | jev.NoulAnswer | jev.RefusalAnswer] = {
+        "own": choice({"3": 0.8, "4": 0.2}),
+        "none_as_answer": choice({"3": 0.9, "None of the above": 0.1}),
+        "none_as_distractor": choice({"4": 0.3, "None of the above": 0.7}),
+    }
+    row = row_of(run_config, item, [jev.JevResponse(model="jev-1.13.0", answers=wrong, usage=usage)])
+    assert not any(answer.correct for answer in row.answers.values())
 
 
 def test_a_dataset_whose_options_are_not_tools_has_its_own_instruction_and_none_candidate() -> None:

@@ -8,7 +8,7 @@ import pytest
 
 from grjev.constants import MMLU_RAW_DIR, MMLU_RAW_FILE, MMLU_STANDALONE_FILE, MMLU_TEST_FILE, MMLU_TEST_FILES
 from grjev.examples import Example, Option, read_dataset, read_jsonl, write_jsonl
-from grjev.mmlu import examples_of, process_mmlu, standalone
+from grjev.mmlu import examples_of, process_mmlu, process_mmlu_na, replaceable, standalone
 
 ROW = {"question": "What is 2 + 2?", "subject": "elementary_mathematics", "choices": ["3", "4", "5", "6"], "answer": 1}
 
@@ -82,3 +82,30 @@ def test_the_standalone_file_holds_the_13096_questions_whose_choices_can_be_move
     assert all(len({option.name for option in example.options}) == 4 for example in kept)
     choices = {option.name for example in kept for option in example.options}
     assert {option.name for option in processed[1]} == choices and len(processed[1]) == len(choices)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"subject": "moral_scenarios"},
+        {"choices": ["3", "4", "4", "6"]},
+        {"choices": ["3", "4", "5", "None of the above"]},
+        {"choices": ["3", "4", "5", "none of the above are true."]},
+    ],
+)
+def test_a_question_is_left_out_of_the_protocol_of_tam_et_al(changes: dict[str, Any]) -> None:
+    assert replaceable(examples_of([ROW])[0])
+    assert replaceable(examples_of([ROW | {"choices": ["3", "4", "all of the above", "6"]}])[0])
+    assert not replaceable(examples_of([ROW | changes])[0])
+
+
+def test_the_dataset_of_the_protocol_of_tam_et_al_holds_12981_questions_under_its_own_name(
+    raw_rows: list[dict[str, Any]], tmp_path: Path
+) -> None:
+    written = process_mmlu_na(MMLU_RAW_DIR, tmp_path)
+    examples, choices = read_dataset(tmp_path, (MMLU_TEST_FILE,))
+    kept = examples[MMLU_TEST_FILE]
+    assert written[f"{MMLU_TEST_FILE}.jsonl"] == len(kept) == 12_981
+    assert len({example.raw["subject"] for example in kept}) == 56
+    assert all(example.raw == raw_rows[int(example.id.removeprefix("mmlu_na/test/"))] for example in kept)
+    assert {option.name for option in choices} == {option.name for example in kept for option in example.options}
