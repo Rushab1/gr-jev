@@ -23,5 +23,7 @@ def test_the_john_and_jane_request_holds_the_10_passages_and_the_two_lists_witho
     assert list(without_jane.criteria) == [name for name in full.criteria if name != "Jane"]
     text = request.model_dump_json()
     assert not any(name in text for name in ("Rubin", "Sharapova", "Chanda", "Maria"))
-    assert "John (born February 18, 1976)" in (full.criteria["John"] or "")
-    assert "Jane (born April 19, 1987)" in (full.criteria["Jane"] or "")
+    assert "John (born December 12, 1976)" in (full.criteria["John"] or "")
+    assert "Jane (born January 13, 1990)" in (full.criteria["Jane"] or "")
+    for shorter in (without_john, without_jane):
+        assert all(text == full.criteria[title] for title, text in shorter.criteria.items())
