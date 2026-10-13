@@ -292,7 +292,7 @@ HOTPOTQA_PASSAGES = 10
 TICKETS_FILE = Path(__file__).parent / "stimuli" / "tickets.json"
 TICKETS_PROCESSED_DIR = DATA_DIR / "tickets" / "processed"
 # Requests written for the paper, one file each: the example a request comes from, what was changed in it, and the
-# request without its model. `scripts/written_request.py` sends one.
+# request without its model. `scripts/run/written_request.py` sends one.
 WRITTEN_REQUESTS_DIR = Path(__file__).parent / "stimuli" / "requests"
 # The processed files: tickets with two issues for two teams in both orders, the same issues one per ticket, and the
 # ticket of TypeSafe's example, which names an issue for each of the three teams.
@@ -602,7 +602,7 @@ YES_PROBABILITY = 0.5
 # A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
 # set is less than 10".
 POSITIONS_SHOWN_BELOW = 10
-# The runs of `docs/paper_plan.md`, each as the arguments of scripts/run_experiment.py: the experiment, the dataset,
+# The runs of `docs/paper_plan.md`, each as the arguments of scripts/run/run_experiment.py: the experiment, the dataset,
 # and the test files or the sample where the run does not send every example of the experiment. MMLU is run on
 # 1,000 questions, and so are the HotpotQA runs with 5 cyclic permutations and the HotpotQA run with "None". The
 # HotpotQA yes/no control is run on 500 questions.
@@ -637,9 +637,9 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
 )
 # The definitions of the tables of runs: the title, the text and the rows of each table.
 TABLES_DIR = Path(__file__).parent / "definitions"
-# The LaTeX tables of the paper, written by scripts/paper_tables.py.
+# The LaTeX tables of the paper, written by scripts/paper/paper_tables.py.
 PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
-# The figure of the paper, written by scripts/paper_figure.py.
+# The figure of the paper, written by scripts/paper/paper_figure.py.
 PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.

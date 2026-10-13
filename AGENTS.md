@@ -7,7 +7,11 @@ This file is the code standard for everyone who works here: Rushab, Gyanesh, and
 ## Layout
 
 ```
-scripts/        runnable commands: download a dataset, run an experiment
+scripts/        runnable commands, in four folders
+  data/         download a dataset, convert it, write its statistics
+  run/          call a model: an experiment, the runs of the paper, one written request, the key checks
+  report/       read results folders: the figures of a run, a comparison of two runs, the tables and the report
+  paper/        write the tables and the figure of the paper
 src/grjev/      importable code: loaders, the Jev client, metrics
 tests/          tests for src/grjev/
 data/<dataset>/raw/        files exactly as downloaded, never edited
@@ -27,36 +31,36 @@ paper/          the paper: main.tex with the ACL style (acl.sty, two columns), o
 ```
 uv sync
 source .venv/bin/activate
-python scripts/download_data.py metatool stabletoolbench bfcl
-python scripts/process_data.py metatool stabletoolbench bfcl
-python scripts/dataset_stats.py metatool stabletoolbench bfcl
+python scripts/data/download_data.py metatool stabletoolbench bfcl
+python scripts/data/process_data.py metatool stabletoolbench bfcl
+python scripts/data/dataset_stats.py metatool stabletoolbench bfcl
 ```
 
 Python 3.13. `uv sync` creates `.venv` and installs the versions recorded in `uv.lock`, with the `grjev` package in editable mode. Packages are listed in `pyproject.toml`: the ones the code needs under `dependencies`, and `ruff`, `mypy` and `pytest` in the `dev` group. After changing them, run `uv lock` and commit `uv.lock`.
 
-The two scripts also take `mmlu`, which the commands above leave out. `scripts/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`. `scripts/process_data.py` converts a dataset to the common format in `data/<dataset>/processed/`. `scripts/dataset_stats.py` writes `docs/stats/<dataset>.js`, which the charts on the dashboard load. Commit that file when it changes.
+The two scripts also take `mmlu`, which the commands above leave out. `scripts/data/download_data.py` writes each dataset to `data/<dataset>/raw/` and checks each file against its SHA-256 hash in `constants.py`. `scripts/data/process_data.py` converts a dataset to the common format in `data/<dataset>/processed/`. `scripts/data/dataset_stats.py` writes `docs/stats/<dataset>.js`, which the charts on the dashboard load. Commit that file when it changes.
 
-Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/check_jev.py` makes one call on every run to confirm the key works. The call counts towards `JEV_CALL_LIMIT`.
+Copy `.env.example` to `.env` and put the Jev key in it. `python scripts/run/check_jev.py` makes one call on every run to confirm the key works. The call counts towards `JEV_CALL_LIMIT`.
 
-The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off and with `--effort low`. `python scripts/check_frontier.py` makes one call per model on every run.
+The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `claude` CLI signed in on the machine, at the version pinned in `constants.py`, with thinking and tools switched off and with `--effort low`. `python scripts/run/check_frontier.py` makes one call per model on every run.
 
-`python scripts/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random`, `unrelated` and `own`, and `--examples-per-file` or `--examples` runs a seeded sample. `--run 2` asks Jev the same requests again and saves the answers under run number 2. The `reworded` and `rotated` experiments read the rewordings of the tools from `src/grjev/rewordings/<dataset>.json`. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
+`python scripts/run/run_experiment.py position --dry-run` prints the number of Jev calls of an experiment and sends nothing. Without `--dry-run` it asks Jev and writes `results/<dataset>_<experiment>/<date>_<incr>/`. The experiments are `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random`, `unrelated` and `own`, and `--examples-per-file` or `--examples` runs a seeded sample. `--run 2` asks Jev the same requests again and saves the answers under run number 2. The `reworded` and `rotated` experiments read the rewordings of the tools from `src/grjev/rewordings/<dataset>.json`. A run that would take the saved Jev calls past `JEV_CALL_LIMIT` in `constants.py` does not start. Only Rushab raises that limit.
 
 `--model` runs an experiment on a decision model that Vercel AI Gateway serves: `convaiinnovations/laya`, `liquid/d1` or `openai/gpt-6-luna-decisions`. The gateway key is read from `VERCEL_GATEWAY_API_KEY`. The run writes `results/<dataset>_<experiment>_<model>/<date>_<incr>/`, with `laya`, `d1` or `gpt-6-luna-decisions` as the model. Its responses are saved under `data/cache/gateway/` and do not count towards `JEV_CALL_LIMIT`. Laya gets one tool list per request. A list that Laya rejects as too long is saved as rejected, and the row of its example names it under `rejected`.
 
-`python scripts/process_data.py mmlu_na` builds MMLU as a dataset of its own, for the protocol of Tam et al. (2025): the 12,981 test questions outside the subject `moral_scenarios` that have 4 different choices and no choice that says "none of the above". `python scripts/run_experiment.py replaced --dataset mmlu_na` sends each question in one request with three lists in the order of the question: its 4 choices, "None of the above" in the place of the correct choice, and "None of the above" in the place of one other choice. The results folders are `results/mmlu_na_replaced*/`, and the report of the paper does not read them.
+`python scripts/data/process_data.py mmlu_na` builds MMLU as a dataset of its own, for the protocol of Tam et al. (2025): the 12,981 test questions outside the subject `moral_scenarios` that have 4 different choices and no choice that says "none of the above". `python scripts/run/run_experiment.py replaced --dataset mmlu_na` sends each question in one request with three lists in the order of the question: its 4 choices, "None of the above" in the place of the correct choice, and "None of the above" in the place of one other choice. The results folders are `results/mmlu_na_replaced*/`, and the report of the paper does not read them.
 
-`python scripts/written_request.py john_jane` sends one request written for the paper and prints the probabilities of each of its lists. The requests are in `src/grjev/stimuli/requests/`, one file each, with the example a request comes from and what was changed in it. `--model` sends it to a gateway model.
+`python scripts/run/written_request.py john_jane` sends one request written for the paper and prints the probabilities of each of its lists. The requests are in `src/grjev/stimuli/requests/`, one file each, with the example a request comes from and what was changed in it. `--model` sends it to a gateway model.
 
-`python scripts/runs_table.py all_runs --out docs/all_runs.md` rebuilds `docs/all_runs.md`: one table per model with the figures of the probability distribution of each run. The rows, the terms and the notes of the tables are in `src/grjev/definitions/all_runs.json`. The figures are computed in `src/grjev/distribution.py`, and `scripts/results_figures.py` prints them for the tool lists of one run.
+`python scripts/report/runs_table.py all_runs --out docs/all_runs.md` rebuilds `docs/all_runs.md`: one table per model with the figures of the probability distribution of each run. The rows, the terms and the notes of the tables are in `src/grjev/definitions/all_runs.json`. The figures are computed in `src/grjev/distribution.py`, and `scripts/report/results_figures.py` prints them for the tool lists of one run.
 
-`python scripts/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `src/grjev/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page. `docs/paper_runs.pdf` is that page printed from a browser.
+`python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `src/grjev/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page. `docs/paper_runs.pdf` is that page printed from a browser.
 
-`python scripts/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
+`python scripts/paper/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
 
-`python scripts/paper_figure.py paper_runs` writes the figure of the paper to `paper/figures/` as a TikZ picture: the lowest and the highest correct option of the lists with several correct options, the highest distractor, the second correct option before and after the removal, and the threshold of TypeSafe's example code. The code is in `src/grjev/figure.py`.
+`python scripts/paper/paper_figure.py paper_runs` writes the figure of the paper to `paper/figures/` as a TikZ picture: the lowest and the highest correct option of the lists with several correct options, the highest distractor, the second correct option before and after the removal, and the threshold of TypeSafe's example code. The code is in `src/grjev/figure.py`.
 
-`python scripts/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. `python scripts/compare_runs.py <folder> <folder>` compares the answers of two results folders to the same examples, such as two runs of the same requests. The code is in `src/grjev/metrics.py`.
+`python scripts/report/results_figures.py results/<name>/<date>_<incr>` prints the figures of a run from its results folder: CSR with a 95% bootstrap interval over the examples, the answers of "None", the confident answers and the entropy of the probabilities. `python scripts/report/compare_runs.py <folder> <folder>` compares the answers of two results folders to the same examples, such as two runs of the same requests. The code is in `src/grjev/metrics.py`.
 
 An experiment runs on any dataset in the common format. A new dataset needs a converter in `src/grjev/` and its entries in `EXPERIMENT_TEST_FILES`, `NONE_TEST_FILES` and `SEVERAL_TOOL_TEST_FILES` in `constants.py`, and in `LIST_LENGTHS` for the length experiment.
 

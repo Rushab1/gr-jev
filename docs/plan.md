@@ -6,7 +6,7 @@ This file holds the plan: the next steps, the first run, the rules for building 
 
 ## Next steps
 
-The runner is built: `scripts/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random`, `unrelated` and `own` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
+The runner is built: `scripts/run/run_experiment.py`, with `src/grjev/placement.py`, `src/grjev/runs.py` and `src/grjev/results.py`. It runs the experiments `position`, `length`, `wording`, `growth`, `reworded`, `rotated`, `copied`, `absent`, `absent_random`, `unrelated` and `own` on a dataset in the common format. `--examples` takes a seeded sample of an exact number of examples over all the test files, and `--run 2` sends the same requests again and saves the answers under run number 2. `python scripts/run/run_experiment.py position --dry-run` prints the Jev calls of a run and sends nothing.
 
 A subset was run on 2026-10-05, on Rushab's instruction to run a small subset of every experiment before one experiment on every example. Its results are under "Subset of 2026-10-05" and on the Results tab of `docs/dashboard.html`.
 
@@ -17,10 +17,10 @@ Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordin
 1. The runs on every example are listed in `docs/paper_plan.md`, by the property of the probability distribution that each tests. Rushab, 2026-10-10: the paper studies the probability distribution of decision models, on MetaTool, HotpotQA, MMLU and ECtHR, and is not about tool selection. Rushab chose the recommended setup on 2026-10-10: 25 runs, with MMLU on 1,000 questions and yes/no questions as a control. They send 38,221 requests per model and cost about $22.90 for Jev, Liquid d1 and GPT-6 Luna Decisions together, with the HotpotQA run with NOTA on 1,000 questions. StableToolBench is left out of them since 2026-10-10. The pilot on 50 examples per dataset was run on 2026-10-10. The runs were made on 2026-10-11 on Jev, Liquid d1 and GPT-6 Luna Decisions, with no failed run. Their figures are not in the documents yet.
 2. Rushab raises the limit of Jev calls, `JEV_CALL_LIMIT` in `src/grjev/constants.py`. He raised it to 5,000 on 2026-10-09 and to 42,000 on 2026-10-11 for the runs on every example. 38,808 calls are saved after them. A run that would pass the limit does not start.
 3. HotpotQA and ECtHR (Task A of LexGLUE) are added to the repository: a pinned download and a converter with its test, for each. The runner gets three new runs: the correct option with the highest probability removed, a yes/no question per option, and the distractors of the example with no correct option. Rushab chose it on 2026-10-09 for lists with several correct options.
-4. Done on 2026-10-10. `src/grjev/distribution.py` computes the figures of `docs/all_runs.md` and `src/grjev/tables.py` builds its tables, with tests. `python scripts/runs_table.py all_runs --out docs/all_runs.md` rebuilds the file. The rebuilt tables are identical to those of the script outside the repository, which they replace. `scripts/results_figures.py` prints the same figures for one run.
-5. The runner for other decision models is built: `scripts/run_experiment.py --model` asks Liquid d1, GPT-6 Luna Decisions or Laya through Vercel AI Gateway. Rushab decided on 2026-10-08 that no model is hosted by us, and the 18 runs were repeated on the three models on 2026-10-09. List length is decided later: possibly a short section at the end of the paper on the 50 examples already run.
+4. Done on 2026-10-10. `src/grjev/distribution.py` computes the figures of `docs/all_runs.md` and `src/grjev/tables.py` builds its tables, with tests. `python scripts/report/runs_table.py all_runs --out docs/all_runs.md` rebuilds the file. The rebuilt tables are identical to those of the script outside the repository, which they replace. `scripts/report/results_figures.py` prints the same figures for one run.
+5. The runner for other decision models is built: `scripts/run/run_experiment.py --model` asks Liquid d1, GPT-6 Luna Decisions or Laya through Vercel AI Gateway. Rushab decided on 2026-10-08 that no model is hosted by us, and the 18 runs were repeated on the three models on 2026-10-09. List length is decided later: possibly a short section at the end of the paper on the 50 examples already run.
 
-The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/check_jev.py` uses 1 Jev call of the limit.
+The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/run/check_jev.py` uses 1 Jev call of the limit.
 
 ## Two results so far
 
@@ -49,7 +49,7 @@ Every figure is the mean of a seeded sample: 50 queries for the rewordings, the 
 | The same queries: every correct tool is found | 203 to 218 of 294 | 314 of 450 with "Choose one of them.", 378 with "Choose both." |
 | The same request sent twice: the selected entry is the same | 1,158 of 1,182 answers | 1,526 of 1,550 answers |
 
-For a query with several correct tools, the table below gives the correct tool with the highest probability and the one with the lowest. In a list of rewordings or of copies every entry is correct. `python scripts/results_figures.py <folder>` prints the three columns of probabilities for each list.
+For a query with several correct tools, the table below gives the correct tool with the highest probability and the one with the lowest. In a list of rewordings or of copies every entry is correct. `python scripts/report/results_figures.py <folder>` prints the three columns of probabilities for each list.
 
 | Run | Correct entries of the list | Answers | Highest correct, mean probability | Lowest correct, mean probability | Highest minus lowest | All correct entries together | An even split over the correct entries |
 |---|---|---|---|---|---|---|---|
@@ -124,15 +124,15 @@ Rushab, 2026-10-07: the normal lists show no effect of the place because their t
 
 ## Subset of 2026-10-05
 
-350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample of 50 examples of a test file, or of 50 queries, and is given here without a margin of error. `python scripts/results_figures.py` prints the figures from a results folder, each CSR with a margin of error computed from the saved answers. The code is in `src/grjev/metrics.py`.
+350 Jev calls, 3,877,435 input tokens, $0.16. Every figure is from a seeded sample of 50 examples of a test file, or of 50 queries, and is given here without a margin of error. `python scripts/report/results_figures.py` prints the figures from a results folder, each CSR with a margin of error computed from the saved answers. The code is in `src/grjev/metrics.py`.
 
 The results folders are `results/metatool_position/2026-10-05_04` and `2026-10-05_05`, and `results/metatool_length/2026-10-05_02`. They were written on 2026-10-05 from the saved responses, with 0 new Jev calls, at commit `fc0b930`, which holds the runner. The folders `2026-10-05_02` and `2026-10-05_03` of the position runs and `2026-10-05_01` of the length run hold the same rows and were written before the runner was committed. `results/metatool_position/2026-10-05_01` is a trial with 1 example per test file. Results folders are not in git.
 
 | Run | Command | Examples | Tool lists | Jev calls |
 |---|---|---|---|---|
-| Position | `python scripts/run_experiment.py position --examples-per-file 50` | 200 | 1,100 | 200 |
-| Position, multi-tool with the wording "both" | `python scripts/run_experiment.py position --test-files multi_tool --examples-per-file 50 --two-tool-wording both` | 50 | 450 | 50 |
-| Length | `python scripts/run_experiment.py length --examples-per-file 25` | 50 | 1,500 | 100 |
+| Position | `python scripts/run/run_experiment.py position --examples-per-file 50` | 200 | 1,100 | 200 |
+| Position, multi-tool with the wording "both" | `python scripts/run/run_experiment.py position --test-files multi_tool --examples-per-file 50 --two-tool-wording both` | 50 | 450 | 50 |
+| Length | `python scripts/run/run_experiment.py length --examples-per-file 25` | 50 | 1,500 | 100 |
 
 Position, 50 examples per test file:
 
@@ -196,7 +196,7 @@ The number word follows the query, from Two to Six. The texts say "tools", as on
 
 - Score. For a query with k relevant APIs, an answer is correct when Jev's k highest probabilities are the k relevant APIs.
 - Entropy. H = −Σ pᵢ log₂ pᵢ over the probabilities pᵢ of one answer, in bits. It is 0 when one API has 1.00, 1.00 when two APIs have 0.50 each, and 1.58 when three have one third each.
-- Size and cost. 300 requests, 1,182 questions, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_01`, written at commit `2e5e4ad`. `python scripts/results_figures.py` prints the figures of the three tables below. No margin of error is given.
+- Size and cost. 300 requests, 1,182 questions, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_01`, written at commit `2e5e4ad`. `python scripts/report/results_figures.py` prints the figures of the three tables below. No margin of error is given.
 
 All six test files:
 
@@ -243,7 +243,7 @@ Not decided: how the number of relevant APIs is read from an answer when the ins
 
 ### A second run of the same requests
 
-Rushab asked on 2026-10-06 whether Jev's top API changes between two runs of one request while its highest probability stays far above its second-highest. The 300 requests of the wording run were sent a second time on 2026-10-06: 300 calls, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_02`, written at commit `ac8fd1d` with `--run 2`. `python scripts/compare_runs.py results/stabletoolbench_wording/2026-10-06_01 results/stabletoolbench_wording/2026-10-06_02` prints the first four columns of figures.
+Rushab asked on 2026-10-06 whether Jev's top API changes between two runs of one request while its highest probability stays far above its second-highest. The 300 requests of the wording run were sent a second time on 2026-10-06: 300 calls, 487,714 input tokens, $0.02. The results folder is `results/stabletoolbench_wording/2026-10-06_02`, written at commit `ac8fd1d` with `--run 2`. `python scripts/report/compare_runs.py results/stabletoolbench_wording/2026-10-06_01 results/stabletoolbench_wording/2026-10-06_02` prints the first four columns of figures.
 
 | Wording | Answers | Same selected API in both runs | Answers with every probability the same | Largest change of one probability | Correct answers, first run | Correct answers, second run | Highest probability minus second-highest, mean, first run | The same, second run |
 |---|---|---|---|---|---|---|---|---|
@@ -263,7 +263,7 @@ Decided by Rushab on 2026-10-06, for 50 queries: the fall of CSR with the list l
 - Examples. A seeded sample of 50 queries over the six test files: 9 from each of the first two and 8 from each of the other four. 3 have 1 relevant API, 35 have 2, 8 have 3, 2 have 4, 1 has 5 and 1 has 6. 48 of the 50 are also in the wording run.
 - Lists. The list that the wording run sends for the example, with 5 to 11 APIs for these 50 queries, and that list grown to 20, 50, 100 and 199 APIs with random other APIs of the 2,490. Each longer list contains the shorter ones, and each list is in a seeded random order of its own.
 - Wordings. `all` for the 47 queries with 2 or more relevant APIs, and `every` for all 50.
-- Size and cost. 59 requests, since 9 queries need two requests for their 10 questions. 485 questions, 1,667,337 input tokens, $0.07. The results folder is `results/stabletoolbench_growth/2026-10-06_02`, written at commit `2343b01`. The folder `2026-10-06_01` holds 48 of the 50 queries: 8 per test file were sent first, and 2 queries were added to reach the 50 that Rushab asked for. The code names the experiment `growth`. `python scripts/results_figures.py` prints the figures of the table. No margin of error is given.
+- Size and cost. 59 requests, since 9 queries need two requests for their 10 questions. 485 questions, 1,667,337 input tokens, $0.07. The results folder is `results/stabletoolbench_growth/2026-10-06_02`, written at commit `2343b01`. The folder `2026-10-06_01` holds 48 of the 50 queries: 8 per test file were sent first, and 2 queries were added to reach the 50 that Rushab asked for. The code names the experiment `growth`. `python scripts/report/results_figures.py` prints the figures of the table. No margin of error is given.
 
 | APIs in the list | Correct with `all`, 47 queries | Correct with `every`, 50 queries | Entropy with `every`, mean | Highest probability minus second-highest with `every`, mean | Probabilities at 0.00 with `every` |
 |---|---|---|---|---|---|
@@ -355,7 +355,7 @@ Three runs were made, each with one request per query. The code names the first 
 | Shuffled order, 2026-10-07 | A seeded random order for each query | 50 | 26,945 | `results/stabletoolbench_reworded/2026-10-07_01` | `e0b630d` |
 | Rotated orders, 2026-10-07 | The order of the file moved by 0, 1, 2, 3 and 4 places, as 5 questions of one request | 250 | 71,929 | `results/stabletoolbench_rotated/2026-10-07_01` | `42dbd0d` |
 
-Each run cost under $0.01. `python scripts/results_figures.py <folder>` prints the figures of the two tables below, and `python scripts/compare_runs.py` compares two folders. No margin of error is given.
+Each run cost under $0.01. `python scripts/report/results_figures.py <folder>` prints the figures of the two tables below, and `python scripts/report/compare_runs.py` compares two folders. No margin of error is given.
 
 A first run on 2026-10-06 kept the other APIs of the query's list and put the 5 rewordings in the place of the chosen API, which gave lists of 9 to 15 entries. Rushab rejected that design the same day. Its 50 calls count towards the limit, its folder is `results/stabletoolbench_reworded/2026-10-06_01`, and its figures are not used.
 
@@ -416,7 +416,7 @@ Decided by Rushab on 2026-10-07: the second run and the runs with rewordings are
 
 ### A second run of the position subset
 
-The 250 requests of the position subset of 2026-10-05 were sent a second time on 2026-10-07: the 200 requests of the position run, and the 50 requests of the multi-tool examples with "Choose both." They took 683,647 input tokens, $0.03. The results folders are `results/metatool_position/2026-10-07_01` and `results/metatool_position/2026-10-07_02`, written at commit `8fceb0a` with `--run 2`. `python scripts/compare_runs.py` prints the figures of each tool list, and the table sums them over the tool lists of a test file.
+The 250 requests of the position subset of 2026-10-05 were sent a second time on 2026-10-07: the 200 requests of the position run, and the 50 requests of the multi-tool examples with "Choose both." They took 683,647 input tokens, $0.03. The results folders are `results/metatool_position/2026-10-07_01` and `results/metatool_position/2026-10-07_02`, written at commit `8fceb0a` with `--run 2`. `python scripts/report/compare_runs.py` prints the figures of each tool list, and the table sums them over the tool lists of a test file.
 
 | Test file | Tool lists of an example | Answers | Same selected tool in both runs | Answers with every probability the same | Largest change of one probability | Correct answers, first run | Correct answers, second run | Highest probability minus second-highest, mean, in both runs |
 |---|---|---|---|---|---|---|---|---|
@@ -496,7 +496,7 @@ The two answers are saved under the request hashes that start with `8ae4984f` an
 - Examples. The 50 queries of the rotated run of each dataset, with the same chosen tool.
 - List. The chosen tool five times, with its description. The names of the 5 copies differ only by extra spaces, at places chosen with the seed. A StableToolBench copy has its extra spaces after one run of spaces of the name: 227 of the 250 copies have 1 extra space and 23 have 2. A MetaTool name has no space, and a copy has 1 to 5 spaces at its end. The "None" candidate is not offered.
 - Orders and instruction. The 5 rotations of the list as 5 questions of one request, with "Pick all the tools in the list that are relevant to the task at hand."
-- Size and cost. 50 requests for each dataset, 72,174 input tokens on StableToolBench and 65,753 on MetaTool, each under $0.01. The results folders are `results/stabletoolbench_copied/2026-10-07_01` and `results/metatool_copied/2026-10-07_01`, written at commit `22b5c83`. The code names the experiment `copied`. `python scripts/results_figures.py <folder>` prints the figures of the two tables. No margin of error is given.
+- Size and cost. 50 requests for each dataset, 72,174 input tokens on StableToolBench and 65,753 on MetaTool, each under $0.01. The results folders are `results/stabletoolbench_copied/2026-10-07_01` and `results/metatool_copied/2026-10-07_01`, written at commit `22b5c83`. The code names the experiment `copied`. `python scripts/report/results_figures.py <folder>` prints the figures of the two tables. No margin of error is given.
 
 | Entry, by Jev's probability within an answer | StableToolBench, mean of 250 answers | MetaTool, mean of 250 answers |
 |---|---|---|
@@ -535,7 +535,7 @@ Decided by Rushab on 2026-10-07: remove the correct tool of a MetaTool query, ad
 - List. 4 of the 9 other tools of the query's list, chosen with the seed, and "None". The 9 are the tools most similar to the correct tool, and the correct tool is not in the list. "None" is the correct answer.
 - Orders. The 5 rotations of the list as 5 questions of one request. "None" is at the fifth place in the first and at the first place in the last.
 - Instruction. The instruction of the MetaTool runs for one tool: "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
-- Size and cost. 50 requests with 5 questions each, 63,569 input tokens, under $0.01. The results folder is `results/metatool_absent/2026-10-07_01`, written at commit `ac73272`. The code names the experiment `absent`. `python scripts/results_figures.py` prints the answers of "None" for each order. No margin of error is given.
+- Size and cost. 50 requests with 5 questions each, 63,569 input tokens, under $0.01. The results folder is `results/metatool_absent/2026-10-07_01`, written at commit `ac73272`. The code names the experiment `absent`. `python scripts/report/results_figures.py` prints the answers of "None" for each order. No margin of error is given.
 
 | Place of "None" in the list | Answers of "None", of 50 | Highest probability minus second-highest, mean |
 |---|---|---|
@@ -594,7 +594,7 @@ Decided by Rushab on 2026-10-07: the opposite of the runs with rewordings and wi
 - Examples. The 50 MetaTool queries of the copied run.
 - List. 5 tools drawn with the seed from the tools that are not in the query's own list. 14 of the 50 lists hold a tool for web search or web browsing: `jini`, `internetSearch`, `total_query_meta_search_engine`, `web_requests`, `universal` or `lsongai`.
 - Orders and instruction. The 5 rotations of the list as 5 questions of one request, with the instruction of the copied run: "Pick all the tools in the list that are relevant to the task at hand."
-- Size and cost. 50 requests with 5 questions each, 62,708 input tokens, under $0.01. The results folder is `results/metatool_unrelated/2026-10-07_01`, written at commit `2aaa6a0`. The code names the experiment `unrelated`. `python scripts/results_figures.py` prints the figures of the two tables. No margin of error is given.
+- Size and cost. 50 requests with 5 questions each, 62,708 input tokens, under $0.01. The results folder is `results/metatool_unrelated/2026-10-07_01`, written at commit `2aaa6a0`. The code names the experiment `unrelated`. `python scripts/report/results_figures.py` prints the figures of the two tables. No margin of error is given.
 
 | The 5 entries of the list, MetaTool | Highest probability of an answer, mean | Second-highest | Third | Fourth | Lowest | Entropy, mean | Queries with the same entry selected in all 5 orders, of 50 |
 |---|---|---|---|---|---|---|---|

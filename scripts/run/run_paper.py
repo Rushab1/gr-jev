@@ -1,4 +1,4 @@
-"""Run every run of docs/paper_plan.md on one model, one after the other, with scripts/run_experiment.py.
+"""Run every run of docs/paper_plan.md on one model, one after the other, with scripts/run/run_experiment.py.
 
 `--dry-run` prints the calls of each run and sends nothing. A run whose responses are saved calls nothing, so the
 command can be started again after a failure. It stops at the first run that fails.
