@@ -1,4 +1,4 @@
-"""Send one request written for the paper and print the probabilities of each of its lists.
+"""Send one request written for the paper and print the probabilities of each of its lists or yes/no questions.
 
 The requests are in scripts/run/requests/. The response is saved like every response, so a second run of the
 command calls nothing. A call to Jev counts towards JEV_CALL_LIMIT.
@@ -9,7 +9,7 @@ import argparse
 from dotenv import load_dotenv
 
 from grjev.constants import GATEWAY_MODELS, JEV_MODEL, WRITTEN_REQUESTS_DIR
-from grjev.jev import ChoiceAnswer, ask, check_call_limit, response_path
+from grjev.jev import ChoiceAnswer, NoulAnswer, ask, check_call_limit, response_path
 from grjev.written import read_written
 
 
@@ -35,6 +35,8 @@ def main() -> None:
         if isinstance(answer, ChoiceAnswer):
             ranked = sorted(answer.probabilities.items(), key=lambda entry: entry[1], reverse=True)
             print(f"{args.model} {name}: " + ", ".join(f"{option} {value}" for option, value in ranked))
+        elif isinstance(answer, NoulAnswer):
+            print(f"{args.model} {name}: yes {answer.noul}")
         else:
             print(f"{args.model} {name}: {answer.type}")
     print(f"input tokens: {response.usage.input_tokens}")
