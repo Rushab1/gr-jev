@@ -61,9 +61,9 @@ def test_the_table_of_two_requests_holds_both_questions_the_instruction_and_the_
         request_latex([older, changed])
 
 
-def test_a_table_shows_cyrillic_words_as_an_ellipsis_and_escapes_commands() -> None:
+def test_a_table_keeps_cyrillic_words_and_escapes_commands() -> None:
     assert typeset("Sharapova (Russian: Мари́я Ю́рьевна Шара́пова ; born 1987) & co") == (
-        "Sharapova (Russian: [...] ; born 1987) \\& co"
+        "Sharapova (Russian: \\cyrillic{Мари́я Ю́рьевна Шара́пова} ; born 1987) \\& co"
     )
     assert typeset("1997 Open – Sánchez") == "1997 Open -- S\\'{a}nchez"
     with pytest.raises(ValueError, match="no LaTeX"):

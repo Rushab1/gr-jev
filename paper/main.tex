@@ -32,6 +32,11 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 
+% Cyrillic text in a passage of a table. Times has no Cyrillic letters. FreeSerif is the Times design of GNU FreeFont.
+\DeclareFontFamily{TU}{cyr}{}
+\DeclareFontShape{TU}{cyr}{m}{n}{<-> "[FreeSerif.otf]"}{}
+\newcommand{\cyrillic}[1]{{\fontencoding{TU}\fontfamily{cyr}\selectfont #1}}
+
 % ---------------------------------------------------------------------------------------------------------------------
 % Metadata
 % ---------------------------------------------------------------------------------------------------------------------

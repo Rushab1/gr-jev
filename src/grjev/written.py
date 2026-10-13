@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from grjev.jev import ChoiceQuestion, JevRequest
 from grjev.report import latex
 
-# A run of Cyrillic words, with their stress marks. The fonts of the paper do not hold these letters.
+# A run of Cyrillic words, with their stress marks. The paper typesets it with \cyrillic, in a font with these letters.
 CYRILLIC = re.compile(r"[\u0400-\u04FF\u0300-\u036F]+(?:\s+[\u0400-\u04FF\u0300-\u036F]+)*")
 
 
@@ -28,15 +28,16 @@ TYPESET = {
 
 
 def typeset(text: str) -> str:
-    """Return text for a LaTeX table: commands escaped, and a run of Cyrillic words shown as "[...]".
+    """Return text for a LaTeX table: commands escaped, and a run of Cyrillic words inside \\cyrillic.
 
-    A character outside ASCII that has no entry in TYPESET raises an error, since the fonts would drop it.
+    Another character outside ASCII that has no entry in TYPESET raises an error, since the fonts would drop it.
     """
-    escaped = latex(CYRILLIC.sub("[...]", text))
-    unknown = sorted({char for char in escaped if ord(char) > 127 and char not in TYPESET})
+    escaped = latex(text)
+    unknown = sorted({char for char in CYRILLIC.sub("", escaped) if ord(char) > 127 and char not in TYPESET})
     if unknown:
         raise ValueError(f"no LaTeX for the characters {unknown}")
-    return "".join(TYPESET.get(char, char) for char in escaped)
+    mapped = "".join(TYPESET.get(char, char) for char in escaped)
+    return CYRILLIC.sub(lambda run: f"\\cyrillic{{{run.group()}}}", mapped)
 
 
 class WrittenRequest(BaseModel):
