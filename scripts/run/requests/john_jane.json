@@ -1,6 +1,6 @@
 {
- "source": "HotpotQA validation question 5a7bbcd65542997c3ec97268, \"who is older, Maria Sharapova or Chanda Rubin?\", with its 10 passages in their order.",
- "written": "Claude Code replaced the two names on 2026-10-12, on Rushab's instruction: Maria Sharapova became Jane and Chanda Rubin became John, in the question, the titles and the passages. The Russian spelling of the first name was dropped with it, and \"she reached her highest ranking\" in John's passage became \"he reached his highest ranking\". Nothing else was changed. The lists are the 10 passages, the 9 without John's passage and the 9 without Jane's passage. Rushab changed the two passages on 2026-10-12: John is born on December 12, 1976, and Jane is born on January 13, 1990, is Australian and has been a United States resident since 1992.",
+ "source": "The structure follows HotpotQA validation question 5a7bbcd65542997c3ec97268, \"who is older, Maria Sharapova or Chanda Rubin?\", with its 10 passages in their order: 8 passages about tournaments that name one of the two players, and one passage about each player.",
+ "written": "Claude Code wrote the question and the 10 passages on 2026-10-12, on Rushab's instruction to replace every name, place and date, so that a model cannot know the two players. The players are John and Jane, and the tournaments, the other players, the countries, the tour and the dates are invented. The birth dates are Rushab's: December 12, 1976 for John and January 13, 1990 for Jane. The lists are the 10 passages, the 9 without John's passage and the 9 without Jane's passage.",
  "request": {
   "state": "who is older, Jane or John?",
   "questions": {
@@ -8,46 +8,46 @@
     "type": "choice",
     "instructions": "Choose every passage in the list that supports the answer to the question.",
     "criteria": {
-     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
-     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
-     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
-     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
-     "John": "John (born December 12, 1976) is an American tennis player. Winning seven WTA Tour singles titles, he reached his highest ranking at World No. 6 on April 8, 1996, after reaching semifinals at the 1996 Australian Open. John is also former World No. 9 in doubles, winning the Australian Open in 1996 partnering with Arantxa Sánchez Vicario.",
-     "Jane": "Jane (born January 13, 1990) is an Australian professional tennis player. A United States resident since 1992, Jane has competed on the WTA tour since 2001. She has been ranked world No. 1 in singles by the WTA on five separate occasions, for a total of 21 weeks. She is one of ten women, and the only Russian, to hold the career Grand Slam. She is also an Olympic medalist, having earned silver for Russia in women's singles at the 2012 Summer Olympics in London.",
-     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
-     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
-     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
-     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+     "1998 Harlow Classic – Doubles": "John and Petra Lindqvist were the defending champions but did not compete that year.",
+     "1998 Varden Indoor Open": "The 1998 Varden Indoor Open was a tennis tournament played on indoor hard courts at the Kestrel Arena in Varden in Norland that was part of Tier III of the 1998 Meridian Tour. The tournament was held from March 2 through March 8, 1998. John won the singles title.",
+     "1998 Corvale Open – Doubles": "John and Ilse Marquart were the defending champions, but competed this year with different partners. John teamed up with Petra Lindqvist and were eliminated in third round, while Marquart teamed up with Dana Ferreira and lost in semifinals.",
+     "1998 Lakemont Cup – Doubles": "John and Petra Lindqvist were the defending champions but only John competed that year with Nora Castellan.",
+     "John": "John (born December 12, 1976) is a Tavarian tennis player. Winning eight Meridian Tour singles titles, he reached his highest ranking at World No. 5 on May 11, 1997, after reaching semifinals at the 1997 Corvale Open. John is also former World No. 7 in doubles, winning the Corvale Open in 1997 partnering with Ilse Marquart.",
+     "Jane": "Jane (born January 13, 1990) is an Elmerian professional tennis player. A Tavaria resident since 1996, Jane has competed on the Meridian Tour since 2005. She has been ranked world No. 1 in singles by the tour on four separate occasions, for a total of 17 weeks. She is one of nine players, and the only Elmerian, to hold the career Grand Slam. She is also a medalist of the Continental Games, having earned silver for Elmeria in singles at the 2014 Continental Games in Port Selwyn.",
+     "1998 Stonebridge Championships – Doubles": "John and Ilse Marquart were the defending champions but they competed with different partners that year, John with Petra Lindqvist and Marquart with Vera Kolesnik.",
+     "2003 Bay Harbor Classic – Doubles": "John and Camille Roussel were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Roussel decided to rest after competing on the World Group Play-offs of the Nations Cup.",
+     "1996 Redcliff International – Doubles": "Marta Hale-Winter and John were the defending champions but they competed with different partners that year, Hale-Winter with Sofia Nemec and John with Annika Brandt.",
+     "2004 Ashgrove Championships – Doubles": "Laura Pemberton and Renee Stokes were the defending champions, but lost in the quarterfinals to Irina Voss and John."
     }
    },
    "without_john": {
     "type": "choice",
     "instructions": "Choose every passage in the list that supports the answer to the question.",
     "criteria": {
-     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
-     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
-     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
-     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
-     "Jane": "Jane (born January 13, 1990) is an Australian professional tennis player. A United States resident since 1992, Jane has competed on the WTA tour since 2001. She has been ranked world No. 1 in singles by the WTA on five separate occasions, for a total of 21 weeks. She is one of ten women, and the only Russian, to hold the career Grand Slam. She is also an Olympic medalist, having earned silver for Russia in women's singles at the 2012 Summer Olympics in London.",
-     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
-     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
-     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
-     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+     "1998 Harlow Classic – Doubles": "John and Petra Lindqvist were the defending champions but did not compete that year.",
+     "1998 Varden Indoor Open": "The 1998 Varden Indoor Open was a tennis tournament played on indoor hard courts at the Kestrel Arena in Varden in Norland that was part of Tier III of the 1998 Meridian Tour. The tournament was held from March 2 through March 8, 1998. John won the singles title.",
+     "1998 Corvale Open – Doubles": "John and Ilse Marquart were the defending champions, but competed this year with different partners. John teamed up with Petra Lindqvist and were eliminated in third round, while Marquart teamed up with Dana Ferreira and lost in semifinals.",
+     "1998 Lakemont Cup – Doubles": "John and Petra Lindqvist were the defending champions but only John competed that year with Nora Castellan.",
+     "Jane": "Jane (born January 13, 1990) is an Elmerian professional tennis player. A Tavaria resident since 1996, Jane has competed on the Meridian Tour since 2005. She has been ranked world No. 1 in singles by the tour on four separate occasions, for a total of 17 weeks. She is one of nine players, and the only Elmerian, to hold the career Grand Slam. She is also a medalist of the Continental Games, having earned silver for Elmeria in singles at the 2014 Continental Games in Port Selwyn.",
+     "1998 Stonebridge Championships – Doubles": "John and Ilse Marquart were the defending champions but they competed with different partners that year, John with Petra Lindqvist and Marquart with Vera Kolesnik.",
+     "2003 Bay Harbor Classic – Doubles": "John and Camille Roussel were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Roussel decided to rest after competing on the World Group Play-offs of the Nations Cup.",
+     "1996 Redcliff International – Doubles": "Marta Hale-Winter and John were the defending champions but they competed with different partners that year, Hale-Winter with Sofia Nemec and John with Annika Brandt.",
+     "2004 Ashgrove Championships – Doubles": "Laura Pemberton and Renee Stokes were the defending champions, but lost in the quarterfinals to Irina Voss and John."
     }
    },
    "without_jane": {
     "type": "choice",
     "instructions": "Choose every passage in the list that supports the answer to the question.",
     "criteria": {
-     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
-     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
-     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
-     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
-     "John": "John (born December 12, 1976) is an American tennis player. Winning seven WTA Tour singles titles, he reached his highest ranking at World No. 6 on April 8, 1996, after reaching semifinals at the 1996 Australian Open. John is also former World No. 9 in doubles, winning the Australian Open in 1996 partnering with Arantxa Sánchez Vicario.",
-     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
-     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
-     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
-     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+     "1998 Harlow Classic – Doubles": "John and Petra Lindqvist were the defending champions but did not compete that year.",
+     "1998 Varden Indoor Open": "The 1998 Varden Indoor Open was a tennis tournament played on indoor hard courts at the Kestrel Arena in Varden in Norland that was part of Tier III of the 1998 Meridian Tour. The tournament was held from March 2 through March 8, 1998. John won the singles title.",
+     "1998 Corvale Open – Doubles": "John and Ilse Marquart were the defending champions, but competed this year with different partners. John teamed up with Petra Lindqvist and were eliminated in third round, while Marquart teamed up with Dana Ferreira and lost in semifinals.",
+     "1998 Lakemont Cup – Doubles": "John and Petra Lindqvist were the defending champions but only John competed that year with Nora Castellan.",
+     "John": "John (born December 12, 1976) is a Tavarian tennis player. Winning eight Meridian Tour singles titles, he reached his highest ranking at World No. 5 on May 11, 1997, after reaching semifinals at the 1997 Corvale Open. John is also former World No. 7 in doubles, winning the Corvale Open in 1997 partnering with Ilse Marquart.",
+     "1998 Stonebridge Championships – Doubles": "John and Ilse Marquart were the defending champions but they competed with different partners that year, John with Petra Lindqvist and Marquart with Vera Kolesnik.",
+     "2003 Bay Harbor Classic – Doubles": "John and Camille Roussel were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Roussel decided to rest after competing on the World Group Play-offs of the Nations Cup.",
+     "1996 Redcliff International – Doubles": "Marta Hale-Winter and John were the defending champions but they competed with different partners that year, Hale-Winter with Sofia Nemec and John with Annika Brandt.",
+     "2004 Ashgrove Championships – Doubles": "Laura Pemberton and Renee Stokes were the defending champions, but lost in the quarterfinals to Irina Voss and John."
     }
    }
   }
