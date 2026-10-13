@@ -1,4 +1,4 @@
-"""Write the figure of a definition in src/grjev/definitions/ as a LaTeX file for the paper.
+"""Write the figure of a definition in scripts/definitions/ as a LaTeX file for the paper.
 
 The file holds a TikZ picture: the correct options of the lists with several correct options on the scale of the
 probability, with the threshold of TypeSafe's example code.

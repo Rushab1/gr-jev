@@ -1,4 +1,4 @@
-"""Tests for grjev.written and for the requests in src/grjev/stimuli/requests/."""
+"""Tests for grjev.written and for the requests in scripts/run/requests/."""
 
 import pytest
 

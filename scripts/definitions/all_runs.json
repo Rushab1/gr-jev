@@ -1,6 +1,6 @@
 {
  "title": "Figures by run and model",
- "intro": "Computed on 2026-10-09 from the answers saved in `results/`. Jev was asked through TypeSafe's API from 2026-10-05 to 2026-10-08. Laya, Liquid d1 and GPT-6 Luna Decisions were asked through Vercel AI Gateway on 2026-10-09 with the requests of the Jev runs. The gateway takes no model version. `python scripts/report/runs_table.py all_runs --out docs/all_runs.md` rebuilds this file from the results folders and `src/grjev/definitions/all_runs.json`.",
+ "intro": "Computed on 2026-10-09 from the answers saved in `results/`. Jev was asked through TypeSafe's API from 2026-10-05 to 2026-10-08. Laya, Liquid d1 and GPT-6 Luna Decisions were asked through Vercel AI Gateway on 2026-10-09 with the requests of the Jev runs. The gateway takes no model version. `python scripts/report/runs_table.py all_runs --out docs/all_runs.md` rebuilds this file from the results folders and `scripts/definitions/all_runs.json`.",
  "terms": [
   [
    "Option",

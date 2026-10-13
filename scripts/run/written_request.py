@@ -1,6 +1,6 @@
 """Send one request written for the paper and print the probabilities of each of its lists.
 
-The requests are in src/grjev/stimuli/requests/. The response is saved like every response, so a second run of the
+The requests are in scripts/run/requests/. The response is saved like every response, so a second run of the
 command calls nothing. A call to Jev counts towards JEV_CALL_LIMIT.
 """
 

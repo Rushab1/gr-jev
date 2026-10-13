@@ -293,7 +293,7 @@ TICKETS_FILE = Path(__file__).parent / "stimuli" / "tickets.json"
 TICKETS_PROCESSED_DIR = DATA_DIR / "tickets" / "processed"
 # Requests written for the paper, one file each: the example a request comes from, what was changed in it, and the
 # request without its model. `scripts/run/written_request.py` sends one.
-WRITTEN_REQUESTS_DIR = Path(__file__).parent / "stimuli" / "requests"
+WRITTEN_REQUESTS_DIR = REPO_ROOT / "scripts" / "run" / "requests"
 # The processed files: tickets with two issues for two teams in both orders, the same issues one per ticket, and the
 # ticket of TypeSafe's example, which names an issue for each of the three teams.
 TICKETS_TWO_FILE = "two_issues"
@@ -636,7 +636,7 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("removal", "tickets"),
 )
 # The definitions of the tables of runs: the title, the text and the rows of each table.
-TABLES_DIR = Path(__file__).parent / "definitions"
+TABLES_DIR = REPO_ROOT / "scripts" / "definitions"
 # The LaTeX tables of the paper, written by scripts/paper/paper_tables.py.
 PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
 # The figure of the paper, written by scripts/paper/paper_figure.py.

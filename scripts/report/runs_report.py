@@ -1,4 +1,4 @@
-"""Write the report of runs of a definition in src/grjev/definitions/ as a web page.
+"""Write the report of runs of a definition in scripts/definitions/ as a web page.
 
 The page has one table per run, with the models as rows and the figures as columns. A browser prints it to a PDF.
 """

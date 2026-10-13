@@ -1,4 +1,4 @@
-"""Write the tables of the findings of a definition in src/grjev/definitions/ as LaTeX files for the paper.
+"""Write the tables of the findings of a definition in scripts/definitions/ as LaTeX files for the paper.
 
 Each finding whose table names a file gets `<file>.tex` in the output folder: a `tabular` with the models as rows.
 """

@@ -1,4 +1,4 @@
-"""Write the table of runs of a definition in src/grjev/definitions/, such as docs/all_runs.md from all_runs.json.
+"""Write the table of runs of a definition in scripts/definitions/, such as docs/all_runs.md from all_runs.json.
 
 Without `--out` the document is printed.
 """
