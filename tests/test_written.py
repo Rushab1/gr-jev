@@ -4,7 +4,7 @@ import pytest
 
 from grjev.constants import JEV_MODEL, WRITTEN_REQUESTS_DIR
 from grjev.jev import ChoiceQuestion
-from grjev.written import read_written
+from grjev.written import read_written, request_latex
 
 
 @pytest.mark.parametrize("name", sorted(path.stem for path in WRITTEN_REQUESTS_DIR.glob("*.json")))
@@ -41,3 +41,21 @@ def test_the_two_john_and_jane_requests_differ_only_in_the_question() -> None:
     older = read_written(WRITTEN_REQUESTS_DIR / "john_jane.json", JEV_MODEL)
     younger = read_written(WRITTEN_REQUESTS_DIR / "john_jane_younger.json", JEV_MODEL)
     assert older.questions == younger.questions and older.state != younger.state
+
+
+def test_the_table_of_two_requests_holds_both_questions_the_instruction_and_the_10_passages() -> None:
+    older = read_written(WRITTEN_REQUESTS_DIR / "john_jane.json", JEV_MODEL)
+    younger = read_written(WRITTEN_REQUESTS_DIR / "john_jane_younger.json", JEV_MODEL)
+    lines = request_latex([older, younger]).splitlines()
+    assert lines[2:5] == [
+        "Question & who is older, Jane or John? \\\\",
+        "Question & who is younger, Jane or John? \\\\",
+        "Instruction & Choose every passage in the list that supports the answer to the question. \\\\",
+    ]
+    assert sum(line.endswith("\\\\") for line in lines) == 3 + 1 + 10
+    assert any(line.startswith("John & John (born December 12, 1976)") for line in lines)
+    short = request_latex([older, younger], ["John", "Jane"]).splitlines()
+    assert sum(line.endswith("\\\\") for line in short) == 3 + 1 + 2
+    changed = older.model_copy(update={"questions": {"full": older.questions["without_john"]}})
+    with pytest.raises(ValueError, match="same lists"):
+        request_latex([older, changed])
