@@ -291,6 +291,9 @@ HOTPOTQA_PASSAGES = 10
 # question. No file is downloaded for this dataset.
 TICKETS_FILE = Path(__file__).parent / "stimuli" / "tickets.json"
 TICKETS_PROCESSED_DIR = DATA_DIR / "tickets" / "processed"
+# Requests written for the paper, one file each: the example a request comes from, what was changed in it, and the
+# request without its model. `scripts/written_request.py` sends one.
+WRITTEN_REQUESTS_DIR = Path(__file__).parent / "stimuli" / "requests"
 # The processed files: tickets with two issues for two teams in both orders, the same issues one per ticket, and the
 # ticket of TypeSafe's example, which names an issue for each of the three teams.
 TICKETS_TWO_FILE = "two_issues"

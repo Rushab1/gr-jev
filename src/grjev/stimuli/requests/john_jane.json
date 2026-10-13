@@ -1,0 +1,55 @@
+{
+ "source": "HotpotQA validation question 5a7bbcd65542997c3ec97268, \"who is older, Maria Sharapova or Chanda Rubin?\", with its 10 passages in their order.",
+ "written": "Claude Code replaced the two names on 2026-10-12, on Rushab's instruction: Maria Sharapova became Jane and Chanda Rubin became John, in the question, the titles and the passages. The Russian spelling of the first name was dropped with it, and \"she reached her highest ranking\" in John's passage became \"he reached his highest ranking\". Nothing else was changed. The lists are the 10 passages, the 9 without John's passage and the 9 without Jane's passage.",
+ "request": {
+  "state": "who is older, Jane or John?",
+  "questions": {
+   "full": {
+    "type": "choice",
+    "instructions": "Choose every passage in the list that supports the answer to the question.",
+    "criteria": {
+     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
+     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
+     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
+     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
+     "John": "John (born February 18, 1976) is an American tennis player. Winning seven WTA Tour singles titles, he reached his highest ranking at World No. 6 on April 8, 1996, after reaching semifinals at the 1996 Australian Open. John is also former World No. 9 in doubles, winning the Australian Open in 1996 partnering with Arantxa Sánchez Vicario.",
+     "Jane": "Jane (born April 19, 1987) is a Russian professional tennis player. A United States resident since 1994, Jane has competed on the WTA tour since 2001. She has been ranked world No. 1 in singles by the WTA on five separate occasions, for a total of 21 weeks. She is one of ten women, and the only Russian, to hold the career Grand Slam. She is also an Olympic medalist, having earned silver for Russia in women's singles at the 2012 Summer Olympics in London.",
+     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
+     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
+     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
+     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+    }
+   },
+   "without_john": {
+    "type": "choice",
+    "instructions": "Choose every passage in the list that supports the answer to the question.",
+    "criteria": {
+     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
+     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
+     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
+     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
+     "Jane": "Jane (born April 19, 1987) is a Russian professional tennis player. A United States resident since 1994, Jane has competed on the WTA tour since 2001. She has been ranked world No. 1 in singles by the WTA on five separate occasions, for a total of 21 weeks. She is one of ten women, and the only Russian, to hold the career Grand Slam. She is also an Olympic medalist, having earned silver for Russia in women's singles at the 2012 Summer Olympics in London.",
+     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
+     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
+     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
+     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+    }
+   },
+   "without_jane": {
+    "type": "choice",
+    "instructions": "Choose every passage in the list that supports the answer to the question.",
+    "criteria": {
+     "1997 IGA Classic – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but did not compete that year.",
+     "1997 EA-Generali Ladies Linz": "The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. John won the singles title.",
+     "1997 Australian Open – Women's Doubles": "John and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. John teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals.",
+     "1997 State Farm Evert Cup – Doubles": "John and Brenda Schultz-McCarthy were the defending champions but only John competed that year with Mary Joe Fernandez.",
+     "John": "John (born February 18, 1976) is an American tennis player. Winning seven WTA Tour singles titles, he reached his highest ranking at World No. 6 on April 8, 1996, after reaching semifinals at the 1996 Australian Open. John is also former World No. 9 in doubles, winning the Australian Open in 1996 partnering with Arantxa Sánchez Vicario.",
+     "1997 Bausch &amp; Lomb Championships – Doubles": "John and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, John with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko.",
+     "2001 Bank of the West Classic – Doubles": "John and Sandrine Testud were the defending champions, but none competed this year. John decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup.",
+     "1995 Schweppes Tasmanian International – Doubles": "Linda Harvey-Wild and John were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and John with Kristie Boogert.",
+     "2002 Wimbledon Championships – Women's Doubles": "Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and John."
+    }
+   }
+  }
+ }
+}
