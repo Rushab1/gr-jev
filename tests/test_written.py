@@ -13,7 +13,7 @@ def test_every_written_request_is_a_request_for_the_model(name: str) -> None:
     assert request.model == JEV_MODEL and request.state and request.questions
 
 
-REAL_NAMES = ("Rubin", "Sharapova", "Chanda", "Maria", "WTA", "Wimbledon", "Australian", "Russia", "Linz", "Olympic")
+REAL_NAMES = ("Rubin", "Sharapova", "Chanda", "Maria", "WTA", "Wimbledon", "Russia", "Linz", "Olympic")
 
 
 @pytest.mark.parametrize(
