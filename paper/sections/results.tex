@@ -1,19 +1,19 @@
 \section{Results}
 
 \subsection{Several correct options}
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Lists with several correct options. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest correct option. \emph{Distr.} is the mean probability of the highest distractor. \emph{All $>$0.25} is the share of answers in which every correct option is above 0.25. MetaTool: 497 queries with two correct tools. HotpotQA: 7,405 questions with two supporting passages. ECtHR: 192 cases with two to four violated articles.}
 \label{tab:allocation}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/allocation}}
-\end{table}
+\end{table*}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \input{figures/allocation}
 \caption{Lists with several correct options. Each row shows the mean probability that a model gives the lowest correct option, the highest correct option and the highest distractor. The dashed arrow shows the second correct option in the full list and in the list without the highest correct option. The vertical line is the threshold of 0.25 in TypeSafe's example code.}
 \label{fig:allocation}
-\end{figure}
+\end{figure*}
 
 \begin{itemize}
 \item Figure~\ref{fig:allocation}: every lowest correct option is left of the 0.25 threshold, next to the highest distractor. It crosses the threshold once the highest correct option is removed.
@@ -37,13 +37,13 @@
 \item Reading: the models know which teams apply. They do not give the two teams that apply a number that says so.
 \end{itemize}
 
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Support tickets written after TypeSafe's example. \emph{High} and \emph{Low} are the mean probabilities of the higher and the lower of the correct teams. \emph{Distr.} is the mean probability of the highest other team. \emph{All $>$0.25} is the share of the 24 tickets in which both correct teams are above 0.25.}
 \label{tab:tickets}
 \centering
 \small
 \input{tables/tickets}
-\end{table}
+\end{table*}
 
 \paragraph{Removing the highest correct option.}
 \begin{itemize}
@@ -57,12 +57,12 @@
 \end{itemize}
 
 \subsection{Identical options}
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Each list contains five copies of one correct option and is sent in its five cyclic permutations. \emph{High} and \emph{Low} are the mean probabilities of the highest and the lowest copy. \emph{First} is the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20\%.}
 \label{tab:copies}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/copies}}
-\end{table}
+\end{table*}
 
 \begin{itemize}
 \item Five copies of one correct option are equally correct. Equal probabilities are 0.20 each. No model gives them (Table~\ref{tab:copies}).
@@ -76,12 +76,12 @@
 \end{itemize}
 
 \subsection{No correct option}
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Lists with no correct option and no ``none of the above'' option. \emph{Refused} is the share of lists that the model refused. \emph{Conf.} is the mean confidence on the lists that it answered. Each list contains five random options or the example's own options without the correct ones.}
 \label{tab:abstention}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/abstention}}
-\end{table}
+\end{table*}
 
 \begin{itemize}
 \item Jev and Liquid d1 answer every list with no correct option, with a mean confidence of 0.49 to 0.87 (Table~\ref{tab:abstention}).

@@ -17,7 +17,7 @@
 \item MetaTool repeats queries across its test files. An answer to a repeated request is counted once per example.
 \end{itemize}
 
-\begin{table}[h]
+\begin{table*}[t]
 \caption{The instruction sent with each kind of list.}
 \label{tab:instructions}
 \centering
@@ -35,23 +35,23 @@ ECtHR & ``Choose every article in the list that the European Court of Human Righ
 Tickets & ``Which team should handle this?'' \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \section{One correct option and the removal test}
 \label{app:tables}
-\begin{table}[h]
+\begin{table*}[t]
 \caption{Accuracy (\emph{Acc.}) and mean confidence (\emph{Conf.}) on lists with one correct option and on lists with several. A prediction is correct when it is one of the correct options.}
 \label{tab:calibration}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/calibration}}
-\end{table}
+\end{table*}
 
-\begin{table}[h]
+\begin{table*}[t]
 \caption{The second correct option. \emph{Before} is its mean probability in the full list, and \emph{After} is its mean probability in the list without the highest correct option. The last two columns use only the examples in which the options other than the removed one hold 0.10 or more. \emph{Renorm.} is its probability in the full list divided by the probability of those options, and \emph{After$^*$} is its probability after the removal on the same examples.}
 \label{tab:removal}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/removal}}
-\end{table}
+\end{table*}
 
 \section{Refusals of GPT-6 Luna Decisions}
 \label{app:refusals}

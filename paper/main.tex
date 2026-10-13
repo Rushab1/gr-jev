@@ -2,25 +2,31 @@
 % Each section is a file in sections/. The tables in tables/ are written by scripts/paper_tables.py. A prose draft of 2026-10-11 is in the commit 7e98cbc.
 %
 % Build: tectonic paper/main.tex
-% Style: neurips_2026.sty, from the NeurIPS 2026 formatting instructions, downloaded on 2026-10-11 from
-% https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip
+% Style: acl.sty and acl_natbib.bst, the ACL style files, downloaded on 2026-10-12 from
+% https://github.com/acl-org/acl-style-files at the commit d5adc823ff0f80f98c80405ca0ab66c68e684409. The preamble
+% follows acl_latex.tex of that commit. The format is two columns on A4. formatting.md of that commit gives a short
+% paper up to 4 pages of content for review and 5 in the final version, plus the references, and in the final
+% version the acknowledgments. acl_latex.tex has an unnumbered Limitations section after the main text. Here the
+% limitations are still a numbered section before the conclusion.
 %
 % The option of the style sets the version of the paper:
-%   preprint              the arXiv version, with the author shown (used now)
-%   sglblindworkshop      a workshop submission with the author shown
-%   dblblindworkshop      an anonymous workshop submission
-%   main                  an anonymous submission to the main track; add `final` for the camera-ready version
-\documentclass{article}
-\usepackage[preprint]{neurips_2026}
+%   preprint              the arXiv version, with the author shown and with page numbers (used now)
+%   review                an anonymous submission, with line numbers and page numbers
+%   final                 the camera-ready version, with the author shown and without page numbers (the default)
+\documentclass[11pt]{article}
+\usepackage[preprint]{acl}
 
-\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{latexsym}
 \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
 \usepackage{amsfonts}
 \usepackage{nicefrac}
-\usepackage{microtype}
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -67,19 +73,15 @@
 
 \input{sections/availability}
 
-\begin{ack}
+\section*{Acknowledgments}
 % Acknowledgments, funding and the use of AI assistance. To be written.
-\end{ack}
 
-\bibliographystyle{plainnat}
+% acl.sty sets the bibliography style acl_natbib.
 \bibliography{references}
 
 % ---------------------------------------------------------------------------------------------------------------------
 \appendix
 
 \input{sections/appendix}
-
-% A submission to the main track of NeurIPS also needs the checklist of the formatting instructions:
-% \input{checklist.tex}
 
 \end{document}
