@@ -78,10 +78,37 @@ Tickets & ``Which team should handle this?'' \\
 
 \section{The opening example}
 \label{app:example}
+% The numbers of Table~\ref{tab:example-invented} are the answers of scripts/run/written_request.py to the requests
+% john_jane and john_jane_younger on 2026-10-12, rounded to two decimals.
 \begin{table*}[t]
-\caption{The two questions, the instruction and the 10 passages of the example in the introduction, in the order sent. The names, the tournaments and the dates are invented.}
+\caption{The HotpotQA question of the introduction, the instruction and its 10 passages, in the order sent. The Russian spelling of a name is shown as [...].}
 \label{tab:example-passages}
+\centering
+\small
+\input{tables/sharapova_rubin}
+\end{table*}
+
+\begin{table*}[t]
+\caption{The same list with the names, the tournaments and the dates replaced by invented ones, and a second question. John stands for Chanda Rubin and Jane for Maria Sharapova.}
+\label{tab:example-invented-passages}
 \centering
 \small
 \input{tables/john_jane}
 \end{table*}
+
+\begin{table}[t]
+\caption{The probabilities of John's passage and of Jane's passage in the list of Table~\ref{tab:example-invented-passages}, for each question. John is the older one. Luna is GPT-6 Luna Decisions.}
+\label{tab:example-invented}
+\centering
+\small
+\begin{tabular}{llrrr}
+\toprule
+Question & Passage & Jev & Liquid d1 & Luna \\
+\midrule
+Who is older?   & John & 0.91 & 0.94 & 0.06 \\
+                & Jane & 0.09 & 0.06 & 0.79 \\
+Who is younger? & John & 0.02 & 0.15 & 0.03 \\
+                & Jane & 0.98 & 0.85 & 0.89 \\
+\bottomrule
+\end{tabular}
+\end{table}

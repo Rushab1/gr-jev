@@ -4,7 +4,7 @@ import pytest
 
 from grjev.constants import JEV_MODEL, WRITTEN_REQUESTS_DIR
 from grjev.jev import ChoiceQuestion
-from grjev.written import read_written, request_latex
+from grjev.written import read_written, request_latex, typeset
 
 
 @pytest.mark.parametrize("name", sorted(path.stem for path in WRITTEN_REQUESTS_DIR.glob("*.json")))
@@ -59,3 +59,20 @@ def test_the_table_of_two_requests_holds_both_questions_the_instruction_and_the_
     changed = older.model_copy(update={"questions": {"full": older.questions["without_john"]}})
     with pytest.raises(ValueError, match="same lists"):
         request_latex([older, changed])
+
+
+def test_a_table_shows_cyrillic_words_as_an_ellipsis_and_escapes_commands() -> None:
+    assert typeset("Sharapova (Russian: Мари́я Ю́рьевна Шара́пова ; born 1987) & co") == (
+        "Sharapova (Russian: [...] ; born 1987) \\& co"
+    )
+    assert typeset("1997 Open – Sánchez") == "1997 Open -- S\\'{a}nchez"
+    with pytest.raises(ValueError, match="no LaTeX"):
+        typeset("日本")
+
+
+def test_the_released_question_holds_the_passages_of_hotpotqa_unchanged() -> None:
+    request = read_written(WRITTEN_REQUESTS_DIR / "sharapova_rubin.json", JEV_MODEL)
+    full = request.questions["full"]
+    assert isinstance(full, ChoiceQuestion) and len(full.criteria) == 10
+    assert request.state == "who is older, Maria Sharapova or Chanda Rubin?"
+    assert (full.criteria["Chanda Rubin"] or "").startswith("Chanda Rubin (born February 18, 1976)")
