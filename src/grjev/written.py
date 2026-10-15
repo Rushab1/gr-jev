@@ -54,22 +54,36 @@ def read_written(path: Path, model: str) -> JevRequest:
     return JevRequest.model_validate(written.request | {"model": model})
 
 
-def request_latex(requests: list[JevRequest], only: Collection[str] = ()) -> str:
+def shortened(text: str, cuts: Collection[str]) -> str:
+    """Return the text for a LaTeX table, ended with an ellipsis after the first of the phrases that it holds."""
+    ends = [text.index(cut) + len(cut) for cut in cuts if cut in text]
+    return typeset(text[: min(ends)]) + " \\ldots" if ends else typeset(text)
+
+
+def request_latex(
+    requests: list[JevRequest], only: Collection[str] = (), cuts: Collection[str] = (), titles: bool = True
+) -> str:
     """Return a LaTeX tabular with the query of each request, and the instruction and the options that they share.
 
     The options are those of the first list of the requests, or the named ones of them. The requests must hold the
-    same lists.
+    same lists. An option that holds one of the phrases in cuts is shown up to the end of that phrase. Without
+    titles the tabular has one column: the queries, the instruction and the descriptions of the options.
     """
     lists = requests[0].questions
     first = next(iter(lists.values()))
     if any(request.questions != lists for request in requests) or not isinstance(first, ChoiceQuestion):
         raise ValueError("the requests of one table hold the same lists, and the first is a list of options")
+    shown = {name: shortened(text or "", cuts) for name, text in first.criteria.items() if not only or name in only}
+    if not titles:
+        rows = [f"Question: {typeset(request.state)} \\\\" for request in requests]
+        rows += [f"Instruction: {typeset(first.instructions)} \\\\", "\\midrule"]
+        rows += [f"{text} \\\\" for text in shown.values()]
+        return (
+            "\n".join(["\\begin{tabular}{@{}p{\\linewidth}@{}}", "\\toprule", *rows, "\\bottomrule", "\\end{tabular}"])
+            + "\n"
+        )
     rows = [f"Question & {typeset(request.state)} \\\\" for request in requests]
     rows += [f"Instruction & {typeset(first.instructions)} \\\\", "\\midrule", "Title & Passage \\\\", "\\midrule"]
-    rows += [
-        f"{typeset(name)} & {typeset(description or '')} \\\\"
-        for name, description in first.criteria.items()
-        if not only or name in only
-    ]
+    rows += [f"{typeset(name)} & {text} \\\\" for name, text in shown.items()]
     top = ["\\begin{tabular}{@{}p{0.25\\linewidth}p{0.68\\linewidth}@{}}", "\\toprule"]
     return "\n".join([*top, *rows, "\\bottomrule", "\\end{tabular}"]) + "\n"

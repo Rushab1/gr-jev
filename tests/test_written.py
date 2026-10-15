@@ -4,7 +4,7 @@ import pytest
 
 from grjev.constants import JEV_MODEL, WRITTEN_REQUESTS_DIR
 from grjev.jev import ChoiceQuestion
-from grjev.written import read_written, request_latex, typeset
+from grjev.written import read_written, request_latex, shortened, typeset
 
 
 @pytest.mark.parametrize("name", sorted(path.stem for path in WRITTEN_REQUESTS_DIR.glob("*.json")))
@@ -56,6 +56,9 @@ def test_the_table_of_two_requests_holds_both_questions_the_instruction_and_the_
     assert any(line.startswith("John & John (born December 12, 1976)") for line in lines)
     short = request_latex([older, younger], ["John", "Jane"]).splitlines()
     assert sum(line.endswith("\\\\") for line in short) == 3 + 1 + 2
+    plain = request_latex([older], ["John", "Jane"], titles=False).splitlines()
+    assert plain[2].startswith("Question: ") and plain[3].startswith("Instruction: ")
+    assert plain[5].startswith("John (born December 12, 1976)") and "&" not in "".join(plain)
     changed = older.model_copy(update={"questions": {"full": older.questions["without_john"]}})
     with pytest.raises(ValueError, match="same lists"):
         request_latex([older, changed])
@@ -68,6 +71,15 @@ def test_a_table_keeps_cyrillic_words_and_escapes_commands() -> None:
     assert typeset("1997 Open – Sánchez") == "1997 Open -- S\\'{a}nchez"
     with pytest.raises(ValueError, match="no LaTeX"):
         typeset("日本")
+
+
+def test_a_passage_is_cut_after_a_phrase_and_ends_with_an_ellipsis() -> None:
+    text = "Chanda Rubin (born February 18, 1976) is an American tennis player. Winning seven titles & more."
+    assert (
+        shortened(text, ["is an American tennis"])
+        == "Chanda Rubin (born February 18, 1976) is an American tennis \\ldots"
+    )
+    assert shortened(text, ["is a Russian professional"]) == typeset(text)
 
 
 def test_the_released_question_holds_the_passages_of_hotpotqa_unchanged() -> None:
