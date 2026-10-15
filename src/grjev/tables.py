@@ -6,14 +6,22 @@ for another model the folder in which that model repeats the run.
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel
 
-from grjev.constants import JEV_MODEL, MODEL_TITLES, POSITIONS_SHOWN_BELOW, REPO_ROOT, RESULTS_MODEL_NAMES
+from grjev.constants import (
+    JEV_MODEL,
+    MODEL_TITLES,
+    POSITIONS_SHOWN_BELOW,
+    PROCESSED_DIRS,
+    REPO_ROOT,
+    RESULTS_MODEL_NAMES,
+)
 from grjev.distribution import Distribution, Kind, distribution, rounded
-from grjev.examples import read_jsonl
+from grjev.examples import Example, read_jsonl
 from grjev.runs import ListAnswer, Row, RunConfig
 
 NO_ANSWER = "no list answered"
@@ -36,8 +44,9 @@ class RowSpec(BaseModel):
 
     `folder` is relative to the repository. `lists_text` names the examples and lists in the last column. A row
     uses the examples of `test_file` whose number of labels is within `labels`, and the lists named in `lists` or
-    whose name starts with `list_prefix`. Without one of these it uses all of them. `models` limits the row to
-    some models.
+    whose name starts with `list_prefix`. Without one of these it uses all of them. `raw_type` keeps the examples
+    whose raw row has that `type`, such as the bridge and comparison questions of HotpotQA. `models` limits the row
+    to some models.
 
     A report shows a row as a table of its own, under the heading `group`, with `about`, which says what the lists
     hold, and `instruction`, the instruction sent with them. `figures` names the figures of that table: those of
@@ -50,6 +59,7 @@ class RowSpec(BaseModel):
     lists_text: str
     test_file: str | None = None
     labels: tuple[int, int] | None = None
+    raw_type: str | None = None
     lists: tuple[str, ...] | None = None
     list_prefix: str = ""
     models: tuple[str, ...] | None = None
@@ -113,10 +123,11 @@ class PaperTableSpec(BaseModel):
 class YesBinsSpec(BaseModel):
     """A table of the yes/no answers to examples with two or more labels, by bin of the probability of yes.
 
-    `runs` holds the label of each yes/no run and the name of its dataset. The table has a column for each model and
+    `runs` holds the label of each yes/no run and the name of its examples. The table has a column for each model and
     run.
     """
 
+    title: str
     caption: str
     runs: list[tuple[str, str]]
 
@@ -124,7 +135,7 @@ class YesBinsSpec(BaseModel):
 class FindingSpec(BaseModel):
     """One finding of a report: the conclusion, how strong it is for the paper, its evidence and its limits.
 
-    The finding is shown with a chart and with one example, and with its table for the paper and its table of the
+    The finding is shown with a chart and with one example, and with its table for the paper and its tables of the
     yes/no answers by bin when it has them.
     """
 
@@ -136,7 +147,7 @@ class FindingSpec(BaseModel):
     chart: ChartSpec
     example: ExampleSpec
     table: PaperTableSpec | None = None
-    yes_bins: YesBinsSpec | None = None
+    yes_bins: list[YesBinsSpec] = []
 
 
 class FigureRowSpec(BaseModel):
@@ -315,10 +326,24 @@ class Selected:
     rows: list[Row]
 
 
+@cache
+def raw_types(path: Path) -> dict[str, str]:
+    """Return the `type` of the raw row of each example of a processed test file, by the id of the example."""
+    return {example.id: example.raw["type"] for example in read_jsonl(path, Example)}
+
+
+def raw_type_of(row: Row) -> str:
+    """Return the `type` of the raw row of the example, from the processed test file of its dataset."""
+    dataset = row.id.split("/")[0]
+    return raw_types(PROCESSED_DIRS[dataset] / f"{row.test_file}.jsonl")[row.id]
+
+
 def selected(spec: RowSpec, model: str, root: Path = REPO_ROOT) -> Selected:
     """Return the examples that a row uses for a model, with their probabilities rounded."""
     folder = model_folder(spec.folder, model, root)
     rows = [rounded(row) for row in read_jsonl(root / folder / "rows.jsonl", Row) if keeps(spec, row)]
+    if spec.raw_type:
+        rows = [row for row in rows if raw_type_of(row) == spec.raw_type]
     return Selected(spec, folder, rows)
 
 

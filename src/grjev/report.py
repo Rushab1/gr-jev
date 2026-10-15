@@ -226,8 +226,8 @@ def yes_bins_table(table: YesBinsSpec, runs: dict[str, dict[str, Selected]]) -> 
         cells = [f"{part.correct:.0%} ({part.answers:,})" if part else NOT_MEASURED for part in found]
         body.append([f"{low:.1f} to {high:.1f} ({min(means):.2f} to {max(means):.2f})", *cells])
     return (
-        f'<div class="paper"><h3>Yes/no answers by probability of yes</h3><p class="caption">{marked(table.caption)}'
-        f"</p>{table_html(body)}</div>"
+        f'<div class="paper"><h3>{marked(table.title)}</h3><p class="caption">{marked(table.caption)}</p>'
+        f"{table_html(body)}</div>"
     )
 
 
@@ -536,7 +536,7 @@ def finding_html(
         f"<h3>Evidence</h3><ul>{evidence}</ul></div>"
         f"<div><h3>One example</h3>{example}<h3>Limits</h3><ul>{limits}</ul></div></div>"
         f"{paper_table(finding.table, runs) if finding.table else ''}"
-        f"{yes_bins_table(finding.yes_bins, runs) if finding.yes_bins else ''}</div>"
+        f"{''.join(yes_bins_table(table, runs) for table in finding.yes_bins)}</div>"
     )
 
 

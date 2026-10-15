@@ -4,7 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from grjev.constants import D1_MODEL, GATEWAY_MODELS, JEV_MODEL, LUNA_MODEL, POSITIONS_SHOWN_BELOW, TABLES_DIR
+from grjev.constants import (
+    D1_MODEL,
+    GATEWAY_MODELS,
+    JEV_MODEL,
+    LUNA_MODEL,
+    POSITIONS_SHOWN_BELOW,
+    PROCESSED_DIRS,
+    TABLES_DIR,
+)
+from grjev.examples import Example
 from grjev.results import write_run
 from grjev.runs import ListAnswer, Row, RunConfig
 from grjev.tables import (
@@ -204,3 +213,19 @@ def test_the_definition_of_the_table_of_every_run_names_38_runs_of_jev_and_37_of
     assert len(definition.rows) == 38
     assert sum(row.models is None for row in definition.rows) == 37
     assert all(row.folder.startswith("results/") for row in definition.rows)
+
+
+def test_a_row_with_a_raw_type_keeps_the_examples_whose_raw_row_has_that_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = results(tmp_path)
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    examples = [
+        Example(id=f"set/file/{number}", query="q", options=[], labels=[], raw={"type": kind})
+        for number, kind in ((0, "bridge"), (1, "comparison"))
+    ]
+    (processed / "file.jsonl").write_text("".join(example.model_dump_json() + "\n" for example in examples))
+    monkeypatch.setitem(PROCESSED_DIRS, "set", processed)
+    assert [found.id for found in selected(spec(raw_type="bridge"), JEV_MODEL, root).rows] == ["set/file/0"]
+    assert [found.id for found in selected(spec(raw_type="comparison"), JEV_MODEL, root).rows] == ["set/file/1"]

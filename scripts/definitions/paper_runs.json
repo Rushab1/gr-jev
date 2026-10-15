@@ -348,6 +348,7 @@
     "With several correct options, mean confidence minus accuracy is -0.12, -0.16 and -0.08 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
     "With one correct option, ECE with 10 bins ranges from 0.01 to 0.15.",
     "With a yes/no question per option, the answers above 0.70 for yes are about a correct option in 76% to 94% of the cases, at mean probabilities of yes of 0.78 to 0.96. The answers from 0.20 to 0.40 are about a correct option in 13% to 54% of the cases, at mean probabilities of 0.28 to 0.33.",
+    "On the 401 HotpotQA bridge questions, passages given a mean probability of yes of 0.28 to 0.29 are supporting passages in 48% to 52% of the answers, and passages given 0.87 to 0.93 in 77% to 82%. The share of supporting passages rises from bin to bin for every model.",
     "The analysis includes 16,770 MetaTool lists, 4,000 MMLU lists and 6,550 ECtHR lists with one correct option."
    ],
    "limits": [
@@ -464,23 +465,40 @@
     ],
     "file": "calibration"
    },
-   "yes_bins": {
-    "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 5 bins by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
-    "runs": [
-     [
-      "MetaTool: a yes/no question per tool",
-      "MetaTool"
+   "yes_bins": [
+    {
+     "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 5 bins by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
+     "runs": [
+      [
+       "MetaTool: a yes/no question per tool",
+       "MetaTool"
+      ],
+      [
+       "HotpotQA: a yes/no question per passage",
+       "HotpotQA"
+      ],
+      [
+       "ECtHR: a yes/no question per article",
+       "ECtHR"
+      ]
      ],
-     [
-      "HotpotQA: a yes/no question per passage",
-      "HotpotQA"
-     ],
-     [
-      "ECtHR: a yes/no question per article",
-      "ECtHR"
+     "title": "Yes/no answers by probability of yes"
+    },
+    {
+     "title": "HotpotQA yes/no answers by probability of yes, by type of question",
+     "caption": "The HotpotQA yes/no answers of the previous table, split by HotpotQA's type of question: 401 bridge questions and 99 comparison questions. A passage of a comparison question holds one of the two entities, so it may not support the answer alone. In 5 of the 15 bins of the comparison questions, fewer than 50 answers fall.",
+     "runs": [
+      [
+       "HotpotQA: a yes/no question per passage, bridge questions",
+       "bridge"
+      ],
+      [
+       "HotpotQA: a yes/no question per passage, comparison questions",
+       "comparison"
+      ]
      ]
-    ]
-   }
+    }
+   ]
   },
   {
    "title": "5. Removal: the second correct option has a low probability because the first has most of it",
@@ -1173,6 +1191,26 @@
    "about": "We ask a separate yes/no question about each passage. We send the 10 questions for an example in one request.",
    "figures": "yes_no",
    "instruction": "Does this passage support the answer to the question? Passage: <name of the option>: <text of the option>"
+  },
+  {
+   "label": "HotpotQA: a yes/no question per passage, bridge questions",
+   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "lists_text": "every question of the HotpotQA type `bridge`",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The yes/no run on HotpotQA, on its bridge questions, which need a fact from one passage to find the other. HotpotQA gives the type of each question.",
+   "figures": "yes_no",
+   "instruction": "Does this passage support the answer to the question? Passage: <name of the option>: <text of the option>",
+   "raw_type": "bridge"
+  },
+  {
+   "label": "HotpotQA: a yes/no question per passage, comparison questions",
+   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "lists_text": "every question of the HotpotQA type `comparison`",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "The yes/no run on HotpotQA, on its comparison questions, which compare two entities, one per passage. HotpotQA gives the type of each question.",
+   "figures": "yes_no",
+   "instruction": "Does this passage support the answer to the question? Passage: <name of the option>: <text of the option>",
+   "raw_type": "comparison"
   },
   {
    "label": "ECtHR: a yes/no question per article",
