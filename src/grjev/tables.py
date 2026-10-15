@@ -110,10 +110,22 @@ class PaperTableSpec(BaseModel):
     file: str = ""
 
 
+class YesBinsSpec(BaseModel):
+    """A table of the yes/no answers to examples with two or more labels, by bin of the probability of yes.
+
+    `runs` holds the label of each yes/no run and the name of its dataset. The table has a column for each model and
+    run.
+    """
+
+    caption: str
+    runs: list[tuple[str, str]]
+
+
 class FindingSpec(BaseModel):
     """One finding of a report: the conclusion, how strong it is for the paper, its evidence and its limits.
 
-    The finding is shown with a chart and with one example, and with its table for the paper when it has one.
+    The finding is shown with a chart and with one example, and with its table for the paper and its table of the
+    yes/no answers by bin when it has them.
     """
 
     title: str
@@ -124,6 +136,7 @@ class FindingSpec(BaseModel):
     chart: ChartSpec
     example: ExampleSpec
     table: PaperTableSpec | None = None
+    yes_bins: YesBinsSpec | None = None
 
 
 class FigureRowSpec(BaseModel):

@@ -341,15 +341,18 @@
   },
   {
    "title": "4. Calibration: confidence is close to accuracy with one correct option, but the result does not carry over",
-   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.08 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another.",
+   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.08 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another. With several correct options, a yes/no question per option gives each option a probability. On MetaTool, the tools given more than 0.70 for yes are correct in 76% to 77% of the answers, at mean probabilities of yes of 0.83 to 0.96.",
    "strength": "the case in which the probability works, not a finding on its own. The figures are sound. The gaps on the other lists follow from findings 2 and 3. A shared probability lowers confidence, and a list with no correct option has accuracy 0.",
    "evidence": [
     "With one correct option, mean confidence minus accuracy is +0.08, +0.09 and +0.14 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is +0.02, +0.05 and +0.04 on MMLU, and -0.03, -0.01 and 0.00 on ECtHR.",
     "With several correct options, mean confidence minus accuracy is -0.12, -0.16 and -0.08 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
     "With one correct option, ECE with 10 bins ranges from 0.01 to 0.15.",
+    "With a yes/no question per option, the answers above 0.70 for yes are about a correct option in 76% to 94% of the cases, at mean probabilities of yes of 0.78 to 0.96. The answers from 0.20 to 0.40 are about a correct option in 13% to 54% of the cases, at mean probabilities of 0.28 to 0.33.",
     "The analysis includes 16,770 MetaTool lists, 4,000 MMLU lists and 6,550 ECtHR lists with one correct option."
    ],
    "limits": [
+    "Rushab, 2026-10-14: calibration of a list's probabilities is not defined when several options are correct, since the probabilities of a list sum to 1. With several correct options, only the yes/no questions are used.",
+    "The 5 bins of the yes/no answers have edges 0, 0.1, 0.2, 0.4, 0.7 and 1.0, so that each bin holds 50 or more answers. They hold 51 to 3,895.",
     "Accuracy counts a prediction as correct when it is one of the correct options. With several correct options, a different definition gives a different gap.",
     "MetaTool labels one tool per query. On some queries, the three models agree on a different answer, as in the example.",
     "No interval has been computed yet."
@@ -460,6 +463,23 @@
      }
     ],
     "file": "calibration"
+   },
+   "yes_bins": {
+    "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 5 bins by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
+    "runs": [
+     [
+      "MetaTool: a yes/no question per tool",
+      "MetaTool"
+     ],
+     [
+      "HotpotQA: a yes/no question per passage",
+      "HotpotQA"
+     ],
+     [
+      "ECtHR: a yes/no question per article",
+      "ECtHR"
+     ]
+    ]
    }
   },
   {
@@ -470,6 +490,7 @@
     "On MetaTool, Jev's probability for the second correct option goes from 0.11 to 0.71, Liquid d1's from 0.16 to 0.62, and GPT-6 Luna Decisions' from 0.11 to 0.53 after removal. On HotpotQA, their probabilities go from 0.17 to 0.66, 0.19 to 0.68 and 0.16 to 0.60. On ECtHR, they go from 0.19 to 0.71, 0.16 to 0.68 and 0.15 to 0.68.",
     "On the examples where the options other than the removed one hold 0.10 or more, the second correct option's renormalised probability is 0.77, 0.64 and 0.40 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is 0.80, 0.80 and 0.61 on HotpotQA, and 0.72, 0.70 and 0.59 on ECtHR. After the removal, the same examples give 0.72, 0.61 and 0.49 on MetaTool, 0.67, 0.70 and 0.60 on HotpotQA, and 0.71, 0.67 and 0.68 on ECtHR.",
     "When one correct option is removed, the models predict the remaining correct option in 0.86, 0.78 and 0.67 of the MetaTool answers and in 0.84, 0.84 and 0.80 of the HotpotQA answers.",
+    "In a yes/no question about a correct MetaTool tool alone, the models give yes a mean probability of 0.64, 0.79 and 0.65. They give 66% to 85% of those tools 0.50 or more for yes.",
     "In a yes/no question about a violated ECtHR article alone, the models give yes a mean probability of 0.67, 0.89 and 0.74. They give 80% to 96% of those articles 0.50 or more for yes.",
     "When asked about a supporting HotpotQA passage alone, the models give it 0.45, 0.40 and 0.52. They give 38% to 51% of those passages 0.50 or more."
    ],
@@ -698,7 +719,7 @@
   "The MMLU runs use a seeded sample of 1,000 of the 13,096 questions whose choices can be moved. The HotpotQA runs with 5 cyclic permutations and the HotpotQA run with 4 distractors and NOTA use a seeded sample of 1,000 of the 7,345 questions with 10 passages. The other runs use every example.",
   "MetaTool repeats queries across its test files. The run with paraphrases has 1,767 examples and 1,047 different requests. The run with duplicates has 3,292 examples and 3,275 different requests. An answer to a repeated request counts once per example.",
   "ECtHR labels name the articles that the Court found violated in a case. A case with no label means the Court found no violation of the 10 articles.",
-  "The test sends a yes/no question about each HotpotQA passage for 500 questions. It sends a yes/no question about each ECtHR article for the 1,000 test cases.",
+  "The test sends a yes/no question about each tool of the 497 MetaTool multi-tool queries, run on 2026-10-14. It sends a yes/no question about each HotpotQA passage for 500 questions, and about each ECtHR article for the 1,000 test cases.",
   "The file `src/grjev/stimuli/tickets.json` has the tickets, TypeSafe's example request, and its documented answer. `python scripts/run/typesafe_example.py` sends that request."
  ],
  "models": [
@@ -1134,6 +1155,15 @@
    "group": "5. Dependence on the list: a correct option is removed",
    "about": "An example's second correct option is the correct option with the second-highest probability in the full list.",
    "figures": "second_correct"
+  },
+  {
+   "label": "MetaTool: a yes/no question per tool",
+   "folder": "results/metatool_yes_no/2026-10-14_01",
+   "lists_text": "every question",
+   "group": "5. Dependence on the list: a correct option is removed",
+   "about": "We ask a separate yes/no question about each tool of the 497 multi-tool queries. We send the 10 questions for a query in one request.",
+   "figures": "yes_no",
+   "instruction": "Is this tool needed to solve the user's query? Tool: <name of the option>: <text of the option>"
   },
   {
    "label": "HotpotQA: a yes/no question per passage",

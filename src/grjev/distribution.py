@@ -9,6 +9,7 @@ from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from itertools import pairwise
 
 from grjev.constants import (
     ECE_BINS,
@@ -17,6 +18,7 @@ from grjev.constants import (
     RENORMALISED_REST,
     SECOND_TEAM_PROBABILITY,
     WITHOUT_LIST,
+    YES_BIN_EDGES,
     YES_PROBABILITY,
 )
 from grjev.metrics import NONE_NAMES, entropy, top_gap
@@ -100,6 +102,18 @@ class YesFigures:
     distractors: int
     distractor_mean: float | None
     distractor_yes: int
+
+
+@dataclass(frozen=True)
+class YesBin:
+    """The yes/no answers whose probability of yes is in one bin: the edges of the bin, the number of answers, their
+    mean probability of yes, and the share of them that are about a correct option."""
+
+    low: float
+    high: float
+    answers: int
+    mean: float
+    correct: float
 
 
 def rounded(row: Row) -> Row:
@@ -277,3 +291,26 @@ def yes_figures(rows: Sequence[Row]) -> YesFigures:
         distractor_mean=statistics.fmean(others) if others else None,
         distractor_yes=sum(value >= YES_PROBABILITY for value in others),
     )
+
+
+def yes_bins(rows: Sequence[Row], edges: Sequence[float] = YES_BIN_EDGES) -> list[YesBin | None]:
+    """Return the yes/no answers of the examples with two or more labels by bin of the probability of yes.
+
+    A bin holds the probabilities above its lower edge up to its upper edge, and the first bin also holds 0. A
+    probability is rounded to PROBABILITY_DECIMALS first. A bin without an answer is None.
+    """
+    pairs = [
+        (round(value, PROBABILITY_DECIMALS), name in row.labels)
+        for row in rows
+        if len(row.labels) > 1
+        for name, value in row.yes.items()
+    ]
+    found: list[YesBin | None] = []
+    for index, (low, high) in enumerate(pairwise(edges)):
+        held = [(value, hit) for value, hit in pairs if low < value <= high or (index == 0 and value == low)]
+        if not held:
+            found.append(None)
+            continue
+        mean, hits = statistics.fmean(value for value, _ in held), statistics.fmean(hit for _, hit in held)
+        found.append(YesBin(low, high, len(held), mean, hits))
+    return found

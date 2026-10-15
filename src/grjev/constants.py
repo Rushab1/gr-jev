@@ -38,7 +38,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # Raised to 42,000 on 2026-10-11 for the runs on every example, which need 39,512: 2,723 saved calls and 36,789 new
 # ones. Claude Code proposed 42,000, and Rushab answered "you can cal jev". Raised to 51,839 on 2026-10-12 for the
 # 12,981 calls of the replaced run on mmlu_na, with 38,858 calls saved. Rushab: "increase man for jev no worries".
-JEV_CALL_LIMIT = 51839
+# Raised to 52,336 on 2026-10-14 for the 497 calls of the yes/no run on MetaTool multi_tool, with 51,817 calls saved.
+# Rushab: "increase jev limit".
+JEV_CALL_LIMIT = 52336
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -434,7 +436,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     # "with_none" sends the list of the example with the "None" candidate added.
     "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
     # "yes_no" asks one yes/no question about each option of the example, and no list.
-    "yes_no": {"hotpotqa": (HOTPOTQA_TEST_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+    "yes_no": {"metatool": ("multi_tool",), "hotpotqa": (HOTPOTQA_TEST_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
 }
 # Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
 NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -476,6 +478,7 @@ REMOVAL_WORDINGS = {
 REMOVAL_TOOL_INSTRUCTIONS = "Choose every tool in the list that is needed to solve the user's query."
 # Dataset -> the yes/no question about one option, which is followed by the option.
 YES_NO_QUESTIONS = {
+    "metatool": "Is this tool needed to solve the user's query? Tool:",
     "hotpotqa": "Does this passage support the answer to the question? Passage:",
     "ecthr": "Did the European Court of Human Rights find a violation of this article in this case? Article:",
 }
@@ -599,13 +602,17 @@ PROBABILITY_DECIMALS = 6
 ECE_BINS = 10
 # A yes/no answer counts as yes when its probability of yes is at least this.
 YES_PROBABILITY = 0.5
+# The edges of the bins of the probability of yes, for the calibration of the yes/no answers to examples with two or
+# more labels. A bin holds the probabilities above its lower edge up to its upper edge, and the first bin also holds 0.
+# Rushab, 2026-10-14: at least 50 answers in each bin, with these 5 bins.
+YES_BIN_EDGES = (0.0, 0.1, 0.2, 0.4, 0.7, 1.0)
 # A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
 # set is less than 10".
 POSITIONS_SHOWN_BELOW = 10
 # The runs of `docs/paper_plan.md`, each as the arguments of scripts/run/run_experiment.py: the experiment, the dataset,
 # and the test files or the sample where the run does not send every example of the experiment. MMLU is run on
 # 1,000 questions, and so are the HotpotQA runs with 5 cyclic permutations and the HotpotQA run with "None". The
-# HotpotQA yes/no control is run on 500 questions.
+# HotpotQA yes/no control is run on 500 questions, and the MetaTool one on the 497 multi-tool queries.
 PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("copied", "metatool"),
     ("copied", "mmlu", "--examples", "1000"),
@@ -631,6 +638,7 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("absent", "mmlu", "--examples", "1000"),
     ("absent", "hotpotqa", "--examples", "1000"),
     ("with_none", "ecthr"),
+    ("yes_no", "metatool"),
     ("yes_no", "hotpotqa", "--examples", "500"),
     ("yes_no", "ecthr"),
     ("removal", "tickets"),
@@ -641,6 +649,16 @@ TABLES_DIR = REPO_ROOT / "scripts" / "definitions"
 PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
 # The figure of the paper, written by scripts/paper/paper_figure.py.
 PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
+# The runs of the lists with several correct options in paper_runs.json, by dataset: the label of the row, and the
+# list of the run with the options in the released order. scripts/report/below_uniform.py reads them.
+UNIFORM_DEFINITION = "paper_runs"
+UNIFORM_RUNS = {
+    "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
+    "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
+    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", f"{ROTATED_LIST}_0"),
+}
+# The datasets whose rows are also counted by the number of labels of the example.
+UNIFORM_BY_LABELS = ("ECtHR",)
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"

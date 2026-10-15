@@ -25,6 +25,7 @@ from grjev.distribution import (
     correct_names,
     distribution,
     second_after_removal,
+    yes_bins,
     yes_figures,
 )
 from grjev.examples import Example, read_dataset
@@ -36,6 +37,7 @@ from grjev.tables import (
     RowSpec,
     Selected,
     TableSpec,
+    YesBinsSpec,
     answers_of,
     config_of,
     selected,
@@ -205,6 +207,28 @@ def second_correct_table(spec: RowSpec, chosen: dict[str, Selected]) -> list[lis
 
 
 TABLES = {"lists": lists_table, "yes_no": yes_no_table, "second_correct": second_correct_table}
+
+
+def yes_bins_table(table: YesBinsSpec, runs: dict[str, dict[str, Selected]]) -> str:
+    """Return the table of the yes/no answers by bin of the probability of yes, with a column for each model and run.
+
+    A cell holds the share of the answers in the bin that are about a correct option, and the number of answers. The
+    first column gives the edges of each bin and the lowest and highest mean probability of yes in its cells.
+    """
+    columns = [(model, name, yes_bins(own.rows)) for run, name in table.runs for model, own in runs[run].items()]
+    columns.sort(key=lambda column: list(MODEL_TITLES).index(column[0]))
+    names = [f"{MODEL_TITLES[model]}, {name}" for model, name, _ in columns]
+    body = [["Probability of yes (mean probability)", *names]]
+    for index in range(len(columns[0][2])):
+        found = [bins[index] for _, _, bins in columns]
+        means = [part.mean for part in found if part]
+        low, high = next((part.low, part.high) for part in found if part)
+        cells = [f"{part.correct:.0%} ({part.answers:,})" if part else NOT_MEASURED for part in found]
+        body.append([f"{low:.1f} to {high:.1f} ({min(means):.2f} to {max(means):.2f})", *cells])
+    return (
+        f'<div class="paper"><h3>Yes/no answers by probability of yes</h3><p class="caption">{marked(table.caption)}'
+        f"</p>{table_html(body)}</div>"
+    )
 
 
 def lists_held(chosen: Selected) -> str:
@@ -511,7 +535,8 @@ def finding_html(
         f'<div class="pair"><div><h3>{marked(finding.chart.title)}</h3>{chart_svg(finding.chart, runs)}'
         f"<h3>Evidence</h3><ul>{evidence}</ul></div>"
         f"<div><h3>One example</h3>{example}<h3>Limits</h3><ul>{limits}</ul></div></div>"
-        f"{paper_table(finding.table, runs) if finding.table else ''}</div>"
+        f"{paper_table(finding.table, runs) if finding.table else ''}"
+        f"{yes_bins_table(finding.yes_bins, runs) if finding.yes_bins else ''}</div>"
     )
 
 

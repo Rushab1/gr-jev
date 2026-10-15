@@ -13,6 +13,7 @@ from grjev.distribution import (
     positions,
     rounded,
     second_after_removal,
+    yes_bins,
     yes_figures,
 )
 from grjev.runs import ListAnswer, Row
@@ -175,3 +176,15 @@ def test_yes_no_answers_are_counted_for_correct_options_and_for_distractors() ->
     assert (found.distractors, found.distractor_mean, found.distractor_yes) == (2, pytest.approx(0.4), 1)
     empty = yes_figures([row(["a"], {})])
     assert (empty.correct, empty.correct_mean, empty.distractors, empty.distractor_mean) == (0, None, 0, None)
+
+
+def test_yes_bins_use_examples_with_two_or_more_labels_and_hold_their_upper_edge() -> None:
+    rows = [
+        row(["a", "b"], {}, yes={"a": 0.9, "b": 0.5, "c": 0.0, "d": 0.49999999999999994, "e": 0.30000000000000004}),
+        row(["a"], {}, yes={"a": 0.9, "c": 0.9}),
+    ]
+    first, middle, top = yes_bins(rows, (0.0, 0.3, 0.5, 1.0))
+    assert first is not None and (first.answers, first.correct, first.mean) == (2, 0.0, pytest.approx(0.15))
+    assert middle is not None and (middle.answers, middle.correct) == (2, 0.5)
+    assert top is not None and (top.low, top.high, top.answers, top.correct) == (0.5, 1.0, 1, 1.0)
+    assert yes_bins([row(["a", "b"], {}, yes={"a": 0.9})], (0.0, 0.5, 1.0))[0] is None

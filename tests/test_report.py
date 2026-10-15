@@ -251,12 +251,13 @@ def test_the_page_puts_the_conclusions_and_the_findings_before_the_terms_and_the
     )
 
 
-def test_the_definition_of_the_runs_on_every_example_names_48_tables_for_three_models() -> None:
+def test_the_definition_of_the_runs_on_every_example_names_49_tables_for_three_models() -> None:
     definition = read_spec(TABLES_DIR / "paper_runs.json")
-    assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 48
-    assert len({row.label for row in definition.rows}) == 48 and len({row.group for row in definition.rows}) == 6
+    assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 49
+    assert len({row.label for row in definition.rows}) == 49 and len({row.group for row in definition.rows}) == 6
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
-    assert all(row.about and "/2026-10-11_" in row.folder for row in definition.rows)
+    # The MetaTool yes/no run was added on 2026-10-14.
+    assert all(row.about and ("/2026-10-11_" in row.folder or "yes_no" in row.folder) for row in definition.rows)
     labels = {row.label for row in definition.rows}
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8
     assert all(run in labels for found in definition.findings for run, _ in found.chart.runs)
@@ -264,6 +265,7 @@ def test_the_definition_of_the_runs_on_every_example_names_48_tables_for_three_m
     parts = [part for found in definition.findings if found.table for part in found.table.parts]
     assert all(found.table for found in definition.findings) and all(part.run in labels for part in parts)
     assert all(header in PAPER_COLUMNS for part in parts for header in part.columns)
+    assert all(run in labels for found in definition.findings if found.yes_bins for run, _ in found.yes_bins.runs)
 
 
 def test_the_latex_table_of_a_finding_groups_its_parts_and_escapes_the_percent_sign(tmp_path: Path) -> None:
