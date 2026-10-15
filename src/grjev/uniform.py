@@ -16,9 +16,11 @@ from grjev.tables import keeps, model_folder, read_spec
 COUNT_HEADERS = [
     "Answered lists",
     "Refused lists",
+    "Lists with a correct option below 1/n",
+    "Lists with every correct option above every distractor",
+    "Of those, lists with a correct option below 1/n",
     "Correct options",
     "Correct options below 1/n",
-    "Lists with a correct option below 1/n",
 ]
 
 
@@ -28,6 +30,8 @@ class BelowUniform:
 
     `lists` counts the answered lists, `refused` the lists the model refused, `correct` the correct options of the
     answered lists, `below` those with a probability below 1/n, and `lists_below` the lists with at least one of them.
+    `ranked` counts the answered lists whose correct options are all above every distractor, and `ranked_below`
+    those of them with a correct option below 1/n.
     """
 
     lists: int
@@ -35,6 +39,8 @@ class BelowUniform:
     correct: int
     below: int
     lists_below: int
+    ranked: int
+    ranked_below: int
 
 
 def correct_below(labels: Sequence[str], answer: ListAnswer) -> list[str]:
@@ -50,6 +56,14 @@ def correct_below(labels: Sequence[str], answer: ListAnswer) -> list[str]:
         raise ValueError(f"the list does not hold the labels {missing}")
     uniform = round(1 / len(answer.candidates), PROBABILITY_DECIMALS)
     return [label for label in labels if round(answer.probabilities[label], PROBABILITY_DECIMALS) < uniform]
+
+
+def ranked_correctly(labels: Sequence[str], answer: ListAnswer) -> bool:
+    """Return whether every label has a higher probability than every distractor, after rounding to
+    PROBABILITY_DECIMALS. A tie between a label and a distractor is not a correct ranking."""
+    probabilities = {name: round(value, PROBABILITY_DECIMALS) for name, value in answer.probabilities.items()}
+    distractors = [value for name, value in probabilities.items() if name not in labels]
+    return min(probabilities[label] for label in labels) > max(distractors)
 
 
 def counted(rows: Sequence[Row], name: str) -> BelowUniform:
@@ -68,12 +82,15 @@ def counted(rows: Sequence[Row], name: str) -> BelowUniform:
         if name in row.answers and len(row.answers[name].candidates) > len(row.labels)
     ]
     below = [correct_below(labels, answer) for labels, answer in answered]
+    ranked = [ranked_correctly(labels, answer) for labels, answer in answered]
     return BelowUniform(
         lists=len(answered),
         refused=sum(name in row.refused for row in several),
         correct=sum(len(labels) for labels, _ in answered),
         below=sum(len(found) for found in below),
         lists_below=sum(bool(found) for found in below),
+        ranked=sum(ranked),
+        ranked_below=sum(good and bool(found) for good, found in zip(ranked, below, strict=True)),
     )
 
 
@@ -95,9 +112,11 @@ def cells(found: BelowUniform) -> list[str]:
     return [
         f"{found.lists:,}",
         f"{found.refused:,}",
+        share(found.lists_below, found.lists),
+        share(found.ranked, found.lists),
+        share(found.ranked_below, found.ranked),
         f"{found.correct:,}",
         share(found.below, found.correct),
-        share(found.lists_below, found.lists),
     ]
 
 

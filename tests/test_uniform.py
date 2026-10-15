@@ -3,7 +3,7 @@
 import pytest
 
 from grjev.runs import ListAnswer, Row
-from grjev.uniform import by_labels, correct_below, counted
+from grjev.uniform import by_labels, correct_below, counted, ranked_correctly
 
 
 def answer(probabilities: dict[str, float]) -> ListAnswer:
@@ -39,7 +39,7 @@ def test_a_list_without_a_label_or_without_a_probability_raises() -> None:
 
 def test_the_counts_keep_lists_with_two_labels_and_a_distractor_and_count_refusals() -> None:
     rows = [
-        row(["a", "b"], {"full": answer({"a": 0.9, "b": 0.05, "c": 0.05})}),
+        row(["a", "b"], {"full": answer({"a": 0.9, "b": 0.06, "c": 0.04})}),
         row(["a", "b"], {"full": answer({"a": 0.4, "b": 0.4, "c": 0.2})}),
         # No distractor, one label, and a refusal.
         row(["a", "b"], {"full": answer({"a": 0.9, "b": 0.1})}),
@@ -48,6 +48,13 @@ def test_the_counts_keep_lists_with_two_labels_and_a_distractor_and_count_refusa
     ]
     found = counted(rows, "full")
     assert (found.lists, found.refused, found.correct, found.below, found.lists_below) == (2, 1, 4, 1, 1)
+    assert (found.ranked, found.ranked_below) == (2, 1)
+
+
+def test_a_list_is_ranked_correctly_when_every_label_is_strictly_above_every_distractor() -> None:
+    assert ranked_correctly(["a", "b"], answer({"a": 0.6, "b": 0.3, "c": 0.1}))
+    assert not ranked_correctly(["a", "b"], answer({"a": 0.6, "b": 0.2, "c": 0.2}))
+    assert not ranked_correctly(["a", "b"], answer({"a": 0.6, "b": 0.1, "c": 0.3}))
 
 
 def test_a_list_with_no_answer_and_no_refusal_raises() -> None:
