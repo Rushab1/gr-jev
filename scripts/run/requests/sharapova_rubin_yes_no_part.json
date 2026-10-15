@@ -1,0 +1,49 @@
+{
+ "source": "HotpotQA validation question 5a7bbcd65542997c3ec97268 as released, with its 10 passages in their order.",
+ "written": "The yes/no questions of sharapova_rubin_yes_no.json with \"Does this passage have information that answers part of the question?\" in place of \"Does this passage support the answer to the question?\". Claude Code wrote it on 2026-10-15 on Rushab's instruction to ask the opening example with three wordings.",
+ "request": {
+  "state": "who is older, Maria Sharapova or Chanda Rubin?",
+  "questions": {
+   "1997 IGA Classic – Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1997 IGA Classic – Doubles: Chanda Rubin and Brenda Schultz-McCarthy were the defending champions but did not compete that year."
+   },
+   "1997 EA-Generali Ladies Linz": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1997 EA-Generali Ladies Linz: The 1997 EA-Generali Ladies Linz was a women's tennis tournament played on indoor hard courts at the Intersport Arena in Linz in Austria that was part of Tier III of the 1997 WTA Tour. The tournament was held from February 3 through February 9, 1997. Chanda Rubin won the singles title."
+   },
+   "1997 Australian Open – Women's Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1997 Australian Open – Women's Doubles: Chanda Rubin and Arantxa Sánchez Vicario were the defending champions, but competed this year with different partners. Rubin teamed up with Brenda Schultz-McCarthy and were eliminated in third round, while Sánchez Vicario teamed up with Gigi Fernández and lost in semifinals."
+   },
+   "1997 State Farm Evert Cup – Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1997 State Farm Evert Cup – Doubles: Chanda Rubin and Brenda Schultz-McCarthy were the defending champions but only Rubin competed that year with Mary Joe Fernandez."
+   },
+   "Chanda Rubin": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis player. Winning seven WTA Tour singles titles, she reached her highest ranking at World No. 6 on April 8, 1996, after reaching semifinals at the 1996 Australian Open. Rubin is also former World No. 9 in doubles, winning the Australian Open in 1996 partnering with Arantxa Sánchez Vicario."
+   },
+   "Maria Sharapova": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: Maria Sharapova: Maria Yuryevna Sharapova (Russian: Мари́я Ю́рьевна Шара́пова ; ] ; born April 19, 1987) is a Russian professional tennis player. A United States resident since 1994, Sharapova has competed on the WTA tour since 2001. She has been ranked world No. 1 in singles by the WTA on five separate occasions, for a total of 21 weeks. She is one of ten women, and the only Russian, to hold the career Grand Slam. She is also an Olympic medalist, having earned silver for Russia in women's singles at the 2012 Summer Olympics in London."
+   },
+   "1997 Bausch &amp; Lomb Championships – Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1997 Bausch &amp; Lomb Championships – Doubles: Chanda Rubin and Arantxa Sánchez Vicario were the defending champions but they competed with different partners that year, Rubin with Brenda Schultz-McCarthy and Sánchez Vicario with Larisa Savchenko."
+   },
+   "2001 Bank of the West Classic – Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 2001 Bank of the West Classic – Doubles: Chanda Rubin and Sandrine Testud were the defending champions, but none competed this year. Rubin decided to focus on the singles tournament, while Testud decided to rest after competing on the World Group Play-offs of the Fed Cup."
+   },
+   "1995 Schweppes Tasmanian International – Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 1995 Schweppes Tasmanian International – Doubles: Linda Harvey-Wild and Chanda Rubin were the defending champions but they competed with different partners that year, Harvey-Wild with Leila Meskhi and Rubin with Kristie Boogert."
+   },
+   "2002 Wimbledon Championships – Women's Doubles": {
+    "type": "noul",
+    "instructions": "Does this passage have information that answers part of the question? Passage: 2002 Wimbledon Championships – Women's Doubles: Lisa Raymond and Rennae Stubbs were the defending champions, but lost in the quarterfinals to Anna Kournikova and Chanda Rubin."
+   }
+  }
+ }
+}
