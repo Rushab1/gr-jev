@@ -1,0 +1,181 @@
+{
+ "source": "https://docs.typesafe.ai/primitives/choice.md, section \"A more complex example\", read on 2026-10-11",
+ "written": "The request and the documented answer are TypeSafe's. Claude Opus 5.5 wrote the 24 issues on 2026-10-11, 8 for each team of TypeSafe's question, each about one team only.",
+ "typesafe_request": {
+  "state": "Shoes arrived two weeks late and in the wrong size. Also I see two charges of $120 on my card. What are you going to do about this?",
+  "questions": {
+   "department": {
+    "type": "choice",
+    "instructions": "Which team should handle this?",
+    "criteria": {
+     "returns": "Exchanges, wrong or damaged items",
+     "shipping": "Delivery status, delays, lost packages",
+     "billing": "Charges, invoices, payment problems"
+    }
+   },
+   "return_reason": {
+    "type": "choice",
+    "instructions": "If the customer wants to return something, why?",
+    "criteria": {
+     "wrong_size": "The item doesn't fit",
+     "wrong_item": "A different product was delivered",
+     "damaged": "The item arrived broken or faulty",
+     "changed_mind": "The item is fine, the customer no longer wants it",
+     "other": "A return reason that fits none of the above"
+    }
+   },
+   "shipping_issue": {
+    "type": "choice",
+    "instructions": "If this is a shipping problem, which kind is it?",
+    "criteria": {
+     "not_delivered": "The package never arrived",
+     "delayed": "The package is late but still on its way",
+     "wrong_address": "The package went to the wrong place",
+     "damaged_in_transit": "The package arrived damaged",
+     "other": "A shipping problem that fits none of the above"
+    }
+   },
+   "requested_resolution": {
+    "type": "choice",
+    "instructions": "What does the customer want to happen?",
+    "criteria": {
+     "exchange": "Swap the item for a different one",
+     "refund": "Money back",
+     "replacement": "The same item sent again",
+     "information": "Just an answer, no action needed"
+    }
+   },
+   "tone": {
+    "type": "choice",
+    "instructions": "What is the customer's tone?",
+    "criteria": {
+     "calm": null,
+     "frustrated": null,
+     "angry": null
+    }
+   }
+  }
+ },
+ "typesafe_documented_answer": {
+  "department": {
+   "choice": "returns",
+   "confidence": 0.42,
+   "probabilities": {
+    "shipping": 0.04,
+    "billing": 0.35,
+    "returns": 0.61
+   }
+  }
+ },
+ "typesafe_teams": [
+  "returns",
+  "shipping",
+  "billing"
+ ],
+ "issues": {
+  "returns": [
+   "The jacket you sent is a medium and I ordered a large.",
+   "The blender arrived with a cracked jug.",
+   "I ordered the blue backpack and received a red one.",
+   "The headphones stopped working after one day and I want to exchange them.",
+   "One of the two chairs has a broken leg.",
+   "The boots are a size too small and I need the next size up.",
+   "You sent a phone case for the wrong phone model.",
+   "The lamp arrived with a shattered shade."
+  ],
+  "shipping": [
+   "My order was due last Friday and it still has not arrived.",
+   "The tracking page has shown no update for nine days.",
+   "The courier marked my parcel as delivered and nothing was left at my door.",
+   "Can you tell me where my package is right now?",
+   "My parcel has been stuck at the sorting centre for a week.",
+   "The second box of my order never showed up.",
+   "Delivery was promised in two days and it has been twelve.",
+   "I think my package is lost, the tracking number no longer works."
+  ],
+  "billing": [
+   "I was charged twice for the same order.",
+   "The invoice shows $89 and my card was charged $98.",
+   "My payment was declined and the money still left my account.",
+   "I need an invoice with my company's tax number on it.",
+   "My discount code was accepted and the full price was charged.",
+   "There is a charge from you on my card that I do not recognise.",
+   "I was billed for a subscription that I cancelled in March.",
+   "My card was charged before I confirmed the order."
+  ]
+ },
+ "pairs": [
+  [
+   "returns",
+   0,
+   "billing",
+   0
+  ],
+  [
+   "returns",
+   1,
+   "billing",
+   1
+  ],
+  [
+   "returns",
+   2,
+   "billing",
+   2
+  ],
+  [
+   "returns",
+   3,
+   "billing",
+   3
+  ],
+  [
+   "returns",
+   4,
+   "shipping",
+   0
+  ],
+  [
+   "returns",
+   5,
+   "shipping",
+   1
+  ],
+  [
+   "returns",
+   6,
+   "shipping",
+   2
+  ],
+  [
+   "returns",
+   7,
+   "shipping",
+   3
+  ],
+  [
+   "shipping",
+   4,
+   "billing",
+   4
+  ],
+  [
+   "shipping",
+   5,
+   "billing",
+   5
+  ],
+  [
+   "shipping",
+   6,
+   "billing",
+   6
+  ],
+  [
+   "shipping",
+   7,
+   "billing",
+   7
+  ]
+ ]
+}

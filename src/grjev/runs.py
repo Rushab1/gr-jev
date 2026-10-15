@@ -1,0 +1,596 @@
+"""A run: the tool lists of each example go to Jev as choice questions, and each answer is scored."""
+
+import logging
+import random
+from collections.abc import Callable, Collection, Iterable, Iterator
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+
+from pydantic import BaseModel
+
+from grjev.constants import (
+    ABSENT_LIST_TOOLS,
+    COPIED_TOOLS,
+    COUNTED_WORDINGS,
+    DATASET_INSTRUCTIONS,
+    FULL_LIST,
+    GROWTH_LENGTHS,
+    GROWTH_WORDINGS,
+    JEV_MODEL,
+    JEV_REQUEST_CHARACTERS,
+    JEV_WORKERS,
+    LIST_LENGTHS,
+    NO_ADDED_NONE_EXPERIMENTS,
+    NONE_AS_ANSWER_LIST,
+    NONE_AS_DISTRACTOR_LIST,
+    NONE_CANDIDATES,
+    NONE_DESCRIPTION,
+    NONE_NAME,
+    NONE_TEST_FILES,
+    NUMBER_WORDS,
+    ONE_LIST_MODELS,
+    ONE_TOOL_INSTRUCTIONS,
+    ORDER_SEED,
+    OWN_LIST,
+    PADDED_LIST_TOOLS,
+    PROGRESS_EVERY,
+    REMOVAL_TOOL_INSTRUCTIONS,
+    REMOVAL_WORDINGS,
+    REWORDED_INSTRUCTIONS,
+    REWORDED_LIST,
+    REWORDING_EXPERIMENTS,
+    REWORDINGS_FILES,
+    SEVERAL_TOOL_TEST_FILES,
+    TWO_TOOL_INSTRUCTIONS,
+    TWO_TOOL_WORDING,
+    UNCOUNTED_WORDINGS,
+    UNRELATED_TOOLS,
+    WITHOUT_ALL_LIST,
+    WITHOUT_LIST,
+    YES_NO_EXPERIMENT,
+    YES_NO_QUESTIONS,
+)
+from grjev.examples import Example, Option, read_rewordings
+from grjev.jev import (
+    ChoiceAnswer,
+    ChoiceQuestion,
+    JevRequest,
+    JevResponse,
+    NoulAnswer,
+    NoulQuestion,
+    RefusalAnswer,
+    ask,
+    check_call_limit,
+    response_path,
+)
+from grjev.placement import (
+    grown_orders,
+    in_place_of,
+    length_orders,
+    orders_of,
+    outside_tools,
+    padded_order,
+    reworded_order,
+    reworded_tool,
+    rotated_orders,
+    spaced_copies,
+    wrong_tools,
+)
+
+logger = logging.getLogger(__name__)
+
+# The test file of an example, the example, its tool lists by name, and the instruction sent with each list.
+type ExampleLists = Iterator[tuple[str, Example, dict[str, list[Option]], dict[str, str]]]
+
+
+class RunConfig(BaseModel):
+    """What a run sends.
+
+    A run sends every example, or a seeded sample: `examples_per_file` examples of each test file, or `examples`
+    examples over all the test files.
+    """
+
+    experiment: str
+    dataset: str
+    test_files: tuple[str, ...]
+    examples_per_file: int | None = None
+    examples: int | None = None
+    two_tool_wording: str = TWO_TOOL_WORDING
+    seed: int = ORDER_SEED
+    model: str = JEV_MODEL
+    run: int = 1
+
+
+class ListAnswer(BaseModel):
+    """Jev's answer for one tool list. `candidates` holds the names in the order sent."""
+
+    candidates: list[str]
+    choice: str
+    probabilities: dict[str, float]
+    confidence: float
+    correct: bool
+
+
+class Row(BaseModel):
+    """One example of a run: its labels and Jev's answer for each of its tool lists.
+
+    The labels are those of the example. A list of a removal run holds some of them: `offered_labels` returns them.
+    """
+
+    id: str
+    test_file: str
+    labels: list[str]
+    answers: dict[str, ListAnswer]
+    input_tokens: int
+    # The names of the questions that the model rejected, and of those it refused to answer. They have no answer.
+    # A question is named by its tool list, and in a yes/no run by its option.
+    rejected: list[str] = []
+    refused: list[str] = []
+    # The probability of "yes" for each option, in a run that asks one yes/no question per option.
+    yes: dict[str, float] = {}
+
+
+@dataclass(frozen=True)
+class Planned:
+    """One example with its tool lists by name and the requests that ask Jev about them."""
+
+    test_file: str
+    example: Example
+    lists: dict[str, list[Option]]
+    requests: list[JevRequest]
+
+
+def sample_size(config: RunConfig, test_file: str) -> int | None:
+    """Return the number of examples that are sampled from a test file, or None for every example.
+
+    A total of `examples` is spread over the test files as evenly as possible, and the first files get one more.
+    """
+    if config.examples is None:
+        return config.examples_per_file
+    share, extra = divmod(config.examples, len(config.test_files))
+    return share + (config.test_files.index(test_file) < extra)
+
+
+def sampled(examples: list[Example], size: int | None, seed: int) -> list[Example]:
+    """Return every example, or a seeded sample of the given size in the order given."""
+    if size is None:
+        return examples
+    kept = set(random.Random(seed).sample(range(len(examples)), min(size, len(examples))))
+    return [example for index, example in enumerate(examples) if index in kept]
+
+
+def instruction_of(config: RunConfig, tool_instruction: str) -> str:
+    """Return the instruction of a list: the one of the dataset where its options are not tools, or the given one."""
+    return DATASET_INSTRUCTIONS.get(config.dataset, tool_instruction)
+
+
+def none_option(config: RunConfig) -> Option:
+    """Return the "None" candidate of the dataset."""
+    name, description = NONE_CANDIDATES.get(config.dataset, (NONE_NAME, NONE_DESCRIPTION))
+    return Option(name=name, description=description)
+
+
+def file_instructions(config: RunConfig, test_file: str) -> str:
+    """Return the instruction of a test file: for one tool, or for two tools in the wording of the config."""
+    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]:
+        return TWO_TOOL_INSTRUCTIONS[config.two_tool_wording]
+    return ONE_TOOL_INSTRUCTIONS
+
+
+def position_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its list in the released order and with its correct tools at each placement."""
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = orders_of(example, config.seed)
+            yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
+
+
+def length_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each different query once, from the first test file that has it, with its lists of every length."""
+    first: dict[str, tuple[str, Example]] = {}
+    for test_file in config.test_files:
+        for example in examples[test_file]:
+            first.setdefault(example.query, (test_file, example))
+    for test_file in config.test_files:
+        own = [example for name, example in first.values() if name == test_file]
+        for example in sampled(own, sample_size(config, test_file), config.seed):
+            lists = length_orders(example, tools, LIST_LENGTHS[config.dataset], config.seed)
+            yield test_file, example, lists, dict.fromkeys(lists, file_instructions(config, test_file))
+
+
+def wording_instructions(example: Example, names: Collection[str]) -> dict[str, str]:
+    """Return the instruction of each named wording that is sent for the example, by name of the wording.
+
+    A wording that states the number of correct tools is sent only for a query with two or more of them.
+    """
+    correct = len(example.labels or [])
+    counted = [name for name in names if name in COUNTED_WORDINGS and correct > 1]
+    instructions = {name: COUNTED_WORDINGS[name].format(number=NUMBER_WORDS[correct]) for name in counted}
+    return instructions | {name: UNCOUNTED_WORDINGS[name] for name in names if name in UNCOUNTED_WORDINGS}
+
+
+def wording_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with one tool list, under the name of each wording of the instruction it is sent with.
+
+    The list holds the example's tools in a seeded order, with random other tools added to a short list.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            instructions = wording_instructions(example, [*COUNTED_WORDINGS, *UNCOUNTED_WORDINGS])
+            order = padded_order(example, tools, PADDED_LIST_TOOLS, config.seed)
+            yield test_file, example, dict.fromkeys(instructions, order), instructions
+
+
+def growth_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its padded tool list and with that list grown to each length, under each wording.
+
+    A list is named by its length, or by OWN_LIST before it is grown, and by the wording of its instruction.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            orders = grown_orders(example, tools, PADDED_LIST_TOOLS, GROWTH_LENGTHS[config.dataset], config.seed)
+            wordings = wording_instructions(example, GROWTH_WORDINGS)
+            lists = {f"{size}_{wording}": order for size, order in orders.items() for wording in wordings}
+            instructions = {f"{size}_{wording}": text for size in orders for wording, text in wordings.items()}
+            yield test_file, example, lists, instructions
+
+
+def with_rewordings(
+    config: RunConfig, examples: dict[str, list[Example]]
+) -> Iterator[tuple[str, Example, list[Option]]]:
+    """Yield each example with the rewordings of one of its correct tools, in the order in which they are written.
+
+    The correct tool is chosen with the seed. The labels of the yielded example are the rewordings. An example whose
+    chosen tool has no rewordings in the file is left out, after the sample is drawn.
+    """
+    rewordings = read_rewordings(REWORDINGS_FILES[config.dataset])
+    for test_file in config.test_files:
+        chosen = sampled(examples[test_file], sample_size(config, test_file), config.seed)
+        kept = [example for example in chosen if reworded_tool(example, config.seed) in rewordings]
+        logger.info("%s: %d of %d examples have rewordings of their tool", test_file, len(kept), len(chosen))
+        for example in kept:
+            written = rewordings[reworded_tool(example, config.seed)]
+            yield test_file, example.model_copy(update={"labels": [tool.name for tool in written]}), written
+
+
+def reworded_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with the rewordings of one of its correct tools as its tool list, in a seeded order."""
+    for test_file, example, written in with_rewordings(config, examples):
+        lists = {REWORDED_LIST: reworded_order(example, written, config.seed)}
+        yield test_file, example, lists, {REWORDED_LIST: REWORDED_INSTRUCTIONS}
+
+
+def rotated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with the rewordings of one of its correct tools as its tool list, in every rotation."""
+    for test_file, example, written in with_rewordings(config, examples):
+        lists = rotated_orders(written)
+        yield test_file, example, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
+
+
+def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with copies of one of its correct tools as its tool list, in every rotation.
+
+    The correct tool is chosen with the seed. The names of the copies differ only by extra spaces, and the labels of
+    the yielded example are the copies.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            original = reworded_tool(example, config.seed)
+            tool = next(option for option in example.options if option.name == original)
+            copies = spaced_copies(tool, COPIED_TOOLS, f"{config.seed}/{example.id}/copied")
+            lists = rotated_orders(copies)
+            relabelled = example.model_copy(update={"labels": [copy.name for copy in copies]})
+            yield test_file, relabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))
+
+
+def none_rotations(
+    config: RunConfig, examples: dict[str, list[Example]], kept: Callable[[Example], list[Option]]
+) -> ExampleLists:
+    """Yield each example with the tools that `kept` returns for it and the "None" candidate, in every rotation.
+
+    "None" is last in the first rotation. The yielded example has no label, so "None" is the correct answer.
+    """
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders([*kept(example), none_option(config)])
+            yield test_file, example.model_copy(update={"labels": []}), lists, dict.fromkeys(lists, instruction)
+
+
+def absent_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with tools of its own list that are not correct, and "None", in every rotation."""
+    return none_rotations(config, examples, lambda example: wrong_tools(example, ABSENT_LIST_TOOLS, config.seed))
+
+
+def absent_random_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with random tools from outside its own list, and "None", in every rotation."""
+    return none_rotations(
+        config, examples, lambda example: outside_tools(example, tools, ABSENT_LIST_TOOLS, config.seed)
+    )
+
+
+def unrelated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with random tools from outside its own list as its tool list, in every rotation.
+
+    No tool of the list is correct and "None" is not offered. The yielded example has no label. The instruction is
+    the one of the lists of rewordings and of copies.
+    """
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(outside_tools(example, tools, UNRELATED_TOOLS, config.seed))
+            unlabelled = example.model_copy(update={"labels": []})
+            yield test_file, unlabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))
+
+
+def own_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its own list in every rotation."""
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(example.options)
+            yield test_file, example, lists, dict.fromkeys(lists, instruction)
+
+
+def distractor_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with tools of its own list that are not correct, in every rotation.
+
+    No tool of the list is correct and "None" is not offered. The yielded example has no label.
+    """
+    instruction = instruction_of(config, REWORDED_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            lists = rotated_orders(wrong_tools(example, ABSENT_LIST_TOOLS, config.seed))
+            yield test_file, example.model_copy(update={"labels": []}), lists, dict.fromkeys(lists, instruction)
+
+
+def removal_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its list, its list without each correct tool, and its list without every correct tool.
+
+    The list of the example is also sent with each other wording of the dataset's instruction. A list without one
+    correct tool is named by the number of that tool in the labels, counted from 1, and exists when the example has
+    several correct tools. A list that would hold fewer than 2 tools is left out. The yielded example keeps its
+    labels, and an answer is scored against the labels that its list holds. A list without every correct tool has
+    no correct answer.
+    """
+    instruction = instruction_of(config, REMOVAL_TOOL_INSTRUCTIONS)
+    wordings = {f"{FULL_LIST}_{name}": text for name, text in REMOVAL_WORDINGS.get(config.dataset, {}).items()}
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            labels = example.labels or []
+            lists = {FULL_LIST: example.options} | dict.fromkeys(wordings, example.options)
+            if len(labels) > 1:
+                for number, label in enumerate(labels, 1):
+                    lists[f"{WITHOUT_LIST}_{number}"] = [tool for tool in example.options if tool.name != label]
+            lists[WITHOUT_ALL_LIST] = [tool for tool in example.options if tool.name not in labels]
+            lists = {name: kept for name, kept in lists.items() if len(kept) > 1}
+            yield test_file, example, lists, {name: wordings.get(name, instruction) for name in lists}
+
+
+def with_none_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its own list and the "None" candidate last. "None" is correct when it has no label."""
+    instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            yield test_file, example, {OWN_LIST: [*example.options, none_option(config)]}, {OWN_LIST: instruction}
+
+
+def replaced_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its list, and with "None" in the place of its correct tool and of one other tool.
+
+    The protocol of Tam et al. (2025). Every list keeps the order of the example, and the other tool is chosen with
+    the seed. The yielded example keeps its label, and an answer is scored against the labels that its list holds:
+    "None" is the correct answer of the list without the correct tool.
+    """
+    instruction, none = instruction_of(config, ONE_TOOL_INSTRUCTIONS), none_option(config)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            (label,), (other,) = example.labels or [], wrong_tools(example, 1, config.seed)
+            lists = {
+                OWN_LIST: example.options,
+                NONE_AS_ANSWER_LIST: in_place_of(example.options, label, none),
+                NONE_AS_DISTRACTOR_LIST: in_place_of(example.options, other.name, none),
+            }
+            yield test_file, example, lists, dict.fromkeys(lists, instruction)
+
+
+# Experiment -> the function that yields the tool lists of its examples.
+LISTS = {
+    "position": position_lists,
+    "length": length_lists,
+    "wording": wording_lists,
+    "growth": growth_lists,
+    "reworded": reworded_lists,
+    "rotated": rotated_lists,
+    "copied": copied_lists,
+    "absent": absent_lists,
+    "absent_random": absent_random_lists,
+    "unrelated": unrelated_lists,
+    "own": own_lists,
+    "distractors": distractor_lists,
+    "removal": removal_lists,
+    "with_none": with_none_lists,
+    "replaced": replaced_lists,
+}
+
+
+def criteria_of(config: RunConfig, test_file: str, tools: list[Option]) -> dict[str, str | None]:
+    """Return the candidates of a question in the order of the list, with "None" last where it is offered.
+
+    A tool with a blank description is sent without one. A list of rewordings or of copies offers no "None", and an
+    "absent" list holds it already.
+    """
+    criteria: dict[str, str | None] = {
+        tool.name: tool.description if tool.description.strip() else None for tool in tools
+    }
+    if test_file in NONE_TEST_FILES[config.dataset] and config.experiment not in NO_ADDED_NONE_EXPERIMENTS:
+        criteria[NONE_NAME] = NONE_DESCRIPTION
+    return criteria
+
+
+def questions_of(
+    config: RunConfig, test_file: str, lists: dict[str, list[Option]], instructions: dict[str, str]
+) -> dict[str, ChoiceQuestion]:
+    """Return one choice question per tool list, with the instruction of that list."""
+    return {
+        name: ChoiceQuestion(instructions=instructions[name], criteria=criteria_of(config, test_file, tools))
+        for name, tools in lists.items()
+    }
+
+
+def requests_of(config: RunConfig, query: str, questions: dict[str, ChoiceQuestion]) -> list[JevRequest]:
+    """Return the requests of one example: the query as the state, and its questions split to fit a request.
+
+    A model that takes one tool list per request gets one request per question.
+    """
+    if config.model in ONE_LIST_MODELS:
+        return [JevRequest(state=query, model=config.model, questions={name: q}) for name, q in questions.items()]
+    groups: list[dict[str, ChoiceQuestion | NoulQuestion]] = [{}]
+    size = 0
+    for name, question in questions.items():
+        characters = sum(len(candidate) + len(text or "") for candidate, text in question.criteria.items())
+        if groups[-1] and size + characters > JEV_REQUEST_CHARACTERS:
+            groups.append({})
+            size = 0
+        groups[-1][name] = question
+        size += characters
+    return [JevRequest(state=query, model=config.model, questions=group) for group in groups]
+
+
+def yes_no_plan(config: RunConfig, examples: dict[str, list[Example]]) -> list[Planned]:
+    """Return every example of a yes/no run with one request that asks one yes/no question per option.
+
+    A question is named by its option and ends with the name and the description of the option.
+    """
+    opening = YES_NO_QUESTIONS[config.dataset]
+    planned = []
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            questions: dict[str, ChoiceQuestion | NoulQuestion] = {
+                option.name: NoulQuestion(instructions=f"{opening} {option.name}: {option.description}")
+                for option in example.options
+            }
+            request = JevRequest(state=example.query, model=config.model, questions=questions)
+            planned.append(Planned(test_file, example, {}, [request]))
+    return planned
+
+
+def plan(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> list[Planned]:
+    """Return every example of the run with its tool lists and requests."""
+    if config.experiment == YES_NO_EXPERIMENT:
+        return yes_no_plan(config, examples)
+    planned = []
+    for test_file, example, lists, instructions in LISTS[config.experiment](config, examples, tools):
+        requests = requests_of(config, example.query, questions_of(config, test_file, lists, instructions))
+        planned.append(Planned(test_file, example, lists, requests))
+    return planned
+
+
+def call_counts(config: RunConfig, planned: Iterable[Planned]) -> dict[str, dict[str, int]]:
+    """Return, for each test file, its examples, questions and Jev calls, and the calls with no saved response."""
+    counts: dict[str, dict[str, int]] = {}
+    for item in planned:
+        count = counts.setdefault(item.test_file, {"examples": 0, "questions": 0, "calls": 0, "new_calls": 0})
+        count["examples"] += 1
+        count["questions"] += sum(len(request.questions) for request in item.requests)
+        count["calls"] += len(item.requests)
+        count["new_calls"] += sum(not response_path(request, config.run).exists() for request in item.requests)
+    return counts
+
+
+def top_tools(probabilities: dict[str, float], count: int) -> list[str] | None:
+    """Return the candidates with the `count` highest probabilities, or None when a tie leaves the last place open."""
+    ranked = sorted(probabilities, key=lambda name: probabilities[name], reverse=True)
+    if len(ranked) > count and probabilities[ranked[count - 1]] == probabilities[ranked[count]]:
+        return None
+    return ranked[:count]
+
+
+def offered_labels(labels: Iterable[str], candidates: Collection[str]) -> list[str]:
+    """Return the correct tools that a tool list holds. A list of a removal run lacks some of them."""
+    return [label for label in labels if label in candidates]
+
+
+def is_correct(config: RunConfig, test_file: str, labels: list[str], answer: ChoiceAnswer) -> bool:
+    """Say whether Jev's answer matches the labels, which are the correct tools that its list holds.
+
+    In a test file with several correct tools, and for a list of rewordings, its k highest-probability tools are the k
+    correct tools. Elsewhere its choice is the correct tool. When no tool is correct, its choice is "None".
+    """
+    if not labels:
+        return answer.choice == none_option(config).name
+    if test_file in SEVERAL_TOOL_TEST_FILES[config.dataset] or config.experiment in REWORDING_EXPERIMENTS:
+        top = top_tools(answer.probabilities, len(labels))
+        return bool(labels) and top is not None and set(top) == set(labels)
+    return answer.choice == labels[0]
+
+
+def row_of(config: RunConfig, item: Planned, responses: list[JevResponse | None]) -> Row:
+    """Return the row of one example from the responses to its requests. A rejection and a refusal give no answer."""
+    labels = item.example.labels or []
+    answered = [response for response in responses if response is not None]
+    given = {name: answer for response in answered for name, answer in response.answers.items()}
+    asked = [name for request in item.requests for name in request.questions]
+    answers = {}
+    for name, tools in item.lists.items():
+        answer = given.get(name)
+        if answer is None or isinstance(answer, RefusalAnswer):
+            continue
+        if not isinstance(answer, ChoiceAnswer):
+            raise TypeError(f"{item.example.id}: the answer for {name} is not a choice")
+        answers[name] = ListAnswer(
+            candidates=list(criteria_of(config, item.test_file, tools)),
+            choice=answer.choice,
+            probabilities=answer.probabilities,
+            confidence=answer.confidence,
+            correct=is_correct(config, item.test_file, offered_labels(labels, answer.probabilities), answer),
+        )
+    return Row(
+        id=item.example.id,
+        test_file=item.test_file,
+        labels=labels,
+        answers=answers,
+        input_tokens=sum(response.usage.input_tokens for response in answered),
+        rejected=[name for name in asked if name not in given],
+        refused=[name for name in asked if isinstance(given.get(name), RefusalAnswer)],
+        yes={name: answer.noul for name, answer in given.items() if isinstance(answer, NoulAnswer)},
+    )
+
+
+def run(config: RunConfig, planned: list[Planned]) -> list[Row]:
+    """Ask the model every planned request and return one row per example.
+
+    A run on Jev does not start past the call limit.
+    """
+    requests = [request for item in planned for request in item.requests]
+    check_call_limit(sum(not response_path(request, config.run).exists() for request in requests), config.model)
+    responses: list[JevResponse | None] = []
+    with ThreadPoolExecutor(JEV_WORKERS) as workers:
+        for response in workers.map(lambda request: ask(request, config.run), requests):
+            responses.append(response)
+            if len(responses) % PROGRESS_EVERY == 0:
+                logger.info("%d of %d requests answered", len(responses), len(requests))
+    answered = iter(responses)
+    return [row_of(config, item, [next(answered) for _ in item.requests]) for item in planned]
+
+
+def csr(rows: Iterable[Row]) -> dict[str, dict[str, float]]:
+    """Return, for each test file and tool list name, the percentage of examples that Jev answered correctly."""
+    outcomes: dict[str, dict[str, list[bool]]] = {}
+    for row in rows:
+        for name, answer in row.answers.items():
+            outcomes.setdefault(row.test_file, {}).setdefault(name, []).append(answer.correct)
+    return {
+        test_file: {name: 100 * sum(correct) / len(correct) for name, correct in by_list.items()}
+        for test_file, by_list in outcomes.items()
+    }
+
+
+def tied_answers(config: RunConfig, rows: Iterable[Row]) -> int:
+    """Return the number of answers in which a tie leaves the last place of the correct tools of the list open."""
+    offered = [
+        (offered_labels(row.labels, answer.probabilities), answer)
+        for row in rows
+        if row.test_file in SEVERAL_TOOL_TEST_FILES[config.dataset]
+        for answer in row.answers.values()
+    ]
+    return sum(bool(labels) and top_tools(answer.probabilities, len(labels)) is None for labels, answer in offered)

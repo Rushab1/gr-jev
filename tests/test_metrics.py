@@ -1,0 +1,333 @@
+"""Tests for grjev.metrics."""
+
+import pytest
+
+from grjev.constants import BOOTSTRAP_SEED, CONFIDENT_PROBABILITY, NONE_NAME, PLACEMENTS, RELEASED_ORDER
+from grjev.examples import Example, Option
+from grjev.metrics import (
+    Repeated,
+    compared_groups,
+    difference,
+    entropy,
+    figures,
+    interval,
+    list_groups,
+    list_names,
+    most_selected,
+    placed,
+    ranked_means,
+    repeated,
+    row_groups,
+    top_gap,
+)
+from grjev.placement import length_orders, orders_of
+from grjev.runs import ListAnswer, Row
+
+LENGTHS = (5, 10)
+TOOLS = [Option(name=f"tool_{tool}", description=f"Does thing {tool}.") for tool in range(1, 11)]
+
+
+def answer(choice: str, correct: bool, probabilities: dict[str, float] | None = None) -> ListAnswer:
+    probabilities = probabilities or {choice: 1.0, "other": 0.0}
+    candidates = list(probabilities)
+    return ListAnswer(
+        candidates=candidates, choice=choice, probabilities=probabilities, confidence=1.0, correct=correct
+    )
+
+
+def row(test_file: str, labels: list[str], answers: dict[str, ListAnswer]) -> Row:
+    return Row(id="set/file/0", test_file=test_file, labels=labels, answers=answers, input_tokens=10)
+
+
+def one_tool(first: bool, last: bool) -> Row:
+    """An example with one correct tool, answered correctly or not with the tool first and with it last."""
+    answers = {"first": answer("a" if first else "b", first), "last": answer("a" if last else "b", last)}
+    return row("similar_tools", ["a"], answers)
+
+
+def test_an_interval_cuts_the_resampled_means_at_both_ends_and_depends_only_on_the_values_and_the_seed() -> None:
+    correct_in_38_of_50 = [1.0] * 38 + [0.0] * 12
+    # Pins the method: 2,000 resamples of the examples from seed 1, and the 51st and 1,951st of the sorted means.
+    assert interval(correct_in_38_of_50, seed=1) == pytest.approx((0.64, 0.88))
+    assert interval(correct_in_38_of_50, seed=1) == interval(correct_in_38_of_50, seed=1)
+    assert interval([0.5] * 10, seed=1) == (0.5, 0.5)
+
+
+def test_entropy_is_in_bits_and_the_gap_is_between_the_two_highest_probabilities() -> None:
+    assert entropy(answer("a", True, {"a": 1.0, "b": 0.0, "c": 0.0})) == 0.0
+    assert entropy(answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})) == 1.0
+    assert entropy(answer("a", True, {"a": 0.25, "b": 0.25, "c": 0.25, "d": 0.25})) == 2.0
+    assert top_gap(answer("b", True, {"a": 0.2, "b": 0.7, "c": 0.1})) == pytest.approx(0.5)
+    rows = [row("G1_tool", ["a", "b"], {"all": answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})})] * 2
+    rows.append(row("G1_tool", ["a", "b"], {"all": answer("a", False, {"a": 1.0, "b": 0.0, "c": 0.0})}))
+    found = figures(rows, ["all"], BOOTSTRAP_SEED, confident_from=0.9)
+    assert (found.entropy, found.gap) == (pytest.approx(2 / 3), pytest.approx(1 / 3))
+
+
+def test_figures_count_the_answers_to_the_named_lists() -> None:
+    rows = [
+        row(
+            "similar_tools",
+            ["a"],
+            {
+                "first": answer("a", True, {"a": 0.95, "b": 0.05, NONE_NAME: 0.0}),
+                "last": answer(NONE_NAME, False, {"a": 0.4, "b": 0.0, NONE_NAME: 0.6}),
+            },
+        ),
+        row(
+            "similar_tools",
+            ["a"],
+            {
+                "first": answer("b", False, {"a": 0.08, "b": 0.92, NONE_NAME: 0.0}),
+                "last": answer("b", False, {"a": 0.5, "b": 0.5, NONE_NAME: 0.0}),
+            },
+        ),
+    ]
+    found = figures(rows, ["first", "last"], BOOTSTRAP_SEED, confident_from=0.9)
+    assert (found.examples, found.answers, found.correct, found.csr) == (2, 4, 1, 25.0)
+    assert (found.none, found.confident, found.confident_wrong) == (1, 2, 1)
+    assert found.zero_probabilities == pytest.approx(100 * 4 / 12)
+    assert (found.one_choice, found.all_correct, found.none_correct) == (1, 0, 1)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (0, 0, 0)
+    assert 0 <= found.low <= found.csr <= found.high <= 50
+    first_only = figures(rows, ["first"], BOOTSTRAP_SEED, confident_from=0.9)
+    assert (first_only.answers, first_only.correct, first_only.csr, first_only.none) == (2, 1, 50.0, 0)
+
+
+def test_a_probability_at_the_threshold_is_confident() -> None:
+    rows = [row("similar_tools", ["a"], {"first": answer("a", True, {"a": CONFIDENT_PROBABILITY, "b": 0.1})})]
+    assert figures(rows, ["first"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY).confident == 1
+    assert figures(rows, ["first"], BOOTSTRAP_SEED, 0.95).confident == 0
+
+
+def test_an_answer_that_misses_two_correct_tools_is_counted_once_by_how_it_misses() -> None:
+    answers = {
+        RELEASED_ORDER: answer("a", True, {"a": 0.6, "b": 0.4, "c": 0.0}),
+        "adjacent_first": answer("a", False, {"a": 0.6, "c": 0.3, "b": 0.1}),
+        "adjacent_quarter": answer("a", False, {"a": 0.5, "c": 0.5, "b": 0.0}),
+        "adjacent_middle": answer("a", False, {"a": 0.9, "b": 0.05, "c": 0.05}),
+        "adjacent_last": answer("c", False, {"a": 0.3, "b": 0.2, "c": 0.5}),
+    }
+    found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, confident_from=0.9)
+    assert (found.answers, found.correct) == (5, 1)
+    # A wrong tool is second twice, once after a tie for first place between a correct tool and a wrong one.
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (2, 1, 1)
+
+
+def test_a_miss_of_three_correct_tools_is_at_a_later_place_or_a_tie_for_the_third_place() -> None:
+    answers = {
+        "third_wrong": answer("a", False, {"a": 0.4, "b": 0.3, "d": 0.2, "c": 0.1}),
+        "second_wrong": answer("a", False, {"a": 0.4, "d": 0.3, "b": 0.2, "c": 0.1}),
+        "third_tied": answer("a", False, {"a": 0.4, "b": 0.3, "c": 0.15, "d": 0.15}),
+        "top_wrong": answer("d", False, {"d": 0.4, "a": 0.3, "b": 0.2, "c": 0.1}),
+    }
+    found = figures([row("test_violated", ["a", "b", "c"], answers)], list(answers), BOOTSTRAP_SEED, 0.9)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (2, 1, 1)
+
+
+def test_a_list_without_a_correct_tool_is_measured_on_the_correct_tools_that_it_holds() -> None:
+    answers = {
+        "full": answer("a", True, {"a": 0.8, "b": 0.2, "c": 0.0}),
+        "without_1": answer("b", True, {"b": 0.7, "c": 0.3}),
+        "without_all": answer("c", False, {"c": 1.0, "d": 0.0}),
+    }
+    found = figures([row("multi_tool", ["a", "b"], answers)], list(answers), BOOTSTRAP_SEED, 0.9)
+    assert (found.answers, found.correct) == (3, 2)
+    # Only the full list holds several correct tools.
+    assert (found.highest_correct, found.lowest_correct, found.correct_together) == (0.8, 0.2, 1.0)
+    assert (found.later_wrong, found.last_tied, found.top_wrong) == (0, 0, 0)
+
+
+def test_a_list_that_has_no_answer_is_left_out_of_the_figures_by_rank_by_place_and_by_entry() -> None:
+    both = row(
+        "similar_tools",
+        ["a", "b"],
+        {
+            "rotated_0": answer("a", True, {"a": 0.9, "b": 0.1}),
+            "rotated_1": answer("a", True, {"b": 0.3, "a": 0.7}),
+        },
+    )
+    refused_first = row("similar_tools", ["a", "b"], {"rotated_1": answer("b", True, {"b": 0.6, "a": 0.4})})
+    rows, lists = [both, refused_first], ["rotated_0", "rotated_1"]
+    assert ranked_means(rows, lists) == pytest.approx((2.2 / 3, 0.8 / 3))
+    assert placed(rows, lists) == (pytest.approx([1.8 / 3, 1.2 / 3]), [2, 1])
+    # The order of the entries is that of the first list, which the second example lacks.
+    assert placed(rows, lists, "rotated_0") == (pytest.approx([0.8, 0.2]), [2, 0])
+    assert most_selected(rows, lists) == {2: 1}
+    assert ranked_means([refused_first], ["rotated_0"]) == ()
+
+
+def test_an_example_without_one_of_the_lists_is_left_out() -> None:
+    placed = row("live_multiple", ["a"], {RELEASED_ORDER: answer("a", True), "first": answer("a", True)})
+    no_correct_tool = row("live_multiple", [], {RELEASED_ORDER: answer("a", False)})
+    assert figures([placed, no_correct_tool], [RELEASED_ORDER], BOOTSTRAP_SEED, 0.9).examples == 2
+    assert figures([placed, no_correct_tool], [RELEASED_ORDER, "first"], BOOTSTRAP_SEED, 0.9).examples == 1
+    assert difference([placed, no_correct_tool], [RELEASED_ORDER], ["first"], BOOTSTRAP_SEED) == (0.0, 0.0, 0.0)
+
+
+def test_a_difference_is_taken_within_each_example() -> None:
+    rows = [one_tool(True, False), one_tool(True, True), one_tool(False, False), one_tool(True, False)]
+    points, low, high = difference(rows, ["first"], ["last"], BOOTSTRAP_SEED)
+    assert points == pytest.approx(50.0)
+    assert 0 <= low <= points <= high <= 100
+    assert difference(rows, ["last"], ["first"], BOOTSTRAP_SEED)[0] == pytest.approx(-50.0)
+
+
+def test_one_correct_tool_has_a_group_for_each_list_for_the_placements_and_for_every_list() -> None:
+    one_correct = Example(id="set/file/0", query="Do the thing.", options=TOOLS, labels=["tool_4"], raw={})
+    names = list(orders_of(one_correct, seed=7))
+    groups = list_groups(names, LENGTHS)
+    assert list(groups) == [RELEASED_ORDER, *PLACEMENTS, "5 placements", "every list"]
+    assert groups["first"] == ["first"] and groups["5 placements"] == list(PLACEMENTS)
+    assert groups["every list"] == names
+    assert compared_groups(groups, LENGTHS) == {
+        "first minus last": ("first", "last"),
+        "released minus 5 placements": (RELEASED_ORDER, "5 placements"),
+    }
+    assert list(list_groups([RELEASED_ORDER], LENGTHS)) == [RELEASED_ORDER]
+    assert compared_groups(list_groups([RELEASED_ORDER], LENGTHS), LENGTHS) == {}
+
+
+def test_two_correct_tools_have_a_group_for_the_adjacent_and_for_the_separated_orders() -> None:
+    two_correct = Example(id="set/file/0", query="Do the thing.", options=TOOLS, labels=["tool_7", "tool_8"], raw={})
+    groups = list_groups(list(orders_of(two_correct, seed=7)), LENGTHS)
+    assert [len(groups[name]) for name in ("adjacent", "separated", "every list")] == [5, 3, 9]
+    assert groups["separated"][0] == "separated_first_last"
+    assert compared_groups(groups, LENGTHS) == {"adjacent minus separated": ("adjacent", "separated")}
+
+
+def test_a_length_run_has_a_group_for_each_list_length_and_for_each_placement() -> None:
+    one_correct = Example(id="set/file/0", query="Do the thing.", options=TOOLS, labels=["tool_4"], raw={})
+    names = list(length_orders(one_correct, TOOLS, LENGTHS, seed=7))
+    groups = list_groups(names, LENGTHS)
+    assert groups["5 tools"] == [f"5_{name}" for name in PLACEMENTS]
+    assert groups["last, every length"] == ["5_last", "10_last"]
+    assert len(groups) == len(names) + len(LENGTHS) + len(PLACEMENTS) + 1
+    assert compared_groups(groups, LENGTHS) == {
+        "5 tools minus 10 tools": ("5 tools", "10 tools"),
+        "first minus last, every length": ("first, every length", "last, every length"),
+    }
+
+
+def test_the_wordings_of_a_wording_run_are_not_pooled_and_each_is_compared_with_the_one_before() -> None:
+    groups = list_groups(["one", "all", "equal", "every"], [])
+    assert groups == {"one": ["one"], "all": ["all"], "equal": ["equal"], "every": ["every"]}
+    assert compared_groups(groups, []) == {
+        "all minus one": ("all", "one"),
+        "equal minus all": ("equal", "all"),
+        "every minus equal": ("every", "equal"),
+    }
+    assert compared_groups(list_groups(["every"], []), []) == {}
+
+
+def test_the_lists_of_a_growth_run_are_not_pooled_and_the_first_list_is_compared_with_the_longest() -> None:
+    names = ["own_all", "own_every", "20_all", "20_every", "199_all", "199_every"]
+    groups = list_groups(names, [])
+    assert list(groups) == names
+    assert compared_groups(groups, []) == {
+        "own_all minus 199_all": ("own_all", "199_all"),
+        "own_every minus 199_every": ("own_every", "199_every"),
+    }
+
+
+def test_examples_are_grouped_by_test_file_and_pooled_when_all_have_the_same_lists() -> None:
+    similar = row("similar_tools", ["a"], {"5_first": answer("a", True)})
+    scenario = row("scenario", ["a"], {"5_first": answer("a", True)})
+    reliability = row("reliability", [], {RELEASED_ORDER: answer(NONE_NAME, True)})
+    assert list(row_groups([similar, scenario, similar])) == ["every test file", "similar_tools", "scenario"]
+    assert row_groups([similar, scenario, similar])["similar_tools"] == [similar, similar]
+    assert list(row_groups([similar, reliability])) == ["similar_tools", "reliability"]
+    assert list(row_groups([similar])) == ["similar_tools"]
+    assert list_names([similar, reliability]) == ["5_first", RELEASED_ORDER]
+
+
+def test_a_wording_run_is_pooled_over_its_test_files_and_grouped_by_the_number_of_correct_tools() -> None:
+    every = {"every": answer("a", True)}
+    counted = {name: answer("a", True) for name in ("one", "all", "equal", "every")}
+    one_api = row("G1_tool", ["a"], every)
+    two_apis = row("G1_tool", ["a", "b"], counted)
+    three_apis = row("G2_category", ["a", "b", "c"], counted)
+    groups = row_groups([one_api, two_apis, three_apis])
+    assert list(groups) == [
+        "every test file",
+        "G1_tool",
+        "G2_category",
+        "1 correct tool",
+        "2 correct tools",
+        "3 correct tools",
+    ]
+    assert groups["2 correct tools"] == [two_apis] and groups["G1_tool"] == [one_api, two_apis]
+
+
+def test_the_highest_and_the_lowest_correct_tool_are_averaged_over_queries_with_several_correct_tools() -> None:
+    rows = [
+        row("G1_tool", ["a", "b"], {"all": answer("a", True, {"a": 0.8, "b": 0.1, "c": 0.1})}),
+        row("G1_tool", ["a", "b", "c"], {"all": answer("c", True, {"a": 0.2, "b": 0.3, "c": 0.5})}),
+        row("G1_tool", ["a"], {"all": answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})}),
+    ]
+    found = figures(rows, ["all"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
+    assert found.highest_correct == pytest.approx(0.65) and found.lowest_correct == pytest.approx(0.15)
+    assert found.correct_together == pytest.approx(0.95)
+    single = figures(rows[2:], ["all"], BOOTSTRAP_SEED, CONFIDENT_PROBABILITY)
+    assert (single.highest_correct, single.lowest_correct, single.correct_together) == (None, None, None)
+
+
+def test_ranked_means_average_the_highest_probability_of_each_answer_then_the_second_and_so_on() -> None:
+    rows = [
+        row("G1_tool", ["a", "b", "c"], {"reworded": answer("b", True, {"a": 0.1, "b": 0.6, "c": 0.3})}),
+        row("G1_tool", ["a", "b", "c"], {"reworded": answer("a", True, {"a": 0.5, "b": 0.5, "c": 0.0})}),
+    ]
+    assert ranked_means(rows, ["reworded"]) == (pytest.approx(0.55), pytest.approx(0.4), pytest.approx(0.05))
+
+
+def rotated_rows() -> list[Row]:
+    """Two examples with the tools a, b and c in two orders. The second order moves each tool one place forward."""
+    first = {
+        "rotated_0": answer("a", True, {"a": 0.6, "b": 0.3, "c": 0.1}),
+        "rotated_1": answer("a", True, {"b": 0.2, "c": 0.3, "a": 0.5}),
+    }
+    second = {
+        "rotated_0": answer("c", True, {"a": 0.2, "b": 0.2, "c": 0.6}),
+        "rotated_1": answer("b", True, {"b": 0.7, "c": 0.2, "a": 0.1}),
+    }
+    return [row("G1_tool", ["a", "b", "c"], first), row("G1_tool", ["a", "b", "c"], second)]
+
+
+def test_probabilities_and_selections_are_counted_by_place_in_the_list_or_in_a_base_list() -> None:
+    lists = ["rotated_0", "rotated_1"]
+    means, selected = placed(rotated_rows(), lists)
+    assert means == [pytest.approx(1.7 / 4), pytest.approx(1.0 / 4), pytest.approx(1.3 / 4)]
+    assert selected == [2, 0, 2]
+    means, selected = placed(rotated_rows(), lists, "rotated_0")
+    assert means == [pytest.approx(1.4 / 4), pytest.approx(1.4 / 4), pytest.approx(1.2 / 4)]
+    assert selected == [2, 1, 1]
+    assert ranked_means(rotated_rows(), lists) == (pytest.approx(0.6), pytest.approx(0.25), pytest.approx(0.15))
+
+
+def test_examples_are_counted_by_the_number_of_lists_that_select_their_most_selected_tool() -> None:
+    assert most_selected(rotated_rows(), ["rotated_0", "rotated_1"]) == {1: 1, 2: 1}
+    assert most_selected(rotated_rows(), ["rotated_0"]) == {1: 2}
+
+
+def test_two_answers_to_one_list_are_compared_by_selection_and_by_probability() -> None:
+    def numbered(number: int, name: str, given: ListAnswer) -> Row:
+        return row("G1_tool", ["a"], {name: given}).model_copy(update={"id": f"set/file/{number}"})
+
+    first = [
+        numbered(1, "all", answer("a", True, {"a": 0.5, "b": 0.4, "c": 0.1})),
+        numbered(2, "all", answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})),
+        numbered(3, "every", answer("a", True, {"a": 1.0, "b": 0.0, "c": 0.0})),
+    ]
+    second = [
+        numbered(2, "own_all", answer("a", True, {"a": 0.9, "b": 0.1, "c": 0.0})),
+        numbered(1, "own_all", answer("b", False, {"a": 0.42, "b": 0.5, "c": 0.08})),
+    ]
+    # The third example has no list named "all" and is left out.
+    found = repeated(first, second, "all", "own_all")
+    assert (found.answers, found.same_choice, found.identical) == (2, 1, 1)
+    assert (found.largest_change, found.overtaken) == (pytest.approx(0.1), pytest.approx(0.1))
+    same = repeated(first, first, "all", "all")
+    assert (same.answers, same.same_choice, same.identical, same.largest_change, same.overtaken) == (2, 2, 2, 0.0, 0.0)
+    # The second example has no answer in the later rows, as after a refusal, and is left out.
+    assert repeated(first, second[1:], "all", "own_all").answers == 1
+    assert repeated(first, [], "all", "own_all") == Repeated(0, 0, 0, 0.0, 0.0)

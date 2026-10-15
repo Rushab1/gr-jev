@@ -1,0 +1,14 @@
+\section{Limitations}
+\begin{itemize}
+\item Each request was sent once. In an earlier run on a subset, a second send of the same MetaTool requests gave Jev the same prediction in 1,526 of 1,550 answers.
+\item No margins of error yet.
+\item Three models, one day. The gateway gives no version for two of them.
+\item HotpotQA labels mark a passage that contains a supporting sentence. Asked alone, such a passage gets a mean probability of yes of 0.45, 0.40 and 0.52, so some labelled passages may not be correct on their own.
+\item ECtHR labels are the Court's findings, not every article that the facts concern.
+\item A MetaTool example's distractors can include a tool that fits the query. The labels of that run were read for 50 queries only.
+\item The tickets avoid the label problem (each problem alone gets its team 0.99 to 1.00), but there are 24 of them. Claude Opus 5.5 wrote them, and no second reader checked them.
+\item The copies in a list of identical options have names that differ by trailing spaces, which the API needs.
+\item Jev and GPT-6 Luna Decisions return two decimals, so the renormalised values are exact only for Liquid d1.
+\item MMLU runs use 1,000 questions. Some HotpotQA runs use 1,000 of the 7,345 questions with ten passages.
+\item The figures of GPT-6 Luna Decisions cover only the lists that it answers.
+\end{itemize}
