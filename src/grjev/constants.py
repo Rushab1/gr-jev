@@ -659,6 +659,28 @@ UNIFORM_RUNS = {
 }
 # The datasets whose rows are also counted by the number of labels of the example.
 UNIFORM_BY_LABELS = ("ECtHR",)
+# The yes/no run of each dataset of UNIFORM_RUNS in paper_runs.json, by the label of its row. scripts/report/
+# threshold_charts.py compares the list of UNIFORM_RUNS with these yes/no questions on the same examples.
+THRESHOLD_YES_NO_RUNS = {
+    "MetaTool": "MetaTool: a yes/no question per tool",
+    "HotpotQA": "HotpotQA: a yes/no question per passage",
+    "ECtHR": "ECtHR: a yes/no question per article",
+}
+# The thresholds of the charts, from 0 to 1 in steps of 0.01, and those of the table under them.
+THRESHOLD_STEPS = 100
+THRESHOLDS_TABLED = (0.1, 0.25, 0.5)
+# The width of a threshold chart and the height of each of its rows, in inches: on a page of docs/, and across the two
+# columns of the paper.
+THRESHOLD_PAGE_SIZE = (13.0, 3.6)
+THRESHOLD_PAPER_SIZE = (6.3, 1.9)
+# The figures of the paper made by scripts/report/threshold_charts.py --paper, each a PDF file in PAPER_FIGURES_DIR
+# with the measures of src/grjev/thresholds.py that it draws. The reviewer of 2026-10-15 put the recall of the other
+# correct options in the main text, and exact set accuracy, precision, recall and F1 in the appendix.
+THRESHOLD_PAPER_FIGURES = {
+    "other_recall": ("Recall of the other correct choices",),
+    "exact_set": ("Exact set accuracy",),
+    "threshold_measures": ("Precision", "Recall", "F1"),
+}
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
