@@ -81,11 +81,11 @@
 
 \begin{itemize}
 \item Five copies of one correct option are equally correct. Equal probabilities are 0.20 each. No model gives them (Table~\ref{tab:copies}).
-\item Jev: highest copy 0.29 to 0.34, lowest copy 0.10 to 0.12. The highest gets 2.4 to 3.3 times the lowest.
-\item Liquid d1: 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions: 0.67 to 0.79 and 0.01 to 0.02.
-\item Mean entropy: 2.18 to 2.24 bits on Jev, 1.03 to 1.85 on Liquid d1, 1.00 to 1.35 on GPT-6 Luna Decisions. Equal probabilities give 2.32 bits.
-\item The position decides which copy is highest. Liquid d1 and GPT-6 Luna Decisions predict the first copy in 86\% to 100\% of their answers. Jev predicts the last copy in 74\% of its answers on MMLU and 59\% on ECtHR.
-\item TypeSafe's notes on \texttt{jev-1.13} say that the model leans toward the option that comes first~\citep{typesafe2026jev}. On these lists Jev prefers the last position on two of four datasets.
+\item Jev: highest copy 0.29 to 0.34, lowest copy 0.11 to 0.12. The highest gets 2.4 to 3.0 times the lowest.
+\item Liquid d1: 0.55 to 0.81 and 0.03 to 0.07. GPT-6 Luna Decisions: 0.67 to 0.79 and 0.01 to 0.02.
+\item Mean entropy: 2.18 to 2.24 bits on Jev, 1.03 to 1.80 on Liquid d1, 1.00 to 1.35 on GPT-6 Luna Decisions. Equal probabilities give 2.32 bits.
+\item The position decides which copy is highest. Liquid d1 and GPT-6 Luna Decisions predict the first copy in 98.6\% to 99.9\% of their answers. Jev predicts the last copy most often: in 59\% of its answers on ECtHR and 29.5\% on HotpotQA.
+\item TypeSafe's notes on \texttt{jev-1.13} say that the model leans toward the option that comes first~\citep{typesafe2026jev}. On these lists Jev prefers the last position on two of three datasets.
 \item Five paraphrases of one MetaTool tool, written in five styles: the highest gets 0.47, 0.52 and 0.59, the lowest 0.05, 0.06 and 0.03. Position 1 is predicted in 26\%, 74\% and 87\% of the answers.
 \item Link to ordinary lists: with one correct tool among distractors, the accuracy of GPT-6 Luna Decisions is 0.80 with the tool first and 0.67 with it last. Jev: 0.78 and 0.80. Liquid d1: 0.69 and 0.74.
 \end{itemize}
@@ -100,18 +100,18 @@
 
 \begin{itemize}
 \item Jev and Liquid d1 answer every list with no correct option, with a mean confidence of 0.49 to 0.87 (Table~\ref{tab:abstention}).
-\item On lists with one correct option, Jev's mean confidence is 0.86 to 0.94 and Liquid d1's is 0.81 to 0.89. A confidence threshold does not separate the two kinds of lists.
+\item On lists with one correct option, Jev's mean confidence is 0.86 to 0.88 and Liquid d1's is 0.81 to 0.87. A confidence threshold does not separate the two kinds of lists.
 \item Tickets: a problem sent with only the two teams that it does not concern gets a mean confidence of 0.95 on Jev and 0.83 on Liquid d1. GPT-6 Luna Decisions refuses 4 of these 24 lists and has 0.95 on the other 20.
 \item GPT-6 Luna Decisions refuses 58\% to 98\% of the lists of random options and 1\% to 27\% of the lists made of the example's own options. On the lists that it answers, its mean confidence is 0.65 to 0.87. The API gives no reason (Appendix~\ref{app:refusals}).
 \item With a ``none of the above'' option and four random options, the models predict it in 0.93 to 1.00 of the answers.
-\item With a ``none of the above'' option and the example's own distractors, they predict it less often: 0.54 to 0.72 on MMLU and 0.79 to 0.88 on HotpotQA. For the 153 ECtHR cases with no violated article: 0.37, 0.07 and 0.17.
+\item With a ``none of the above'' option and the example's own distractors, they predict it less often: 0.79 to 0.88 on HotpotQA. For the 153 ECtHR cases with no violated article: 0.37, 0.07 and 0.17.
 \item OpenAI's guide advises a fallback option such as ``other''~\citep{openai2026decisions}. The figures above say when that works: for options unrelated to the query, less for near misses.
 \end{itemize}
 
 \subsection{One correct option}
 \begin{itemize}
-\item Mean confidence minus accuracy: $+0.08$, $+0.09$, $+0.14$ on MetaTool for Jev, Liquid d1, GPT-6 Luna Decisions. $+0.02$, $+0.05$, $+0.04$ on MMLU. $-0.03$, $-0.01$, $0.00$ on ECtHR (Table~\ref{tab:calibration}).
-\item Expected calibration error with 10 bins: 0.01 to 0.15.
+\item Mean confidence minus accuracy: $+0.08$, $+0.09$, $+0.14$ on MetaTool for Jev, Liquid d1, GPT-6 Luna Decisions. $-0.03$, $-0.01$, $0.00$ on ECtHR (Table~\ref{tab:calibration}).
+\item Expected calibration error with 10 bins: 0.01 to 0.14.
 \item This is the setting in which calibration is usually measured~\citep{guo2017calibration}, and the one case where the documented reading holds. It agrees with \citet{deusser2026evaluating}.
 \item It does not carry over. With several correct options the mean confidence is 0.08 to 0.23 below the accuracy. With no correct option the accuracy is 0 and the mean confidence is 0.49 to 0.87.
 \end{itemize}

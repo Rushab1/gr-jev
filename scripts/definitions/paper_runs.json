@@ -79,16 +79,6 @@
       "short": "MetaTool"
      },
      {
-      "run": "MMLU: 5 duplicates of the correct choice",
-      "name": "MMLU",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Predictions at the first position"
-      ],
-      "short": "MMLU"
-     },
-     {
       "run": "HotpotQA: 5 duplicates of one supporting passage",
       "name": "HotpotQA",
       "columns": [
@@ -276,16 +266,6 @@
       "group": "5 random options"
      },
      {
-      "run": "MMLU: 5 random choices, no NOTA",
-      "name": "MMLU, 5 random choices",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "MMLU",
-      "group": "5 random options"
-     },
-     {
       "run": "HotpotQA: 5 random passages, no NOTA",
       "name": "HotpotQA, 5 random passages",
       "columns": [
@@ -303,16 +283,6 @@
        "Mean confidence"
       ],
       "short": "MetaTool",
-      "group": "Options of the example, none correct"
-     },
-     {
-      "run": "MMLU: the 3 distractors of the question, no NOTA",
-      "name": "MMLU, 3 distractors",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "MMLU",
       "group": "Options of the example, none correct"
      },
      {
@@ -341,19 +311,19 @@
   },
   {
    "title": "4. Calibration: confidence is close to accuracy with one correct option, but the result does not carry over",
-   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.08 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another. With several correct options, a yes/no question per option gives each option a probability. On MetaTool, the tools given more than 0.70 for yes are correct in 76% to 77% of the answers, at mean probabilities of yes of 0.83 to 0.96.",
+   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.08 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another. With several correct options, a yes/no question per option gives each option a probability. On MetaTool, the tools given 0.9 to 1.0 for yes are correct in 80% to 89% of the answers, and those given 0.2 to 0.3 in 24% to 40%.",
    "strength": "the case in which the probability works, not a finding on its own. The figures are sound. The gaps on the other lists follow from findings 2 and 3. A shared probability lowers confidence, and a list with no correct option has accuracy 0.",
    "evidence": [
     "With one correct option, mean confidence minus accuracy is +0.08, +0.09 and +0.14 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is +0.02, +0.05 and +0.04 on MMLU, and -0.03, -0.01 and 0.00 on ECtHR.",
     "With several correct options, mean confidence minus accuracy is -0.12, -0.16 and -0.08 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
     "With one correct option, ECE with 10 bins ranges from 0.01 to 0.15.",
-    "With a yes/no question per option, the answers above 0.70 for yes are about a correct option in 76% to 94% of the cases, at mean probabilities of yes of 0.78 to 0.96. The answers from 0.20 to 0.40 are about a correct option in 13% to 54% of the cases, at mean probabilities of 0.28 to 0.33.",
-    "On the 401 HotpotQA bridge questions, passages given a mean probability of yes of 0.28 to 0.29 are supporting passages in 48% to 52% of the answers, and passages given 0.87 to 0.93 in 77% to 82%. The share of supporting passages rises from bin to bin for every model.",
+    "With a yes/no question per option, the answers from 0.9 to 1.0 for yes, at mean probabilities of yes of 0.93 to 0.99, are about a correct option in 80% to 100% of the cases. The answers from 0.2 to 0.3, at mean probabilities of 0.25 to 0.26, are about a correct option in 49% to 53% on HotpotQA, 24% to 40% on MetaTool and 6% to 35% on ECtHR.",
+    "On the 401 HotpotQA bridge questions, the passages given 0.2 to 0.3 for yes, at mean probabilities of 0.24 to 0.25, are supporting passages in 46% to 51% of the answers, and the passages given 0.9 to 1.0, at 0.94 to 0.98, in 80% to 83%.",
     "The analysis includes 16,770 MetaTool lists, 4,000 MMLU lists and 6,550 ECtHR lists with one correct option."
    ],
    "limits": [
     "Rushab, 2026-10-14: calibration of a list's probabilities is not defined when several options are correct, since the probabilities of a list sum to 1. With several correct options, only the yes/no questions are used.",
-    "The 5 bins of the yes/no answers have edges 0, 0.1, 0.2, 0.4, 0.7 and 1.0, so that each bin holds 50 or more answers. They hold 51 to 3,895.",
+    "Rushab, 2026-10-15: the yes/no answers go into 10 bins of width 0.1, as for ECE. A bin holds 4 to 3,895 answers, and 16 of the 90 bins of the first table hold fewer than 50: 6 of GPT-6 Luna Decisions on ECtHR, 5 of GPT-6 Luna Decisions on MetaTool, 4 of Liquid d1 on ECtHR and 1 of Jev on ECtHR.",
     "Accuracy counts a prediction as correct when it is one of the correct options. With several correct options, a different definition gives a different gap.",
     "MetaTool labels one tool per query. On some queries, the three models agree on a different answer, as in the example.",
     "No interval has been computed yet."
@@ -413,16 +383,6 @@
       "group": "One correct option"
      },
      {
-      "run": "MMLU: the 4 choices of the question",
-      "name": "MMLU, 1 correct choice",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "MMLU",
-      "group": "One correct option"
-     },
-     {
       "run": "ECtHR: cases with 1 violated article",
       "name": "ECtHR, 1 violated article",
       "columns": [
@@ -467,7 +427,7 @@
    },
    "yes_bins": [
     {
-     "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 5 bins by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
+     "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 10 bins of width 0.1 by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
      "runs": [
       [
        "MetaTool: a yes/no question per tool",
@@ -486,7 +446,7 @@
     },
     {
      "title": "HotpotQA yes/no answers by probability of yes, by type of question",
-     "caption": "The HotpotQA yes/no answers of the previous table, split by HotpotQA's type of question: 401 bridge questions and 99 comparison questions. A passage of a comparison question holds one of the two entities, so it may not support the answer alone. In 5 of the 15 bins of the comparison questions, fewer than 50 answers fall.",
+     "caption": "The HotpotQA yes/no answers of the previous table, split by HotpotQA's type of question: 401 bridge questions and 99 comparison questions. A passage of a comparison question holds one of the two entities, so it may not support the answer alone. Fewer than 50 answers fall in 22 of the 30 bins of the comparison questions and in 2 of the 30 bins of the bridge questions.",
      "runs": [
       [
        "HotpotQA: a yes/no question per passage, bridge questions",

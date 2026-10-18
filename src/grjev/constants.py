@@ -604,8 +604,8 @@ ECE_BINS = 10
 YES_PROBABILITY = 0.5
 # The edges of the bins of the probability of yes, for the calibration of the yes/no answers to examples with two or
 # more labels. A bin holds the probabilities above its lower edge up to its upper edge, and the first bin also holds 0.
-# Rushab, 2026-10-14: at least 50 answers in each bin, with these 5 bins.
-YES_BIN_EDGES = (0.0, 0.1, 0.2, 0.4, 0.7, 1.0)
+# Rushab, 2026-10-15: 10 bins of width 0.1, as for ECE, in place of 5 bins that each held 50 or more answers.
+YES_BIN_EDGES = tuple(step / 10 for step in range(11))
 # A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
 # set is less than 10".
 POSITIONS_SHOWN_BELOW = 10
@@ -681,6 +681,10 @@ THRESHOLD_PAPER_FIGURES = {
     "exact_set": ("Exact set accuracy",),
     "threshold_measures": ("Precision", "Recall", "F1"),
 }
+# The width of the reliability diagram of the yes/no answers and the heights of its two rows, the diagram and its
+# distance from the diagonal, in inches: on a page of docs/, and across the two columns of the paper.
+RELIABILITY_PAGE_SIZE = (13.0, (4.0, 2.4))
+RELIABILITY_PAPER_SIZE = (6.3, (2.0, 1.2))
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
