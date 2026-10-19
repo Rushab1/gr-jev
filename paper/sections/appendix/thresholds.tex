@@ -1,17 +1,19 @@
 \section{Selecting by a threshold}
 \label{app:thresholds}
-The examples are those of Figure~\ref{fig:other-recall}. Precision, recall and F1 pool the options of all examples.
+The examples are those of Figure~\ref{fig:other-recall}. Precision, recall and F1 pool the choices of all examples.
+
+For a yes/no question, a probability of yes below 0.5 is an answer of no. The thresholds that maximize the exact set accuracy of the yes/no questions are below 0.5 for 6 of the 9 models and datasets, and 0.13 or lower on HotpotQA. At 0.5, the exact set accuracy of the yes/no questions is 0.07 to 0.49 (Figure~\ref{fig:exact-set}).
 
 \begin{figure*}[h]
 \centering
 \includegraphics[width=\linewidth]{figures/exact_set}
-\caption{Exact set accuracy: the share of examples in which every correct option is at or above the threshold $t$ and every distractor is below it. Above 0.50 the list curves are 0 by construction.}
+\caption{Exact set accuracy: the share of examples in which every correct choice is at or above the threshold $t$ and every distractor is below it. Above 0.50 the list curves are 0 by construction.}
 \label{fig:exact-set}
 \end{figure*}
 
 \begin{figure*}[h]
 \centering
 \includegraphics[width=\linewidth]{figures/threshold_measures}
-\caption{Precision (the share of options at or above $t$ that are correct), recall (the share of correct options at or above $t$) and their F1. At 0.25 the list has a precision of 0.80 to 0.96 and a recall of 0.51 to 0.67. One correct option per example gives a recall of 0.50 on MetaTool and HotpotQA and about 0.44 on ECtHR.}
+\caption{Precision (the share of choices at or above $t$ that are correct), recall (the share of correct choices at or above $t$) and their F1. At 0.25 the list has a precision of 0.80 to 0.96 and a recall of 0.51 to 0.67. One correct choice per example gives a recall of 0.50 on MetaTool and HotpotQA and about 0.44 on ECtHR.}
 \label{fig:threshold-measures}
 \end{figure*}

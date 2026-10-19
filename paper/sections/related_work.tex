@@ -1,17 +1,17 @@
 \section{Related work}
 \paragraph{Tests of Jev's probabilities.}
 \begin{itemize}
-\item \citet{deusser2026evaluating}: Jev's Choice probabilities are well calibrated on 37 datasets with one correct label. Our one-correct-option lists agree.
-\item \citet{shankaranarayana2026beyond}: with no information about the answer, Jev gives one option up to 0.80.
-\item \citet{zhong2026when}: with an explicit rejection option, Jev rejects 7\% of arithmetic lists that lack the correct answer.
+\item \citet{deusser2026evaluating}: Jev's Choice probabilities are well calibrated on 37 datasets with one correct label. Our one-correct-choice lists agree.
+\item \citet{shankaranarayana2026beyond}: with no information about the answer, Jev gives one choice up to 0.80.
+\item \citet{zhong2026when}: with an explicit rejection choice, Jev rejects 7\% of arithmetic lists that lack the correct answer.
 \item \citet{lu2026benchmarking}: rejection thresholds do not carry over from one task to another.
 \item \citet{porcedda2026jev}, \citet{li2026beyond}: the same question asked in several forms; Jev's probabilities do not fit together as probabilities should.
 \item \citet{li2026readout}: on open models built after Jev, renormalising the first answer over a changed list predicts the new accuracy within 4.2 points, but a probability-level estimate is off by 21.0 points. Our removal test compares mean probabilities on three hosted models: within 0.13.
 \end{itemize}
 
-\paragraph{Option lists in language models.}
+\paragraph{Choice lists in language models.}
 \begin{itemize}
-\item Option order changes answers to multiple-choice questions~\citep{zheng2024large,pezeshkpour2024large}.
+\item Choice order changes answers to multiple-choice questions~\citep{zheng2024large,pezeshkpour2024large}.
 \item Among equivalent tools, models fix on one provider or prefer tools listed earlier~\citep{blankenstein2026biasbusters}.
 \item Accuracy falls when ``none of the above'' is the correct answer~\citep{tam2025none}.
 \item Models can select an offered answer even when no offered answer is correct~\citep{wang2025leastincorrect}.
@@ -19,6 +19,6 @@
 
 \paragraph{This paper.}
 \begin{itemize}
-\item One design measures the whole Choice distribution of three decision models on lists whose number of correct options is known: one, several, none, and five copies of the same one.
+\item One design measures the whole Choice distribution of three decision models on lists whose number of correct choices is known: one, several, none, and five copies of the same one.
 \item It tests the vendor's documented threshold on the vendor's own example.
 \end{itemize}
