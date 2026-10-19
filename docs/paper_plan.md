@@ -30,7 +30,7 @@ Notes on the properties:
 
 - Rushab, 2026-10-09: "A choice answer sums to 1, so of course the second correct option gets little" is wrong. A sum of 1 means the correct options share the probability. It does not make one of them take 0.85 or more.
 - Two reviews of this plan, on 2026-10-09 and by Codex on 2026-10-10, are followed. An observation is kept apart from a failure. The labels must match the question that is asked. Calibration is measured by level of confidence. A pilot comes before the runs on every example. The script that computes the figures is checked first.
-- The yes/no questions are a control of property 5 and not a property. Rushab, 2026-10-10: the recommended setup, with yes/no questions on 500 HotpotQA questions and on the ECtHR test cases, one wording.
+- The yes/no questions are a control of property 5 and not a property. Rushab, 2026-10-10: the recommended setup, with yes/no questions on 500 HotpotQA questions and on the ECtHR test cases, one wording. Rushab, 2026-10-18: the HotpotQA yes/no questions are asked on the 1,000 questions of the run with copies instead, `results/hotpotqa_yes_no*/2026-10-18_01`, with 921 new calls per model.
 - Rushab, 2026-10-14: calibration of a list's probabilities is not defined when several options are correct, and property 4 uses only the yes/no questions for those examples. A yes/no question per tool was added on 2026-10-14 for the 497 MetaTool multi-tool queries, 4,970 questions per model. It is not in the table of runs below, whose total is that of 2026-10-10.
 - A second run of the same requests on Jev gives the same prediction in 1,158 of 1,182 answers on StableToolBench and in 1,526 of 1,550 on MetaTool.
 - The instruction "Choose all of them with equal probability." does not give an equal split. On StableToolBench Jev's highest correct API has 0.72 and its lowest 0.13.
@@ -190,6 +190,8 @@ One request holds every list of one example. A HotpotQA question is one request 
 | 5 Dependence, control | A yes/no question per passage, wording "supports" | HotpotQA, 500 questions | 500 |
 | 5 Dependence, control | A yes/no question per article | ECtHR | 1,000 |
 | | **Total** | | **38,221** |
+
+Rushab, 2026-10-18: the HotpotQA yes/no row is replaced by the 1,000 questions of the run with copies, 79 of them in the sample of 500. It took 921 new calls per model and $0.44 on the three models.
 
 | Dataset | Requests per model | Cost, three models |
 |---|---|---|

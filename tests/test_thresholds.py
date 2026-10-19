@@ -4,8 +4,9 @@ import math
 
 import pytest
 
+from grjev.constants import JEV_MODEL
 from grjev.runs import ListAnswer, Row
-from grjev.thresholds import best, exact, f1, other_recall, paired, precision, recall
+from grjev.thresholds import best, exact, f1, other_recall, paired, paper_table, precision, recall
 
 # Two examples with two correct choices each: a list that puts most of its probability on one correct choice, and
 # one that gives both correct choices more than a distractor.
@@ -63,3 +64,10 @@ def test_an_example_counts_with_two_labels_a_distractor_and_every_yes_no_questio
     assert paired(one, "full", [row(["a"], {}, yes, [])]) == ([], [])
     with pytest.raises(ValueError, match="options of its list"):
         paired(lists, "full", [row(["a", "b"], {}, {"a": 0.9, "z": 0.1}, [])])
+
+
+def test_the_table_of_the_paper_gives_the_best_exact_set_accuracy_of_the_list_and_of_the_yes_no_questions() -> None:
+    # Only the first example of FOUND can have every correct choice selected and its distractor rejected.
+    lines = paper_table({("Set", JEV_MODEL): (FOUND, FOUND[:1])}).splitlines()
+    assert lines[2:5] == [r" & \multicolumn{2}{c}{Set} \\", r"\cmidrule(lr){2-3}", r"Model & List & Yes/no \\"]
+    assert lines[6] == r"Jev & 0.50 & 1.00 \\"

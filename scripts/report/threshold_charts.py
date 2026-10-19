@@ -3,14 +3,22 @@ choices.
 
 The runs are UNIFORM_RUNS and THRESHOLD_YES_NO_RUNS in constants.py, and the probabilities are those saved in
 rows.jsonl. The script writes the chart as a PNG file and a Markdown file with the table of the measures. With
-`--paper` it also writes the figures of THRESHOLD_PAPER_FIGURES to the folder of the paper.
+`--paper` it also writes the figures of THRESHOLD_PAPER_FIGURES and the table THRESHOLD_PAPER_TABLE to the folder of
+the paper.
 """
 
 import argparse
 from pathlib import Path
 
-from grjev.constants import PAPER_FIGURES_DIR, THRESHOLD_PAPER_FIGURES, THRESHOLD_YES_NO_RUNS, UNIFORM_RUNS
-from grjev.thresholds import chart, read_pairs, table
+from grjev.constants import (
+    PAPER_FIGURES_DIR,
+    PAPER_TABLES_DIR,
+    THRESHOLD_PAPER_FIGURES,
+    THRESHOLD_PAPER_TABLE,
+    THRESHOLD_YES_NO_RUNS,
+    UNIFORM_RUNS,
+)
+from grjev.thresholds import chart, paper_table, read_pairs, table
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +41,9 @@ def main() -> None:
     for name, measures in THRESHOLD_PAPER_FIGURES.items() if args.paper else ():
         chart(found, PAPER_FIGURES_DIR / f"{name}.pdf", measures, paper=True)
         print(PAPER_FIGURES_DIR / f"{name}.pdf")
+    if args.paper:
+        (PAPER_TABLES_DIR / f"{THRESHOLD_PAPER_TABLE}.tex").write_text(paper_table(found), encoding="utf-8")
+        print(PAPER_TABLES_DIR / f"{THRESHOLD_PAPER_TABLE}.tex")
 
 
 if __name__ == "__main__":

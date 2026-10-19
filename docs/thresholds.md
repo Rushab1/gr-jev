@@ -34,36 +34,36 @@
 | MetaTool | GPT-6 Luna Decisions | yes/no | 497 | Recall | 0.74 | 0.70 | 0.66 |  |
 | MetaTool | GPT-6 Luna Decisions | yes/no | 497 | Recall of the other correct choices | 0.56 | 0.49 | 0.44 |  |
 | MetaTool | GPT-6 Luna Decisions | yes/no | 497 | F1 | 0.71 | 0.71 | 0.70 | 0.71 (0.12) |
-| HotpotQA | Jev | list | 498 | Exact set accuracy | 0.55 | 0.34 | 0.00 | 0.63 (0.04) |
-| HotpotQA | Jev | list | 498 | Precision | 0.93 | 0.95 | 0.97 |  |
-| HotpotQA | Jev | list | 498 | Recall | 0.80 | 0.66 | 0.47 |  |
-| HotpotQA | Jev | list | 498 | Recall of the other correct choices | 0.60 | 0.34 | 0.00 |  |
-| HotpotQA | Jev | list | 498 | F1 | 0.86 | 0.78 | 0.64 | 0.87 (0.05) |
-| HotpotQA | Jev | yes/no | 498 | Exact set accuracy | 0.28 | 0.24 | 0.10 | 0.32 (0.18) |
-| HotpotQA | Jev | yes/no | 498 | Precision | 0.51 | 0.65 | 0.75 |  |
-| HotpotQA | Jev | yes/no | 498 | Recall | 0.89 | 0.66 | 0.40 |  |
-| HotpotQA | Jev | yes/no | 498 | Recall of the other correct choices | 0.79 | 0.41 | 0.12 |  |
-| HotpotQA | Jev | yes/no | 498 | F1 | 0.64 | 0.66 | 0.52 | 0.68 (0.16) |
-| HotpotQA | Liquid d1 | list | 498 | Exact set accuracy | 0.57 | 0.35 | 0.00 | 0.64 (0.03) |
-| HotpotQA | Liquid d1 | list | 498 | Precision | 0.91 | 0.96 | 0.97 |  |
-| HotpotQA | Liquid d1 | list | 498 | Recall | 0.81 | 0.67 | 0.46 |  |
-| HotpotQA | Liquid d1 | list | 498 | Recall of the other correct choices | 0.63 | 0.36 | 0.00 |  |
-| HotpotQA | Liquid d1 | list | 498 | F1 | 0.86 | 0.79 | 0.62 | 0.88 (0.04) |
-| HotpotQA | Liquid d1 | yes/no | 498 | Exact set accuracy | 0.26 | 0.18 | 0.08 | 0.28 (0.06) |
-| HotpotQA | Liquid d1 | yes/no | 498 | Precision | 0.60 | 0.71 | 0.75 |  |
-| HotpotQA | Liquid d1 | yes/no | 498 | Recall | 0.72 | 0.54 | 0.38 |  |
-| HotpotQA | Liquid d1 | yes/no | 498 | Recall of the other correct choices | 0.51 | 0.28 | 0.12 |  |
-| HotpotQA | Liquid d1 | yes/no | 498 | F1 | 0.65 | 0.61 | 0.50 | 0.66 (0.07) |
-| HotpotQA | GPT-6 Luna Decisions | list | 494 | Exact set accuracy | 0.51 | 0.31 | 0.00 | 0.52 (0.08) |
-| HotpotQA | GPT-6 Luna Decisions | list | 494 | Precision | 0.89 | 0.94 | 0.96 |  |
-| HotpotQA | GPT-6 Luna Decisions | list | 494 | Recall | 0.79 | 0.64 | 0.43 |  |
-| HotpotQA | GPT-6 Luna Decisions | list | 494 | Recall of the other correct choices | 0.59 | 0.31 | 0.00 |  |
-| HotpotQA | GPT-6 Luna Decisions | list | 494 | F1 | 0.84 | 0.76 | 0.60 | 0.84 (0.07) |
-| HotpotQA | GPT-6 Luna Decisions | yes/no | 494 | Exact set accuracy | 0.27 | 0.23 | 0.16 | 0.29 (0.06) |
-| HotpotQA | GPT-6 Luna Decisions | yes/no | 494 | Precision | 0.61 | 0.69 | 0.74 |  |
-| HotpotQA | GPT-6 Luna Decisions | yes/no | 494 | Recall | 0.73 | 0.62 | 0.51 |  |
-| HotpotQA | GPT-6 Luna Decisions | yes/no | 494 | Recall of the other correct choices | 0.53 | 0.38 | 0.25 |  |
-| HotpotQA | GPT-6 Luna Decisions | yes/no | 494 | F1 | 0.67 | 0.65 | 0.60 | 0.67 (0.12) |
+| HotpotQA | Jev | list | 1,000 | Exact set accuracy | 0.54 | 0.30 | 0.00 | 0.62 (0.03) |
+| HotpotQA | Jev | list | 1,000 | Precision | 0.93 | 0.96 | 0.97 |  |
+| HotpotQA | Jev | list | 1,000 | Recall | 0.79 | 0.64 | 0.47 |  |
+| HotpotQA | Jev | list | 1,000 | Recall of the other correct choices | 0.59 | 0.31 | 0.00 |  |
+| HotpotQA | Jev | list | 1,000 | F1 | 0.86 | 0.77 | 0.63 | 0.87 (0.04) |
+| HotpotQA | Jev | yes/no | 1,000 | Exact set accuracy | 0.28 | 0.24 | 0.10 | 0.29 (0.13) |
+| HotpotQA | Jev | yes/no | 1,000 | Precision | 0.48 | 0.62 | 0.74 |  |
+| HotpotQA | Jev | yes/no | 1,000 | Recall | 0.90 | 0.67 | 0.39 |  |
+| HotpotQA | Jev | yes/no | 1,000 | Recall of the other correct choices | 0.80 | 0.42 | 0.13 |  |
+| HotpotQA | Jev | yes/no | 1,000 | F1 | 0.63 | 0.64 | 0.51 | 0.66 (0.19) |
+| HotpotQA | Liquid d1 | list | 1,000 | Exact set accuracy | 0.58 | 0.35 | 0.00 | 0.64 (0.02) |
+| HotpotQA | Liquid d1 | list | 1,000 | Precision | 0.92 | 0.96 | 0.98 |  |
+| HotpotQA | Liquid d1 | list | 1,000 | Recall | 0.82 | 0.67 | 0.46 |  |
+| HotpotQA | Liquid d1 | list | 1,000 | Recall of the other correct choices | 0.65 | 0.35 | 0.00 |  |
+| HotpotQA | Liquid d1 | list | 1,000 | F1 | 0.87 | 0.79 | 0.62 | 0.88 (0.04) |
+| HotpotQA | Liquid d1 | yes/no | 1,000 | Exact set accuracy | 0.26 | 0.16 | 0.07 | 0.27 (0.06) |
+| HotpotQA | Liquid d1 | yes/no | 1,000 | Precision | 0.59 | 0.69 | 0.76 |  |
+| HotpotQA | Liquid d1 | yes/no | 1,000 | Recall | 0.72 | 0.52 | 0.37 |  |
+| HotpotQA | Liquid d1 | yes/no | 1,000 | Recall of the other correct choices | 0.50 | 0.25 | 0.10 |  |
+| HotpotQA | Liquid d1 | yes/no | 1,000 | F1 | 0.65 | 0.60 | 0.50 | 0.65 (0.09) |
+| HotpotQA | GPT-6 Luna Decisions | list | 983 | Exact set accuracy | 0.47 | 0.27 | 0.00 | 0.49 (0.08) |
+| HotpotQA | GPT-6 Luna Decisions | list | 983 | Precision | 0.89 | 0.94 | 0.97 |  |
+| HotpotQA | GPT-6 Luna Decisions | list | 983 | Recall | 0.77 | 0.63 | 0.44 |  |
+| HotpotQA | GPT-6 Luna Decisions | list | 983 | Recall of the other correct choices | 0.56 | 0.28 | 0.00 |  |
+| HotpotQA | GPT-6 Luna Decisions | list | 983 | F1 | 0.83 | 0.75 | 0.60 | 0.84 (0.08) |
+| HotpotQA | GPT-6 Luna Decisions | yes/no | 983 | Exact set accuracy | 0.24 | 0.22 | 0.15 | 0.27 (0.05) |
+| HotpotQA | GPT-6 Luna Decisions | yes/no | 983 | Precision | 0.59 | 0.66 | 0.73 |  |
+| HotpotQA | GPT-6 Luna Decisions | yes/no | 983 | Recall | 0.72 | 0.62 | 0.50 |  |
+| HotpotQA | GPT-6 Luna Decisions | yes/no | 983 | Recall of the other correct choices | 0.51 | 0.38 | 0.23 |  |
+| HotpotQA | GPT-6 Luna Decisions | yes/no | 983 | F1 | 0.65 | 0.64 | 0.59 | 0.65 (0.13) |
 | ECtHR | Jev | list | 192 | Exact set accuracy | 0.45 | 0.27 | 0.00 | 0.52 (0.04) |
 | ECtHR | Jev | list | 192 | Precision | 0.89 | 0.94 | 0.95 |  |
 | ECtHR | Jev | list | 192 | Recall | 0.75 | 0.57 | 0.38 |  |

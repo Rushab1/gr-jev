@@ -17,6 +17,8 @@ from grjev.constants import (
     RENORMALISED_REST,
     REPO_ROOT,
     SECOND_TEAM_PROBABILITY,
+    UNIFORM_RUNS,
+    YES_ECE_SKIPPED_BINS,
 )
 from grjev.distribution import (
     Distribution,
@@ -29,6 +31,7 @@ from grjev.distribution import (
     yes_figures,
 )
 from grjev.examples import Example, read_dataset
+from grjev.reliability import yes_ece
 from grjev.tables import (
     ChartSpec,
     ExampleSpec,
@@ -48,6 +51,7 @@ from grjev.tables import (
     unanswered,
     uses,
 )
+from grjev.uniform import BelowUniform, counted
 
 NOT_MEASURED = "none"
 ENTROPY_HEADER = "Mean entropy in bits"
@@ -318,7 +322,7 @@ def position_share(found: Distribution | None, place: int) -> str | None:
     """Return the share of the predictions at one position, or None for lists that have no figure by position."""
     if found is None or found.predicted_at is None:
         return None
-    return f"{found.predicted_at[place] / found.answers:.1%}"
+    return f"{found.predicted_at[place] / found.answers:.0%}"
 
 
 def refused_share(own: Selected) -> str:
@@ -332,6 +336,27 @@ def removal_text(own: Selected, value: Callable[[Removal], float | None]) -> str
     found = second_after_removal(own.rows)
     figure = None if found is None else value(found)
     return None if figure is None else two(figure)
+
+
+def points(value: float | None) -> str | None:
+    """Return a difference of probabilities in percentage points, or None without one."""
+    return None if value is None else f"{100 * value:.0f}"
+
+
+def below_uniform(own: Selected) -> BelowUniform | None:
+    """Return the counts below 1/n of the list of UNIFORM_RUNS in a run, or None for a run that UNIFORM_RUNS lacks."""
+    names = dict(UNIFORM_RUNS.values())
+    return counted(own.rows, names[own.spec.label]) if own.spec.label in names else None
+
+
+def ranked_share(own: Selected, below: bool) -> str | None:
+    """Return the share of the lists ranked correctly, or with `below` the share of those with a correct option
+    below 1/n. It is None for a run that UNIFORM_RUNS lacks and when no list is counted."""
+    found = below_uniform(own)
+    if found is None:
+        return None
+    count, total = (found.ranked_below, found.ranked) if below else (found.ranked, found.lists)
+    return f"{count / total:.0%}" if total else None
 
 
 def of_lists(value: Callable[[Distribution], float | None]) -> Callable[[Selected, Distribution | None], str | None]:
@@ -352,9 +377,20 @@ PAPER_COLUMNS: dict[str, Callable[[Selected, Distribution | None], str | None]] 
     "Mean confidence": of_lists(lambda found: found.confidence),
     "Predictions at the first position": lambda own, found: position_share(found, 0),
     "Predictions at the last position": lambda own, found: position_share(found, -1),
+    "ECE": lambda own, found: points(None if found is None else found.ece),
+    "Predictions of none of the above": lambda own, found: (
+        None if found is None or found.accuracy is None else f"{found.accuracy:.0%}"
+    ),
+    "Yes/no ECE": lambda own, found: points(yes_ece(yes_bins(own.rows))),
+    "Yes/no ECE without the first bins": lambda own, found: points(yes_ece(yes_bins(own.rows), YES_ECE_SKIPPED_BINS)),
     "Highest correct option": of_lists(lambda found: found.highest_correct),
     "Lowest correct option": of_lists(lambda found: found.lowest_correct),
     "Highest distractor": of_lists(lambda found: found.highest_distractor),
+    "Highest correct minus lowest correct, in points": lambda own, found: points(
+        None if found is None else found.spread
+    ),
+    "Lists with every correct option above every distractor": lambda own, found: ranked_share(own, below=False),
+    "Of those, lists with a correct option below 1/n": lambda own, found: ranked_share(own, below=True),
     f"Answers with every correct option above {SECOND_TEAM_PROBABILITY}": lambda own, found: (
         None if found is None or found.every_correct_above is None else f"{found.every_correct_above:.0%}"
     ),
@@ -405,6 +441,13 @@ PAPER_LATEX_HEADERS = {
     "Highest correct option": "High",
     "Lowest correct option": "Low",
     "Highest distractor": "Distr.",
+    "ECE": "ECE",
+    "Predictions of none of the above": "Selected",
+    "Yes/no ECE": "All bins",
+    "Yes/no ECE without the first bins": "From 0.1",
+    "Highest correct minus lowest correct, in points": "Gap",
+    "Lists with every correct option above every distractor": "Ranked",
+    "Of those, lists with a correct option below 1/n": "Below $1/n$",
     f"Answers with every correct option above {SECOND_TEAM_PROBABILITY}": f"All $>${SECOND_TEAM_PROBABILITY}",
     "Second correct option in the full list": "Before",
     "After the removal": "After",
@@ -418,18 +461,20 @@ def latex(text: str) -> str:
     return re.sub(r"([%&#_])", r"\\\1", text)
 
 
-def spans(names: list[str], widths: list[int]) -> list[str]:
+def spans(names: list[str], widths: list[int], within: list[str] | None = None) -> list[str]:
     """Return a LaTeX header row of names over groups of columns, and the rules under the names that are not empty.
 
-    Neighbouring groups with the same name share one cell. The first column of the table holds the model.
+    Neighbouring groups with the same name share one cell, unless `within` puts them under different names. The first
+    column of the table holds the model.
     """
+    keys = list(zip(within or [""] * len(names), names, strict=True))
     cells, rules, start = [], [], 2
     for place, name in enumerate(names):
-        if place and name == names[place - 1]:
+        if place and keys[place] == keys[place - 1]:
             continue
         end = start
         for later in range(place, len(names)):
-            if names[later] != name:
+            if keys[later] != keys[place]:
                 break
             end += widths[later]
         cells.append(rf"\multicolumn{{{end - start}}}{{c}}{{{name}}}")
@@ -449,8 +494,12 @@ def paper_latex(table: PaperTableSpec, runs: dict[str, dict[str, Selected]]) -> 
     lines = [rf"\begin{{tabular}}{{l{'r' * sum(widths)}}}", r"\toprule"]
     if any(part.group for part in table.parts):
         lines += spans([latex(part.group) for part in table.parts], widths)
-    lines += spans([latex(part.short or part.name) for part in table.parts], widths)
-    heads = [PAPER_LATEX_HEADERS[header] for part in table.parts for header in part.columns]
+    lines += spans(
+        [latex(part.short or part.name) for part in table.parts], widths, [part.group for part in table.parts]
+    )
+    heads = [
+        head for part in table.parts for head in part.heads or [PAPER_LATEX_HEADERS[name] for name in part.columns]
+    ]
     lines += ["Model & " + " & ".join(heads) + r" \\", r"\midrule"]
     for model, parts in paper_cells(table, runs).items():
         texts = [latex(text) for part in parts for text in part]
@@ -524,7 +573,7 @@ def finding_html(
 ) -> str:
     """Return the block of one finding: the conclusion, its strength, evidence and limits, a chart and an example.
 
-    The table of the finding for the paper follows them when the finding has one.
+    The tables of the finding for the paper follow them.
     """
     evidence = "".join(f"<li>{marked(text)}</li>" for text in finding.evidence)
     limits = "".join(f"<li>{marked(text)}</li>" for text in finding.limits)
@@ -535,7 +584,7 @@ def finding_html(
         f'<div class="pair"><div><h3>{marked(finding.chart.title)}</h3>{chart_svg(finding.chart, runs)}'
         f"<h3>Evidence</h3><ul>{evidence}</ul></div>"
         f"<div><h3>One example</h3>{example}<h3>Limits</h3><ul>{limits}</ul></div></div>"
-        f"{paper_table(finding.table, runs) if finding.table else ''}"
+        f"{''.join(paper_table(table, runs) for table in finding.tables)}"
         f"{''.join(yes_bins_table(table, runs) for table in finding.yes_bins)}</div>"
     )
 

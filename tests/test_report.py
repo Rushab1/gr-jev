@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from grjev.constants import D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR, TOOLS_FILE_NAME
+from grjev.constants import D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR, TOOLS_FILE_NAME, UNIFORM_RUNS
 from grjev.examples import Example, Option, write_jsonl
 from grjev.report import (
     ENTROPY_HEADER,
@@ -18,6 +18,7 @@ from grjev.report import (
     paper_table,
     run_html,
     second_correct_table,
+    spans,
     yes_no_table,
 )
 from grjev.results import write_run
@@ -129,7 +130,7 @@ def test_the_table_of_a_finding_has_one_row_per_model_and_the_columns_of_each_ru
     block = paper_table(table, runs)
     assert '<p class="caption">Two runs.</p>' in block and block.count("<tr>") == 4
     assert '<th class="edge" colspan="4">The full list</th><th class="edge" colspan="2">Without a</th>' in block
-    jev = '<td class="edge">100.0%</td><td>0.70</td><td>0.10</td><td>0%</td><td class="edge">0.60</td><td>0.33</td>'
+    jev = '<td class="edge">100%</td><td>0.70</td><td>0.10</td><td>0%</td><td class="edge">0.60</td><td>0.33</td>'
     assert f"<tr><th>Jev</th>{jev}</tr>" in block
     # Liquid d1 refused the list without a, and the run of the removal counts its 2 refused lists of 3.
     assert '<td>0%</td><td class="edge">none</td><td>none</td></tr>' in block
@@ -204,7 +205,7 @@ def test_a_finding_has_its_conclusion_its_chart_and_one_example_with_the_probabi
     assert block.count("<svg") == 1 and "<li>0.70 and 0.10.</li>" in block and "<li>One run.</li>" in block
     assert "Table for the paper" not in block
     table = {"caption": "One run.", "parts": [{"run": "Set", "name": "Set", "columns": ["Mean confidence"]}]}
-    with_table = finding().model_copy(update={"table": PaperTableSpec.model_validate(table)})
+    with_table = finding().model_copy(update={"tables": [PaperTableSpec.model_validate(table)]})
     assert "<h3>Table for the paper</h3>" in finding_html(with_table, {"Set": own}, runs, tmp_path, processed(tmp_path))
     # The query is shown on one line, and the options in the order sent with their text.
     assert "<b>Query.</b> Do a thing &lt;now&gt;." in block and "<b>Instruction.</b> Choose every tool." in block
@@ -262,8 +263,8 @@ def test_the_definition_of_the_runs_on_every_example_names_51_tables_for_three_m
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8
     assert all(run in labels for found in definition.findings for run, _ in found.chart.runs)
     assert all(found.example.run in labels and found.evidence and found.limits for found in definition.findings)
-    parts = [part for found in definition.findings if found.table for part in found.table.parts]
-    assert all(found.table for found in definition.findings) and all(part.run in labels for part in parts)
+    parts = [part for found in definition.findings for table in found.tables for part in table.parts]
+    assert all(found.tables for found in definition.findings) and all(part.run in labels for part in parts)
     assert all(header in PAPER_COLUMNS for part in parts for header in part.columns)
     assert all(run in labels for found in definition.findings for table in found.yes_bins for run, _ in table.runs)
 
@@ -287,3 +288,27 @@ def test_the_latex_table_of_a_finding_groups_its_parts_and_escapes_the_percent_s
         r"\end{tabular}",
     ]
     assert set(PAPER_COLUMNS) == set(PAPER_LATEX_HEADERS)
+
+
+def test_the_latex_table_gives_gaps_in_points_the_lists_ranked_correctly_and_the_headers_of_a_part(
+    tmp_path: Path,
+) -> None:
+    # The label of the MetaTool run of UNIFORM_RUNS, whose list is `full`. In the full list a gets 0.7 and b 0.1,
+    # below the distractor c at 0.2, so the list is not ranked correctly and no list is left for the share below 1/n.
+    own = spec(label=UNIFORM_RUNS["MetaTool"][0], lists=("full",), positions=True)
+    runs = {"Set": chosen(results(tmp_path), own)}
+    columns = [
+        "Highest correct minus lowest correct, in points",
+        "Lists with every correct option above every distractor",
+        "Of those, lists with a correct option below 1/n",
+        "Predictions at the first position",
+    ]
+    parts = [{"run": "Set", "name": "Set", "columns": columns, "heads": ["Gap", "Ranked", "Below", "Lead"]}]
+    lines = paper_latex(PaperTableSpec.model_validate({"caption": "One part.", "parts": parts}), runs).splitlines()
+    assert lines[4] == r"Model & Gap & Ranked & Below & Lead \\"
+    assert lines[6] == r"Jev & 60 & 0\% & none & 100\% \\"
+
+
+def test_neighbouring_parts_with_the_same_name_share_a_header_only_within_one_group() -> None:
+    assert spans(["A", "A"], [1, 2])[0] == r" & \multicolumn{3}{c}{A} \\"
+    assert spans(["A", "A"], [1, 2], ["x", "y"])[0] == r" & \multicolumn{1}{c}{A} & \multicolumn{2}{c}{A} \\"

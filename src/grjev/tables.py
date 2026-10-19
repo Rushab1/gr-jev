@@ -100,6 +100,7 @@ class PartSpec(BaseModel):
     """The columns that one run gives to the table of a finding. `name` is the heading over them.
 
     The LaTeX table uses `short` in place of `name` when it is given, and puts `group` over the parts that share it.
+    `heads` replaces the short headers of the columns in the LaTeX table when it is given.
     """
 
     run: str
@@ -107,6 +108,7 @@ class PartSpec(BaseModel):
     columns: list[str]
     short: str = ""
     group: str = ""
+    heads: list[str] = []
 
 
 class PaperTableSpec(BaseModel):
@@ -135,7 +137,7 @@ class YesBinsSpec(BaseModel):
 class FindingSpec(BaseModel):
     """One finding of a report: the conclusion, how strong it is for the paper, its evidence and its limits.
 
-    The finding is shown with a chart and with one example, and with its table for the paper and its tables of the
+    The finding is shown with a chart and with one example, and with its tables for the paper and its tables of the
     yes/no answers by bin when it has them.
     """
 
@@ -146,7 +148,7 @@ class FindingSpec(BaseModel):
     limits: list[str]
     chart: ChartSpec
     example: ExampleSpec
-    table: PaperTableSpec | None = None
+    tables: list[PaperTableSpec] = []
     yes_bins: list[YesBinsSpec] = []
 
 

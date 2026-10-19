@@ -39,8 +39,9 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # ones. Claude Code proposed 42,000, and Rushab answered "you can cal jev". Raised to 51,839 on 2026-10-12 for the
 # 12,981 calls of the replaced run on mmlu_na, with 38,858 calls saved. Rushab: "increase man for jev no worries".
 # Raised to 52,336 on 2026-10-14 for the 497 calls of the yes/no run on MetaTool multi_tool, with 51,817 calls saved.
-# Rushab: "increase jev limit".
-JEV_CALL_LIMIT = 52336
+# Rushab: "increase jev limit". Raised to 53,247 on 2026-10-18 for the 921 new calls of the yes/no run on the 1,000
+# HotpotQA questions of the copied run, with 52,326 calls saved. Rushab: "go for it".
+JEV_CALL_LIMIT = 53247
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -606,13 +607,17 @@ YES_PROBABILITY = 0.5
 # more labels. A bin holds the probabilities above its lower edge up to its upper edge, and the first bin also holds 0.
 # Rushab, 2026-10-15: 10 bins of width 0.1, as for ECE, in place of 5 bins that each held 50 or more answers.
 YES_BIN_EDGES = tuple(step / 10 for step in range(11))
+# The yes/no ECE is also given without this many bins from 0. Rushab, 2026-10-18: the bin from 0.0 to 0.1 holds 46% to
+# 78% of the yes/no answers, most of them about distractors, and it sets the size of the ECE over every bin.
+YES_ECE_SKIPPED_BINS = 1
 # A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
 # set is less than 10".
 POSITIONS_SHOWN_BELOW = 10
 # The runs of `docs/paper_plan.md`, each as the arguments of scripts/run/run_experiment.py: the experiment, the dataset,
 # and the test files or the sample where the run does not send every example of the experiment. MMLU is run on
 # 1,000 questions, and so are the HotpotQA runs with 5 cyclic permutations and the HotpotQA run with "None". The
-# HotpotQA yes/no control is run on 500 questions, and the MetaTool one on the 497 multi-tool queries.
+# HotpotQA yes/no control is run on the 1,000 questions of the copied run, and the MetaTool one on the 497 multi-tool
+# queries.
 PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("copied", "metatool"),
     ("copied", "mmlu", "--examples", "1000"),
@@ -639,7 +644,7 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("absent", "hotpotqa", "--examples", "1000"),
     ("with_none", "ecthr"),
     ("yes_no", "metatool"),
-    ("yes_no", "hotpotqa", "--examples", "500"),
+    ("yes_no", "hotpotqa", "--test-files", HOTPOTQA_TEN_FILE, "--examples", "1000"),
     ("yes_no", "ecthr"),
     ("removal", "tickets"),
 )
@@ -673,6 +678,9 @@ THRESHOLDS_TABLED = (0.1, 0.25, 0.5)
 # columns of the paper.
 THRESHOLD_PAGE_SIZE = (13.0, 3.6)
 THRESHOLD_PAPER_SIZE = (6.3, 1.9)
+# The ticks of both axes of every threshold chart, the major ones labelled and the minor ones not.
+THRESHOLD_MAJOR_TICKS = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+THRESHOLD_MINOR_TICKS = (0.1, 0.3, 0.5, 0.7, 0.9)
 # The figures of the paper made by scripts/report/threshold_charts.py --paper, each a PDF file in PAPER_FIGURES_DIR
 # with the measures of src/grjev/thresholds.py that it draws. The reviewer of 2026-10-15 put the recall of the other
 # correct options in the main text, and exact set accuracy, precision, recall and F1 in the appendix.
@@ -681,6 +689,9 @@ THRESHOLD_PAPER_FIGURES = {
     "exact_set": ("Exact set accuracy",),
     "threshold_measures": ("Precision", "Recall", "F1"),
 }
+# The table of the paper made by scripts/report/threshold_charts.py --paper: the best exact set accuracy over the
+# thresholds, list against yes/no, as a LaTeX file in PAPER_TABLES_DIR.
+THRESHOLD_PAPER_TABLE = "thresholds"
 # The width of the reliability diagram of the yes/no answers and the heights of its two rows, the diagram and its
 # distance from the diagonal, in inches: on a page of docs/, and across the two columns of the paper.
 RELIABILITY_PAGE_SIZE = (13.0, (4.0, 2.4))

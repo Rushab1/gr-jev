@@ -65,42 +65,71 @@
     ],
     "about": "Of the 1,000 MMLU questions, this question has probabilities by position closest to the three models' means."
    },
-   "table": {
-    "caption": "Each list has 5 copies of one correct option and is sent in its 5 cyclic permutations. Every copy is a correct option. The table shows the mean probability of the highest copy and of the lowest copy, and the share of predictions at the first position. Equal probabilities are 0.20, and an equal share is 20%.",
-    "parts": [
-     {
-      "run": "MetaTool: 5 duplicates of one correct tool",
-      "name": "MetaTool",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Predictions at the first position"
-      ],
-      "short": "MetaTool"
-     },
-     {
-      "run": "HotpotQA: 5 duplicates of one supporting passage",
-      "name": "HotpotQA",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Predictions at the first position"
-      ],
-      "short": "HotpotQA"
-     },
-     {
-      "run": "ECtHR: 5 duplicates of one violated article",
-      "name": "ECtHR",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Predictions at the first position"
-      ],
-      "short": "ECtHR"
-     }
-    ],
-    "file": "copies"
-   }
+   "tables": [
+    {
+     "caption": "Each list has 5 copies of one correct option and is sent in its 5 cyclic permutations. The table shows the mean probability of the highest copy minus that of the lowest copy, in percentage points. Equal probabilities give 0.",
+     "parts": [
+      {
+       "run": "MetaTool: 5 duplicates of one correct tool",
+       "name": "MetaTool",
+       "columns": [
+        "Highest correct minus lowest correct, in points"
+       ],
+       "short": "MetaTool"
+      },
+      {
+       "run": "HotpotQA: 5 duplicates of one supporting passage",
+       "name": "HotpotQA",
+       "columns": [
+        "Highest correct minus lowest correct, in points"
+       ],
+       "short": "HotpotQA"
+      },
+      {
+       "run": "ECtHR: 5 duplicates of one violated article",
+       "name": "ECtHR",
+       "columns": [
+        "Highest correct minus lowest correct, in points"
+       ],
+       "short": "ECtHR"
+      }
+     ],
+     "file": "copies"
+    },
+    {
+     "caption": "The same lists of 5 copies: the share of answers that predict the copy in the first and in the last position. An equal share is 20%.",
+     "parts": [
+      {
+       "run": "MetaTool: 5 duplicates of one correct tool",
+       "name": "MetaTool",
+       "columns": [
+        "Predictions at the first position",
+        "Predictions at the last position"
+       ],
+       "short": "MetaTool"
+      },
+      {
+       "run": "HotpotQA: 5 duplicates of one supporting passage",
+       "name": "HotpotQA",
+       "columns": [
+        "Predictions at the first position",
+        "Predictions at the last position"
+       ],
+       "short": "HotpotQA"
+      },
+      {
+       "run": "ECtHR: 5 duplicates of one violated article",
+       "name": "ECtHR",
+       "columns": [
+        "Predictions at the first position",
+        "Predictions at the last position"
+       ],
+       "short": "ECtHR"
+      }
+     ],
+     "file": "positions"
+    }
+   ]
   },
   {
    "title": "2. Allocation: the model gives most of the probability to one of several correct options",
@@ -150,45 +179,44 @@
     ],
     "about": "This HotpotQA question is closest to the three models' means among questions with 10 passages where the three models rank the same supporting passage first."
    },
-   "table": {
-    "caption": "For lists with several correct options, the table shows the mean probability of the highest correct option, the lowest correct option and the highest distractor. It also shows the share of answers in which every correct option is above 0.25, the threshold in TypeSafe's example code.",
-    "parts": [
-     {
-      "run": "MetaTool: two correct tools, every needed tool is asked for",
-      "name": "MetaTool, 2 correct tools",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Highest distractor",
-       "Answers with every correct option above 0.25"
-      ],
-      "short": "MetaTool"
-     },
-     {
-      "run": "HotpotQA: the passages of the question, \"supports\"",
-      "name": "HotpotQA, 2 supporting passages",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Highest distractor",
-       "Answers with every correct option above 0.25"
-      ],
-      "short": "HotpotQA"
-     },
-     {
-      "run": "ECtHR: cases with 2 to 4 violated articles",
-      "name": "ECtHR, 2 to 4 violated articles",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Highest distractor",
-       "Answers with every correct option above 0.25"
-      ],
-      "short": "ECtHR"
-     }
-    ],
-    "file": "allocation"
-   }
+   "tables": [
+    {
+     "caption": "For lists with several correct options: the mean probability of the highest correct option minus that of the lowest, in percentage points; the share of lists with every correct option above every distractor; and, among those lists, the share with a correct option below 1/n for a list of n options. The two shares use the released order of the ECtHR lists and leave out the lists with no distractor.",
+     "parts": [
+      {
+       "run": "MetaTool: two correct tools, every needed tool is asked for",
+       "name": "MetaTool, 2 correct tools",
+       "columns": [
+        "Highest correct minus lowest correct, in points",
+        "Lists with every correct option above every distractor",
+        "Of those, lists with a correct option below 1/n"
+       ],
+       "short": "MetaTool, 2 correct"
+      },
+      {
+       "run": "HotpotQA: the passages of the question, \"supports\"",
+       "name": "HotpotQA, 2 supporting passages",
+       "columns": [
+        "Highest correct minus lowest correct, in points",
+        "Lists with every correct option above every distractor",
+        "Of those, lists with a correct option below 1/n"
+       ],
+       "short": "HotpotQA, 2 correct"
+      },
+      {
+       "run": "ECtHR: cases with 2 to 4 violated articles",
+       "name": "ECtHR, 2 to 4 violated articles",
+       "columns": [
+        "Highest correct minus lowest correct, in points",
+        "Lists with every correct option above every distractor",
+        "Of those, lists with a correct option below 1/n"
+       ],
+       "short": "ECtHR, 2 to 4 correct"
+      }
+     ],
+     "file": "allocation"
+    }
+   ]
   },
   {
    "title": "3. Abstention: confident answers to lists with no correct option",
@@ -252,62 +280,100 @@
     ],
     "about": "Among queries whose first list GPT-6 Luna Decisions refused, this MetaTool query is closest to Jev and Liquid d1's mean confidence."
    },
-   "table": {
-    "caption": "Lists with no correct option and no NOTA: the share of the lists that the model refused, and its mean confidence on the lists it answered.",
-    "parts": [
-     {
-      "run": "MetaTool: 5 random tools, no \"None\"",
-      "name": "MetaTool, 5 random tools",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "MetaTool",
-      "group": "5 random options"
-     },
-     {
-      "run": "HotpotQA: 5 random passages, no NOTA",
-      "name": "HotpotQA, 5 random passages",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "HotpotQA",
-      "group": "5 random options"
-     },
-     {
-      "run": "MetaTool: 4 distractors of the example, no \"None\"",
-      "name": "MetaTool, 4 distractors",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "MetaTool",
-      "group": "Options of the example, none correct"
-     },
-     {
-      "run": "HotpotQA: the passages without the supporting passages",
-      "name": "HotpotQA, no supporting passage",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "HotpotQA",
-      "group": "Options of the example, none correct"
-     },
-     {
-      "run": "ECtHR: cases with no violated article, no NOTA",
-      "name": "ECtHR, no violated article",
-      "columns": [
-       "Lists refused",
-       "Mean confidence"
-      ],
-      "short": "ECtHR",
-      "group": "Options of the example, none correct"
-     }
-    ],
-    "file": "abstention"
-   }
+   "tables": [
+    {
+     "caption": "Lists with no correct option. Without NOTA: the mean confidence on the lists the model answered, and the share of the lists that it refused. With NOTA: the share of predictions that select NOTA, the only correct option.",
+     "parts": [
+      {
+       "run": "MetaTool: 5 random tools, no \"None\"",
+       "name": "MetaTool, 5 random tools",
+       "columns": [
+        "Mean confidence",
+        "Lists refused"
+       ],
+       "short": "MetaTool",
+       "group": "Without NOTA, random choices"
+      },
+      {
+       "run": "HotpotQA: 5 random passages, no NOTA",
+       "name": "HotpotQA, 5 random passages",
+       "columns": [
+        "Mean confidence",
+        "Lists refused"
+       ],
+       "short": "HotpotQA",
+       "group": "Without NOTA, random choices"
+      },
+      {
+       "run": "MetaTool: 4 distractors of the example, no \"None\"",
+       "name": "MetaTool, 4 distractors",
+       "columns": [
+        "Mean confidence",
+        "Lists refused"
+       ],
+       "short": "MetaTool",
+       "group": "Without NOTA, the example's own"
+      },
+      {
+       "run": "HotpotQA: the passages without the supporting passages",
+       "name": "HotpotQA, no supporting passage",
+       "columns": [
+        "Mean confidence",
+        "Lists refused"
+       ],
+       "short": "HotpotQA",
+       "group": "Without NOTA, the example's own"
+      },
+      {
+       "run": "ECtHR: cases with no violated article, no NOTA",
+       "name": "ECtHR, no violated article",
+       "columns": [
+        "Mean confidence",
+        "Lists refused"
+       ],
+       "short": "ECtHR",
+       "group": "Without NOTA, the example's own"
+      },
+      {
+       "run": "MetaTool: 4 random tools and \"None\"",
+       "name": "MetaTool, 4 random tools and \"None\"",
+       "columns": [
+        "Predictions of none of the above"
+       ],
+       "short": "MetaTool",
+       "group": "With NOTA, random choices"
+      },
+      {
+       "run": "HotpotQA: 4 random passages and NOTA",
+       "name": "HotpotQA, 4 random passages and NOTA",
+       "columns": [
+        "Predictions of none of the above"
+       ],
+       "short": "HotpotQA",
+       "group": "With NOTA, random choices"
+      },
+      {
+       "run": "HotpotQA: 4 distractors of the question and NOTA",
+       "name": "HotpotQA, 4 distractors and NOTA",
+       "columns": [
+        "Predictions of none of the above"
+       ],
+       "short": "HotpotQA",
+       "group": "With NOTA, the example's own"
+      },
+      {
+       "run": "ECtHR: the 10 articles and NOTA, cases with no violated article",
+       "name": "ECtHR, 10 articles and NOTA",
+       "columns": [
+        "Predictions of none of the above"
+       ],
+       "short": "ECtHR",
+       "group": "With NOTA, the example's own"
+      }
+     ],
+     "file": "abstention"
+    }
+   ]
   },
   {
    "title": "4. Calibration: confidence is close to accuracy with one correct option, but the result does not carry over",
@@ -317,13 +383,13 @@
     "With one correct option, mean confidence minus accuracy is +0.08, +0.09 and +0.14 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is +0.02, +0.05 and +0.04 on MMLU, and -0.03, -0.01 and 0.00 on ECtHR.",
     "With several correct options, mean confidence minus accuracy is -0.12, -0.16 and -0.08 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
     "With one correct option, ECE with 10 bins ranges from 0.01 to 0.15.",
-    "With a yes/no question per option, the answers from 0.9 to 1.0 for yes, at mean probabilities of yes of 0.93 to 0.99, are about a correct option in 80% to 100% of the cases. The answers from 0.2 to 0.3, at mean probabilities of 0.25 to 0.26, are about a correct option in 49% to 53% on HotpotQA, 24% to 40% on MetaTool and 6% to 35% on ECtHR.",
-    "On the 401 HotpotQA bridge questions, the passages given 0.2 to 0.3 for yes, at mean probabilities of 0.24 to 0.25, are supporting passages in 46% to 51% of the answers, and the passages given 0.9 to 1.0, at 0.94 to 0.98, in 80% to 83%.",
+    "With a yes/no question per option, the answers from 0.9 to 1.0 for yes, at mean probabilities of yes of 0.93 to 0.99, are about a correct option in 80% to 100% of the cases. The answers from 0.2 to 0.3, at mean probabilities of 0.25 to 0.26, are about a correct option in 39% to 48% on HotpotQA, 24% to 40% on MetaTool and 6% to 35% on ECtHR.",
+    "On the 796 HotpotQA bridge questions, the passages given 0.2 to 0.3 for yes, at a mean probability of 0.25, are supporting passages in 40% to 45% of the answers, and the passages given 0.9 to 1.0, at 0.95 to 0.98, in 83% to 88%.",
     "The analysis includes 16,770 MetaTool lists, 4,000 MMLU lists and 6,550 ECtHR lists with one correct option."
    ],
    "limits": [
     "Rushab, 2026-10-14: calibration of a list's probabilities is not defined when several options are correct, since the probabilities of a list sum to 1. With several correct options, only the yes/no questions are used.",
-    "Rushab, 2026-10-15: the yes/no answers go into 10 bins of width 0.1, as for ECE. A bin holds 4 to 3,895 answers, and 16 of the 90 bins of the first table hold fewer than 50: 6 of GPT-6 Luna Decisions on ECtHR, 5 of GPT-6 Luna Decisions on MetaTool, 4 of Liquid d1 on ECtHR and 1 of Jev on ECtHR.",
+    "Rushab, 2026-10-15: the yes/no answers go into 10 bins of width 0.1, as for ECE. A bin holds 4 to 7,574 answers, and 16 of the 90 bins of the first table hold fewer than 50: 6 of GPT-6 Luna Decisions on ECtHR, 5 of GPT-6 Luna Decisions on MetaTool, 4 of Liquid d1 on ECtHR and 1 of Jev on ECtHR.",
     "Accuracy counts a prediction as correct when it is one of the correct options. With several correct options, a different definition gives a different gap.",
     "MetaTool labels one tool per query. On some queries, the three models agree on a different answer, as in the example.",
     "No interval has been computed yet."
@@ -369,65 +435,9 @@
     ],
     "about": "This example is among the MetaTool queries where Jev is wrong with a confidence of 0.90 or more on the released order. It has the shortest list, with the lowest id breaking a tie."
    },
-   "table": {
-    "caption": "Accuracy and mean confidence for lists with one correct option and lists with several correct options. A prediction is correct when it is one of the correct options.",
-    "parts": [
-     {
-      "run": "MetaTool: one correct tool, the 6 orders of the list",
-      "name": "MetaTool, 1 correct tool",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "MetaTool",
-      "group": "One correct option"
-     },
-     {
-      "run": "ECtHR: cases with 1 violated article",
-      "name": "ECtHR, 1 violated article",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "ECtHR",
-      "group": "One correct option"
-     },
-     {
-      "run": "MetaTool: two correct tools, every needed tool is asked for",
-      "name": "MetaTool, 2 correct tools",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "MetaTool",
-      "group": "Several correct options"
-     },
-     {
-      "run": "HotpotQA: the passages of the question, \"supports\"",
-      "name": "HotpotQA, 2 supporting passages",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "HotpotQA",
-      "group": "Several correct options"
-     },
-     {
-      "run": "ECtHR: cases with 2 to 4 violated articles",
-      "name": "ECtHR, 2 to 4 violated articles",
-      "columns": [
-       "Accuracy",
-       "Mean confidence"
-      ],
-      "short": "ECtHR",
-      "group": "Several correct options"
-     }
-    ],
-    "file": "calibration"
-   },
    "yes_bins": [
     {
-     "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, 500 HotpotQA questions with 2 supporting passages and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 10 bins of width 0.1 by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
+     "caption": "Yes/no questions about each option of the examples with two or more correct options: the 497 MetaTool queries with 2 correct tools, the 1,000 HotpotQA questions of the run with copies, with 2 supporting passages each, and the 192 ECtHR cases with 2 to 4 violated articles. The answers are put in 10 bins of width 0.1 by probability of yes. A cell gives the share of the answers in the bin that are about a correct option, and the number of answers. A calibrated probability of yes equals that share. Refused questions are left out.",
      "runs": [
       [
        "MetaTool: a yes/no question per tool",
@@ -446,7 +456,7 @@
     },
     {
      "title": "HotpotQA yes/no answers by probability of yes, by type of question",
-     "caption": "The HotpotQA yes/no answers of the previous table, split by HotpotQA's type of question: 401 bridge questions and 99 comparison questions. A passage of a comparison question holds one of the two entities, so it may not support the answer alone. Fewer than 50 answers fall in 22 of the 30 bins of the comparison questions and in 2 of the 30 bins of the bridge questions.",
+     "caption": "The HotpotQA yes/no answers of the previous table, split by HotpotQA's type of question: 796 bridge questions and 204 comparison questions. A passage of a comparison question holds one of the two entities, so it may not support the answer alone. Fewer than 50 answers fall in 16 of the 30 bins of the comparison questions and in none of the bins of the bridge questions.",
      "runs": [
       [
        "HotpotQA: a yes/no question per passage, bridge questions",
@@ -457,6 +467,62 @@
        "comparison"
       ]
      ]
+    }
+   ],
+   "tables": [
+    {
+     "caption": "Expected calibration error in percentage points, over ten bins of width 0.1. For lists with one correct option it uses the confidence. For the yes/no questions on examples with several correct options it uses the probability of yes, over every bin and without the bin from 0 to 0.1.",
+     "parts": [
+      {
+       "run": "MetaTool: one correct tool, the 6 orders of the list",
+       "name": "MetaTool, 1 correct tool",
+       "columns": [
+        "ECE"
+       ],
+       "short": "MetaTool",
+       "group": "One correct option"
+      },
+      {
+       "run": "ECtHR: cases with 1 violated article",
+       "name": "ECtHR, 1 violated article",
+       "columns": [
+        "ECE"
+       ],
+       "short": "ECtHR",
+       "group": "One correct option"
+      },
+      {
+       "run": "MetaTool: a yes/no question per tool",
+       "name": "MetaTool, a yes/no question per tool",
+       "columns": [
+        "Yes/no ECE",
+        "Yes/no ECE without the first bins"
+       ],
+       "short": "MetaTool",
+       "group": "Yes/no questions"
+      },
+      {
+       "run": "HotpotQA: a yes/no question per passage",
+       "name": "HotpotQA, a yes/no question per passage",
+       "columns": [
+        "Yes/no ECE",
+        "Yes/no ECE without the first bins"
+       ],
+       "short": "HotpotQA",
+       "group": "Yes/no questions"
+      },
+      {
+       "run": "ECtHR: a yes/no question per article",
+       "name": "ECtHR, a yes/no question per article",
+       "columns": [
+        "Yes/no ECE",
+        "Yes/no ECE without the first bins"
+       ],
+       "short": "ECtHR",
+       "group": "Yes/no questions"
+      }
+     ],
+     "file": "calibration"
     }
    ]
   },
@@ -470,12 +536,12 @@
     "When one correct option is removed, the models predict the remaining correct option in 0.86, 0.78 and 0.67 of the MetaTool answers and in 0.84, 0.84 and 0.80 of the HotpotQA answers.",
     "In a yes/no question about a correct MetaTool tool alone, the models give yes a mean probability of 0.64, 0.79 and 0.65. They give 66% to 85% of those tools 0.50 or more for yes.",
     "In a yes/no question about a violated ECtHR article alone, the models give yes a mean probability of 0.67, 0.89 and 0.74. They give 80% to 96% of those articles 0.50 or more for yes.",
-    "When asked about a supporting HotpotQA passage alone, the models give it 0.45, 0.40 and 0.52. They give 38% to 51% of those passages 0.50 or more."
+    "When asked about a supporting HotpotQA passage alone, the models give it 0.45, 0.40 and 0.51. They give 37% to 49% of those passages 0.50 or more."
    ],
    "limits": [
     "Jev and GPT-6 Luna Decisions return probabilities with 2 decimals. Dividing by a remainder near 0.01 means little at 2 decimals. The renormalised value therefore uses only the examples where the remaining options hold 0.10 or more. On Jev these are 227 of 497 MetaTool queries, 4,866 of 7,384 HotpotQA questions and 150 of 192 ECtHR cases.",
     "The HotpotQA yes/no figures show that about half of the supporting passages are not judged to support the answer alone. This weakens the view that both passages are correct options.",
-    "HotpotQA's yes/no questions cover 500 questions."
+    "HotpotQA's yes/no questions cover the 1,000 questions of the run with copies, run on 2026-10-18."
    ],
    "chart": {
     "kind": "second_correct",
@@ -506,45 +572,41 @@
     ],
     "about": "The question from finding 2 is shown after the removal."
    },
-   "table": {
-    "caption": "The first two columns show the second correct option's mean probability in the full list and after removing the correct option with the highest probability. The last two columns use the examples where the other options hold 0.10 or more: its full-list probability divided by the probability of those options, and its probability after the removal. Jev and GPT-6 Luna Decisions return probabilities with 2 decimals.",
-    "parts": [
-     {
-      "run": "MetaTool: the second correct option before and after the removal",
-      "name": "MetaTool, 2 correct tools",
-      "columns": [
-       "Second correct option in the full list",
-       "After the removal",
-       "Full list, renormalised",
-       "After the removal, same examples"
-      ],
-      "short": "MetaTool"
-     },
-     {
-      "run": "HotpotQA: the second correct option before and after the removal",
-      "name": "HotpotQA, 2 supporting passages",
-      "columns": [
-       "Second correct option in the full list",
-       "After the removal",
-       "Full list, renormalised",
-       "After the removal, same examples"
-      ],
-      "short": "HotpotQA"
-     },
-     {
-      "run": "ECtHR: the second correct option before and after the removal",
-      "name": "ECtHR, 2 to 4 violated articles",
-      "columns": [
-       "Second correct option in the full list",
-       "After the removal",
-       "Full list, renormalised",
-       "After the removal, same examples"
-      ],
-      "short": "ECtHR"
-     }
-    ],
-    "file": "removal"
-   }
+   "tables": [
+    {
+     "caption": "The mean probability of the second correct option in the full list and after removing the correct option with the highest probability.",
+     "parts": [
+      {
+       "run": "MetaTool: the second correct option before and after the removal",
+       "name": "MetaTool, 2 correct tools",
+       "columns": [
+        "Second correct option in the full list",
+        "After the removal"
+       ],
+       "short": "MetaTool"
+      },
+      {
+       "run": "HotpotQA: the second correct option before and after the removal",
+       "name": "HotpotQA, 2 supporting passages",
+       "columns": [
+        "Second correct option in the full list",
+        "After the removal"
+       ],
+       "short": "HotpotQA"
+      },
+      {
+       "run": "ECtHR: the second correct option before and after the removal",
+       "name": "ECtHR, 2 to 4 violated articles",
+       "columns": [
+        "Second correct option in the full list",
+        "After the removal"
+       ],
+       "short": "ECtHR"
+      }
+     ],
+     "file": "removal"
+    }
+   ]
   },
   {
    "title": "6. The documented example: a ticket for two teams",
@@ -590,32 +652,34 @@
     ],
     "about": "The ticket with two issues closest to the three models' means."
    },
-   "table": {
-    "caption": "The table covers 24 tickets with two issues for two teams, and the same 24 issues sent one per ticket. It shows the mean probability for the higher correct team, the lower correct team and the highest other team. It also shows the share of tickets where both correct teams are above 0.25.",
-    "parts": [
-     {
-      "run": "Tickets: two issues for two teams",
-      "name": "24 tickets with two issues",
-      "columns": [
-       "Highest correct option",
-       "Lowest correct option",
-       "Highest distractor",
-       "Answers with every correct option above 0.25"
-      ],
-      "short": "Two issues per ticket"
-     },
-     {
-      "run": "Tickets: one issue for one team",
-      "name": "The 24 issues, one per ticket",
-      "columns": [
-       "Highest correct option",
-       "Highest distractor"
-      ],
-      "short": "One issue per ticket"
-     }
-    ],
-    "file": "tickets"
-   }
+   "tables": [
+    {
+     "caption": "The table covers 24 tickets with two issues for two teams, and the same 24 issues sent one per ticket. It shows the mean probability for the higher correct team, the lower correct team and the highest other team. It also shows the share of tickets where both correct teams are above 0.25.",
+     "parts": [
+      {
+       "run": "Tickets: two issues for two teams",
+       "name": "24 tickets with two issues",
+       "columns": [
+        "Highest correct option",
+        "Lowest correct option",
+        "Highest distractor",
+        "Answers with every correct option above 0.25"
+       ],
+       "short": "Two issues per ticket"
+      },
+      {
+       "run": "Tickets: one issue for one team",
+       "name": "The 24 issues, one per ticket",
+       "columns": [
+        "Highest correct option",
+        "Highest distractor"
+       ],
+       "short": "One issue per ticket"
+      }
+     ],
+     "file": "tickets"
+    }
+   ]
   }
  ],
  "terms": [
@@ -697,7 +761,7 @@
   "The MMLU runs use a seeded sample of 1,000 of the 13,096 questions whose choices can be moved. The HotpotQA runs with 5 cyclic permutations and the HotpotQA run with 4 distractors and NOTA use a seeded sample of 1,000 of the 7,345 questions with 10 passages. The other runs use every example.",
   "MetaTool repeats queries across its test files. The run with paraphrases has 1,767 examples and 1,047 different requests. The run with duplicates has 3,292 examples and 3,275 different requests. An answer to a repeated request counts once per example.",
   "ECtHR labels name the articles that the Court found violated in a case. A case with no label means the Court found no violation of the 10 articles.",
-  "The test sends a yes/no question about each tool of the 497 MetaTool multi-tool queries, run on 2026-10-14. It sends a yes/no question about each HotpotQA passage for 500 questions, and about each ECtHR article for the 1,000 test cases.",
+  "The test sends a yes/no question about each tool of the 497 MetaTool multi-tool queries, run on 2026-10-14. It sends a yes/no question about each HotpotQA passage for the 1,000 questions of the run with copies, run on 2026-10-18, and about each ECtHR article for the 1,000 test cases.",
   "The file `src/grjev/stimuli/tickets.json` has the tickets, TypeSafe's example request, and its documented answer. `python scripts/run/typesafe_example.py` sends that request."
  ],
  "models": [
@@ -1145,7 +1209,7 @@
   },
   {
    "label": "HotpotQA: a yes/no question per passage",
-   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "folder": "results/hotpotqa_yes_no/2026-10-18_01",
    "lists_text": "every question",
    "group": "5. Dependence on the list: a correct option is removed",
    "about": "We ask a separate yes/no question about each passage. We send the 10 questions for an example in one request.",
@@ -1154,7 +1218,7 @@
   },
   {
    "label": "HotpotQA: a yes/no question per passage, bridge questions",
-   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "folder": "results/hotpotqa_yes_no/2026-10-18_01",
    "lists_text": "every question of the HotpotQA type `bridge`",
    "group": "5. Dependence on the list: a correct option is removed",
    "about": "The yes/no run on HotpotQA, on its bridge questions, which need a fact from one passage to find the other. HotpotQA gives the type of each question.",
@@ -1164,7 +1228,7 @@
   },
   {
    "label": "HotpotQA: a yes/no question per passage, comparison questions",
-   "folder": "results/hotpotqa_yes_no/2026-10-11_01",
+   "folder": "results/hotpotqa_yes_no/2026-10-18_01",
    "lists_text": "every question of the HotpotQA type `comparison`",
    "group": "5. Dependence on the list: a correct option is removed",
    "about": "The yes/no run on HotpotQA, on its comparison questions, which compare two entities, one per passage. HotpotQA gives the type of each question.",

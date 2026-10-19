@@ -2,14 +2,17 @@
 
 Each bin of YES_BIN_EDGES gives a point: the mean probability of yes of its answers against the share of them that are
 about a correct choice. A calibrated model puts every point on the diagonal. A second row gives the share minus the
-mean probability, which is 0 for a calibrated model.
+mean probability, which is 0 for a calibrated model. Bars behind both rows give the share of the answers in each bin.
+The expected calibration error is given over every bin and without the first YES_ECE_SKIPPED_BINS bins.
 """
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import matplotlib
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.ticker import PercentFormatter
+from matplotlib.ticker import NullLocator, PercentFormatter
 
 from grjev.constants import (
     MODEL_COLORS,
@@ -18,6 +21,8 @@ from grjev.constants import (
     RELIABILITY_PAPER_SIZE,
     TABLES_DIR,
     UNIFORM_DEFINITION,
+    YES_BIN_EDGES,
+    YES_ECE_SKIPPED_BINS,
 )
 from grjev.distribution import YesBin, yes_bins
 from grjev.tables import read_spec, selected
@@ -34,21 +39,76 @@ def read_bins(yes_runs: dict[str, str]) -> dict[tuple[str, str], list[YesBin | N
     }
 
 
+def yes_ece(bins: Sequence[YesBin | None], skipped: int = 0) -> float:
+    """Return the expected calibration error of the bins after the first `skipped`, weighted by their answers."""
+    held = [part for part in bins[skipped:] if part]
+    total = sum(part.answers for part in held)
+    return sum(part.answers / total * abs(part.correct - part.mean) for part in held)
+
+
+def ece_table(found: dict[tuple[str, str], list[YesBin | None]]) -> str:
+    """Return a Markdown table of the expected calibration error over every bin and without the first bins."""
+    lines = [
+        "| Dataset | Model | Answers | ECE over every bin | Answers in the bins left out | ECE without those bins |",
+        "|---|---|---:|---:|---:|---:|",
+    ]
+    for (dataset, model), bins in found.items():
+        answers = sum(part.answers for part in bins if part)
+        left_out = sum(part.answers for part in bins[:YES_ECE_SKIPPED_BINS] if part)
+        every, rest = yes_ece(bins), yes_ece(bins, YES_ECE_SKIPPED_BINS)
+        lines.append(
+            f"| {dataset} | {MODEL_TITLES[model]} | {answers:,} | {every:.3f} "
+            f"| {left_out:,} ({left_out / answers:.0%}) | {rest:.3f} |"
+        )
+    return "\n".join(lines)
+
+
+def share_axis(axis: Axes, ticked: bool, labelled: bool) -> Axes:
+    """Return an axis behind `axis` for the share of the answers in each bin, on a log scale from 0.1% to 100%."""
+    behind = axis.twinx()
+    behind.set_yscale("log")
+    behind.set_ylim(0.001, 1)
+    behind.set_yticks([0.001, 0.01, 0.1, 1], ["0.1%", "1%", "10%", "100%"])
+    behind.yaxis.set_minor_locator(NullLocator())
+    behind.tick_params(labelright=ticked, colors="grey")
+    if labelled:
+        behind.set_ylabel("Percentage of answers in the bin\n(log scale)", color="grey")
+    for edge in YES_BIN_EDGES[1:-1]:
+        behind.axvline(edge, color="black", linestyle=":", linewidth=0.6, zorder=3)
+    axis.set_zorder(behind.get_zorder() + 1)
+    axis.patch.set_visible(False)
+    return behind
+
+
+def draw_shares(axis: Axes, held: list[YesBin], model: str, place: tuple[int, int]) -> None:
+    """Draw a bar per bin with the share of the model's answers in it, the `place[0]`th of `place[1]` bars in a bin."""
+    total = sum(part.answers for part in held)
+    width = (held[0].high - held[0].low) / place[1]
+    lefts = [part.low + place[0] * width for part in held]
+    shares = [part.answers / total for part in held]
+    axis.bar(lefts, shares, width, align="edge", color=MODEL_COLORS[model], alpha=0.25, linewidth=0)
+
+
 def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: bool = False) -> None:
-    """Draw one column per dataset: the reliability diagram above and its distance from the diagonal below it."""
+    """Draw one column per dataset: the reliability diagram above and its distance from the diagonal below it, each
+    over the share of the answers in each bin."""
     datasets = list(dict.fromkeys(dataset for dataset, _ in found))
+    models = list(dict.fromkeys(model for _, model in found))
     width, heights = RELIABILITY_PAPER_SIZE if paper else RELIABILITY_PAGE_SIZE
     with matplotlib.rc_context({"font.size": 7 if paper else 10, "pdf.fonttype": 42}):
         figure = Figure(figsize=(width, sum(heights) + (0.4 if paper else 0.6)))
         axes = figure.subplots(
             2, len(datasets), sharex=True, sharey="row", squeeze=False, gridspec_kw={"height_ratios": heights}
         )
+        behind = {axis: share_axis(axis, axis in axes[:, -1], axis is axes[0][-1]) for axis in axes.flat}
         for (dataset, model), bins in found.items():
             top, bottom = axes[0][datasets.index(dataset)], axes[1][datasets.index(dataset)]
             held = [part for part in bins if part]
             style = {"color": MODEL_COLORS[model], "linewidth": 1.2 if paper else 1.6, "markersize": 3 if paper else 4}
             top.plot([p.mean for p in held], [p.correct for p in held], "o-", label=MODEL_TITLES[model], **style)
             bottom.plot([p.mean for p in held], [100 * (p.correct - p.mean) for p in held], "o-", **style)
+            for axis in (top, bottom):
+                draw_shares(behind[axis], held, model, (models.index(model), len(models)))
         for column, dataset in enumerate(datasets):
             axes[0][column].plot((0, 1), (0, 1), color="grey", linestyle=":", linewidth=1)
             axes[0][column].set_title(dataset)
@@ -56,19 +116,21 @@ def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: 
             axes[0][column].yaxis.set_major_formatter(PercentFormatter(1.0))
             axes[0][column].tick_params(labelbottom=True, labelleft=True)
             axes[1][column].tick_params(labelleft=True)
-            axes[0][column].set_xlabel("Probability of yes")
+            axes[0][column].set_xlabel("Mean predicted probability of yes")
             axes[1][column].axhline(0, color="grey", linestyle=":", linewidth=1)
-            axes[1][column].set_xlabel("Probability of yes")
-        axes[0][0].set_ylabel("Percentage of answers\nthat are correct")
-        axes[1][0].set_ylabel("Percentage correct minus\nprobability of yes (points)")
+            axes[1][column].set_xlabel("Mean predicted probability of yes")
+        axes[0][0].set_ylabel("Observed frequency")
+        axes[1][0].set_ylabel("Observed frequency minus mean\npredicted probability (points)")
         for axis in axes.flat:
-            axis.grid(alpha=0.3)
+            axis.grid(alpha=0.3, axis="y")
             axis.set_xlim(0, 1)
+            axis.set_xticks(
+                YES_BIN_EDGES, [f"{edge:.1f}" if step % 2 == 0 else "" for step, edge in enumerate(YES_BIN_EDGES)]
+            )
         if paper:
             figure.legend(*axes[0][0].get_legend_handles_labels(), loc="lower center", ncol=3, frameon=False)
             figure.tight_layout(rect=(0, 0.08, 1, 1))
         else:
             axes[0][0].legend(fontsize=8, loc="upper left")
-            figure.suptitle("Yes/no answers on examples with 2 or more correct choices, in bins of width 0.1")
             figure.tight_layout()
         figure.savefig(path, dpi=130)
