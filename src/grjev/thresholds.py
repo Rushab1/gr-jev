@@ -14,6 +14,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import StrMethodFormatter
 
 from grjev.constants import (
+    FIGURE_DPI,
     MODEL_COLORS,
     MODEL_TITLES,
     PROBABILITY_DECIMALS,
@@ -192,7 +193,7 @@ def chart(
                 "one list (solid) against a yes/no question per choice (dashed)"
             )
             figure.tight_layout()
-        figure.savefig(path, dpi=130)
+        figure.savefig(path, dpi=FIGURE_DPI)
 
 
 def set_ticks(axis: Axes) -> None:

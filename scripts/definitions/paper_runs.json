@@ -480,7 +480,7 @@
         "ECE"
        ],
        "short": "MetaTool",
-       "group": "One correct option"
+       "group": "One correct choice"
       },
       {
        "run": "ECtHR: cases with 1 violated article",
@@ -489,7 +489,7 @@
         "ECE"
        ],
        "short": "ECtHR",
-       "group": "One correct option"
+       "group": "One correct choice"
       },
       {
        "run": "MetaTool: a yes/no question per tool",

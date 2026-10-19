@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import NullLocator, PercentFormatter
 
 from grjev.constants import (
+    FIGURE_DPI,
     MODEL_COLORS,
     MODEL_TITLES,
     RELIABILITY_PAGE_SIZE,
@@ -133,4 +134,4 @@ def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: 
         else:
             axes[0][0].legend(fontsize=8, loc="upper left")
             figure.tight_layout()
-        figure.savefig(path, dpi=130)
+        figure.savefig(path, dpi=FIGURE_DPI)

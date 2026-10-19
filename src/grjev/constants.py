@@ -696,6 +696,9 @@ THRESHOLD_PAPER_TABLE = "thresholds"
 # distance from the diagonal, in inches: on a page of docs/, and across the two columns of the paper.
 RELIABILITY_PAGE_SIZE = (13.0, (4.0, 2.4))
 RELIABILITY_PAPER_SIZE = (6.3, (2.0, 1.2))
+# The resolution of every figure, in dots per inch: the pixels of a PNG and of any raster part of a PDF. Rushab asked
+# for 600 dpi on 2026-10-19.
+FIGURE_DPI = 600
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
