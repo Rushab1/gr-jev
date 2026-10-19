@@ -1,0 +1,67 @@
+\section{Lists and instructions}
+\label{app:lists}
+\begin{itemize}
+\item A list of identical options or of random options is sent in each of its cyclic permutations, so every option is at every position once.
+\item The MetaTool lists with one correct tool end with the option ``None'', as in the dataset.
+\item MetaTool repeats queries across its test files. An answer to a repeated request is counted once per example.
+\end{itemize}
+
+\begin{table*}[t]
+\caption{The instruction sent with each kind of list.}
+\label{tab:instructions}
+\centering
+\small
+\begin{tabular}{p{0.27\linewidth}p{0.67\linewidth}}
+\toprule
+Lists & Instruction \\
+\midrule
+MetaTool, one correct tool & ``Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None.'' \\
+MetaTool, two correct tools & ``Choose every tool in the list that is needed to solve the user's query.'' \\
+MetaTool, copies and random tools & ``Pick all the tools in the list that are relevant to the task at hand.'' \\
+HotpotQA & ``Choose every passage in the list that supports the answer to the question.'' \\
+ECtHR & ``Choose every article in the list that the European Court of Human Rights found violated in this case.'' \\
+Tickets & ``Which team should handle this?'' \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[t]
+\caption{The list of five identical copies for the question of Table~\ref{tab:example}. The names differ only by the number of spaces between the two words.}
+\label{tab:copies-example}
+\centering
+\small
+\begin{tabular}{@{}p{\linewidth}@{}}
+\toprule
+\textbf{Question:} who is older, Maria Sharapova or Chanda Rubin? \\
+\textbf{Instruction:} Choose every passage in the list that supports the answer to the question. \\
+\midrule
+\texttt{Chanda~~~~~~Rubin}: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
+\texttt{Chanda~~Rubin}: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
+\texttt{Chanda~~~Rubin}: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
+\texttt{Chanda~~~~~Rubin}: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
+\texttt{Chanda~~~~Rubin}: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% The numbers are the answers to hotpotqa/validation/5a8c7595554299585d9e36b6, list rotated_0, in
+% results/hotpotqa_copied*/2026-10-11_01/rows.jsonl, rounded to two decimals. Gap is computed before rounding.
+\begin{table*}[t]
+\caption{One HotpotQA list of five identical copies of the Shirley Temple passage, in the order sent, for the question ``What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?'', and the probability that each model gives each copy in one run. Each \textvisiblespace{} marks one space between the two words of a name. The highest and the lowest probability of each model are in bold, and \emph{Gap} is the highest minus the lowest, in percentage points.}
+\label{tab:copies-one}
+\centering
+\small
+\begin{tabular}{@{}rp{0.53\linewidth}rrr@{}}
+\toprule
+Position & Copy & Jev & Liquid d1 & GPT-6 Luna Decisions \\
+\midrule
+1 & \texttt{Shirley\textvisiblespace\textvisiblespace{}Temple}: Shirley Temple Black (April 23, 1928 -- February 10, 2014) was an American actress, singer, dancer, \ldots & \textbf{0.31} & \textbf{0.81} & \textbf{0.82} \\
+2 & \texttt{Shirley\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace{}Temple}: Shirley Temple Black (April 23, 1928 -- February 10, 2014) was an American actress, singer, dancer, \ldots & 0.15 & 0.05 & 0.10 \\
+3 & \texttt{Shirley\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace{}Temple}: Shirley Temple Black (April 23, 1928 -- February 10, 2014) was an American actress, singer, dancer, \ldots & 0.15 & \textbf{0.04} & 0.03 \\
+4 & \texttt{Shirley\textvisiblespace\textvisiblespace\textvisiblespace\textvisiblespace{}Temple}: Shirley Temple Black (April 23, 1928 -- February 10, 2014) was an American actress, singer, dancer, \ldots & \textbf{0.12} & 0.05 & \textbf{0.01} \\
+5 & \texttt{Shirley\textvisiblespace\textvisiblespace\textvisiblespace{}Temple}: Shirley Temple Black (April 23, 1928 -- February 10, 2014) was an American actress, singer, dancer, \ldots & 0.27 & 0.06 & 0.04 \\
+\midrule
+ & Gap & 19 & 78 & 81 \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -6,8 +6,8 @@
 % https://github.com/acl-org/acl-style-files at the commit d5adc823ff0f80f98c80405ca0ab66c68e684409. The preamble
 % follows acl_latex.tex of that commit. The format is two columns on A4. formatting.md of that commit gives a short
 % paper up to 4 pages of content for review and 5 in the final version, plus the references, and in the final
-% version the acknowledgments. acl_latex.tex has an unnumbered Limitations section after the main text. Here the
-% limitations are still a numbered section before the conclusion.
+% version the acknowledgments. acl_latex.tex has an unnumbered Limitations section after the main text. This paper
+% has none yet: sections/limitations.tex is not included.
 %
 % The option of the style sets the version of the paper:
 %   preprint              the arXiv version, with the author shown and with page numbers (used now)
@@ -25,6 +25,7 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
+\usepackage{placeins}
 \usepackage{amsfonts}
 \usepackage{nicefrac}
 \usepackage{xcolor}
@@ -72,11 +73,7 @@
 
 \input{sections/related_work}
 
-\input{sections/limitations}
-
 \input{sections/conclusion}
-
-\input{sections/availability}
 
 \section*{Acknowledgments}
 % Acknowledgments, funding and the use of AI assistance. To be written.
@@ -88,5 +85,7 @@
 \appendix
 
 \input{sections/appendix}
+
+\input{sections/availability}
 
 \end{document}
