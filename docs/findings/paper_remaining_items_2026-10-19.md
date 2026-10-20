@@ -17,7 +17,7 @@ out.
 | 9 | | Appendix table of thresholds | Done | `tab:threshold-detail` in `paper/sections/appendix/thresholds.tex`, from `paper/tables/threshold_detail.tex`, built by a script outside the repo. |
 | 10 | | Two pages of results and conclusion | Dropped | Rushab: a matter of reducing content. |
 | 11 | | Report of the runs | Done | `docs/paper_runs.html` was rebuilt on 2026-10-20. `docs/paper_runs.pdf` was removed. |
-| 12 | | Tables with no reference | Open | `tab:instructions` and `tab:copies-example` in `paper/sections/appendix/lists.tex`. |
-| 13 | | Terms entry for "Choice" | Open | `paper/sections/appendix/terms.tex:4` reads "a tool, a choice, a passage", defining a choice as a choice. |
-| 14 | | Refusals appendix | Open | `paper/sections/appendix/refusals.tex` was counted with the copies runs of 2026-10-11. GPT-6 Luna Decisions refused 1,374 copies lists with random IDs, against 697 with the old names. |
+| 12 | | Tables with no reference | Done | `tab:instructions` and `tab:copies-example` were removed, with the two setup sentences that pointed to them. |
+| 13 | | Terms entry for "Choice" | Done | It reads "(a tool, a passage, an article, a team)". |
+| 14 | | Refusals appendix | Done | Recounted without MMLU and the tickets, as before: 20,404 of 186,103 questions refused (11.0%), and 2,054 of 34,530 lists with only correct choices. |
 | 15 | | MMLU copies in the report | Done | The experiment `copied_spaced` builds the copies with spaces. The report reads `results/mmlu_copied_spaced*/2026-10-20_01`, rebuilt from the saved responses with rows equal to those of 2026-10-11. |

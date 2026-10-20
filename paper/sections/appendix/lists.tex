@@ -1,48 +1,10 @@
-\section{Lists and instructions}
+\section{Lists}
 \label{app:lists}
 \begin{itemize}
 \item A list of identical choices or of random choices is sent in each of its cyclic permutations, so every choice is at every position once.
 \item The MetaTool lists with one correct tool end with the choice ``None'', as in the dataset.
 \item MetaTool repeats queries across its test files. An answer to a repeated request is counted once per example.
 \end{itemize}
-
-\begin{table*}[t]
-\caption{The instruction sent with each kind of list.}
-\label{tab:instructions}
-\centering
-\small
-\begin{tabular}{p{0.27\linewidth}p{0.67\linewidth}}
-\toprule
-Lists & Instruction \\
-\midrule
-MetaTool, one correct tool & ``Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None.'' \\
-MetaTool, two correct tools & ``Choose every tool in the list that is needed to solve the user's query.'' \\
-MetaTool, copies and random tools & ``Pick all the tools in the list that are relevant to the task at hand.'' \\
-HotpotQA & ``Choose every passage in the list that supports the answer to the question.'' \\
-ECtHR & ``Choose every article in the list that the European Court of Human Rights found violated in this case.'' \\
-Tickets & ``Which team should handle this?'' \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{table}[t]
-\caption{The list of five identical copies for the question of Table~\ref{tab:example}. The names are random IDs.}
-\label{tab:copies-example}
-\centering
-\small
-\begin{tabular}{@{}p{\linewidth}@{}}
-\toprule
-\textbf{Question:} who is older, Maria Sharapova or Chanda Rubin? \\
-\textbf{Instruction:} Choose every passage in the list that supports the answer to the question. \\
-\midrule
-\texttt{t2h2}: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
-\texttt{28td}: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
-\texttt{x6q7}: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
-\texttt{etr4}: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
-\texttt{r74h}: Chanda Rubin: Chanda Rubin (born February 18, 1976) is an American tennis \ldots \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 % The numbers are the answers to hotpotqa/validation/5a8c7595554299585d9e36b6, list rotated_0, in
 % results/hotpotqa_copied*/2026-10-19_01/rows.jsonl, rounded to two decimals. Gap is computed before rounding.
