@@ -257,8 +257,9 @@ def test_the_definition_of_the_runs_on_every_example_names_51_tables_for_three_m
     assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 51
     assert len({row.label for row in definition.rows}) == 51 and len({row.group for row in definition.rows}) == 6
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
-    # The MetaTool yes/no run was added on 2026-10-14, and the copies with random IDs as names on 2026-10-19.
-    dated = ("/2026-10-11_", "yes_no", "_copied/2026-10-19_")
+    # The MetaTool yes/no run was added on 2026-10-14, the copies with random IDs as names on 2026-10-19, and the MMLU
+    # copies with spaces, rebuilt from the saved responses of 2026-10-11, on 2026-10-20.
+    dated = ("/2026-10-11_", "yes_no", "_copied/2026-10-19_", "_copied_spaced/2026-10-20_")
     assert all(row.about and any(part in row.folder for part in dated) for row in definition.rows)
     labels = {row.label for row in definition.rows}
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8

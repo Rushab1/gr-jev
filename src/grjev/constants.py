@@ -392,13 +392,22 @@ BFCL_BOOLEAN_TYPES = ("boolean", "bool")
 # "growth" sends every example with its tool list and with random other tools added up to several list lengths.
 # "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
 # "rotated" sends that list in every rotation of the order in which the rewordings are written.
-# "copied" sends every example with a list of copies of one of its correct tools, in every rotation.
+# "copied" sends every example with a list of copies of one of its correct tools, in every rotation. "copied_spaced"
+# does the same with copies whose names differ only by extra spaces, as the copied runs of 2026-10-11 did. Their
+# results folders say "copied".
 # "absent" sends every example with a list that has no correct tool: other tools of the example and "None", in every
 # rotation. "absent_random" does the same with random tools of the dataset that are not in the list of the example.
 # "unrelated" sends every example with a list of such random tools and without "None", in every rotation.
 # "own" sends every example with its own list in every rotation.
 # The MetaTool test files whose examples have a correct tool to reword.
 METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
+COPIED_TEST_FILES = {
+    "metatool": METATOOL_REWORDED_FILES,
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "mmlu": (MMLU_STANDALONE_FILE,),
+    "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    "ecthr": (ECTHR_VIOLATED_FILE,),
+}
 EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
     "length": {"metatool": ("similar_tools", "scenario")},
@@ -406,13 +415,8 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
     "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
-    "copied": {
-        "metatool": METATOOL_REWORDED_FILES,
-        "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
-        "mmlu": (MMLU_STANDALONE_FILE,),
-        "hotpotqa": (HOTPOTQA_TEN_FILE,),
-        "ecthr": (ECTHR_VIOLATED_FILE,),
-    },
+    "copied": COPIED_TEST_FILES,
+    "copied_spaced": COPIED_TEST_FILES,
     "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,), "hotpotqa": (HOTPOTQA_TEN_FILE,)},
     # "replaced" sends the list of the example, and the list with "None" in the place of the correct option and of
     # one other option, in the order of the example.
@@ -547,7 +551,7 @@ REWORDINGS_FILES = {
 }
 # The experiments whose lists hold only rewordings or copies of one tool. Every entry is correct, and "None" is not
 # offered.
-REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied")
+REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied", "copied_spaced")
 # The "copied" experiment lists one correct tool this many times. The copies are named by random IDs of this many of
 # these characters, and each description holds the tool's name and description.
 COPIED_TOOLS = 5
@@ -626,7 +630,7 @@ POSITIONS_SHOWN_BELOW = 10
 # queries.
 PAPER_RUNS: tuple[tuple[str, ...], ...] = (
     ("copied", "metatool"),
-    ("copied", "mmlu", "--examples", "1000"),
+    ("copied_spaced", "mmlu", "--examples", "1000"),
     ("copied", "hotpotqa", "--examples", "1000"),
     ("copied", "ecthr"),
     ("rotated", "metatool"),

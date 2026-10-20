@@ -20,4 +20,4 @@ out.
 | 12 | | Tables with no reference | Open | `tab:instructions` and `tab:copies-example` in `paper/sections/appendix/lists.tex`. |
 | 13 | | Terms entry for "Choice" | Open | `paper/sections/appendix/terms.tex:4` reads "a tool, a choice, a passage", defining a choice as a choice. |
 | 14 | | Refusals appendix | Open | `paper/sections/appendix/refusals.tex` was counted with the copies runs of 2026-10-11. GPT-6 Luna Decisions refused 1,374 copies lists with random IDs, against 697 with the old names. |
-| 15 | | MMLU copies in the report | Open | `results/mmlu_copied*/2026-10-11_01` is in `scripts/definitions/paper_runs.json`, but the current code builds copies with random IDs and cannot rebuild those requests. It feeds the report only. |
+| 15 | | MMLU copies in the report | Done | The experiment `copied_spaced` builds the copies with spaces. The report reads `results/mmlu_copied_spaced*/2026-10-20_01`, rebuilt from the saved responses with rows equal to those of 2026-10-11. |

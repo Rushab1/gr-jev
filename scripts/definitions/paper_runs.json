@@ -781,7 +781,7 @@
   },
   {
    "label": "MMLU: 5 duplicates of the correct choice",
-   "folder": "results/mmlu_copied/2026-10-11_01",
+   "folder": "results/mmlu_copied_spaced/2026-10-20_01",
    "lists_text": "every list",
    "group": "1. Order: lists whose options are all correct",
    "about": "The list has 5 copies of the question's correct choice. Each example is sent with 5 cyclic permutations of the list. Each option appears at each position once.",

@@ -74,6 +74,7 @@ from grjev.placement import (
     reworded_order,
     reworded_tool,
     rotated_orders,
+    spaced_copies,
     wrong_tools,
 )
 
@@ -267,20 +268,34 @@ def rotated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
         yield test_file, example, lists, dict.fromkeys(lists, REWORDED_INSTRUCTIONS)
 
 
-def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
-    """Yield each example with copies of one of its correct tools as its tool list, in every rotation.
+def copies_lists(
+    config: RunConfig, examples: dict[str, list[Example]], copied: Callable[[Option, Example], list[Option]]
+) -> ExampleLists:
+    """Yield each example with the copies that `copied` makes of one of its correct tools, in every rotation.
 
-    The correct tool is chosen with the seed. The copies are named by random IDs chosen with the example's ID, and the
-    labels of the yielded example are the copies.
+    The correct tool is chosen with the seed, and the labels of the yielded example are the copies.
     """
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             original = reworded_tool(example, config.seed)
             tool = next(option for option in example.options if option.name == original)
-            copies = id_copies(tool, COPIED_TOOLS, f"ids/{example.id}")
+            copies = copied(tool, example)
             lists = rotated_orders(copies)
             relabelled = example.model_copy(update={"labels": [copy.name for copy in copies]})
             yield test_file, relabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))
+
+
+def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with copies of one of its correct tools named by random IDs chosen with the example's ID."""
+    return copies_lists(config, examples, lambda tool, example: id_copies(tool, COPIED_TOOLS, f"ids/{example.id}"))
+
+
+def copied_spaced_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with copies of one of its correct tools whose names differ only by extra spaces."""
+    seed = config.seed
+    return copies_lists(
+        config, examples, lambda tool, example: spaced_copies(tool, COPIED_TOOLS, f"{seed}/{example.id}/copied")
+    )
 
 
 def none_rotations(
@@ -402,6 +417,7 @@ LISTS = {
     "reworded": reworded_lists,
     "rotated": rotated_lists,
     "copied": copied_lists,
+    "copied_spaced": copied_spaced_lists,
     "absent": absent_lists,
     "absent_random": absent_random_lists,
     "unrelated": unrelated_lists,
