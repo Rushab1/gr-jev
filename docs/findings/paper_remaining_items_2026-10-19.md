@@ -16,7 +16,7 @@ out.
 | 8 | 5, 7, 9, 10 | Length of the introduction, setup and related work | Later | |
 | 9 | | Appendix table of thresholds | Done | `tab:threshold-detail` in `paper/sections/appendix/thresholds.tex`, from `paper/tables/threshold_detail.tex`, built by a script outside the repo. |
 | 10 | | Two pages of results and conclusion | Dropped | Rushab: a matter of reducing content. |
-| 11 | | Report of the runs | Open | `docs/paper_runs.html` was rebuilt on 2026-10-20. `docs/paper_runs.pdf` was printed on 2026-10-18 and needs printing again from the HTML. |
+| 11 | | Report of the runs | Done | `docs/paper_runs.html` was rebuilt on 2026-10-20. `docs/paper_runs.pdf` was removed. |
 | 12 | | Tables with no reference | Open | `tab:instructions` and `tab:copies-example` in `paper/sections/appendix/lists.tex`. |
 | 13 | | Terms entry for "Choice" | Open | `paper/sections/appendix/terms.tex:4` reads "a tool, a choice, a passage", defining a choice as a choice. |
 | 14 | | Refusals appendix | Open | `paper/sections/appendix/refusals.tex` was counted with the copies runs of 2026-10-11. GPT-6 Luna Decisions refused 1,374 copies lists with random IDs, against 697 with the old names. |

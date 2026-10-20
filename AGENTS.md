@@ -56,7 +56,7 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/report/runs_table.py all_runs --out docs/all_runs.md` rebuilds `docs/all_runs.md`: one table per model with the figures of the probability distribution of each run. The rows, the terms and the notes of the tables are in `scripts/definitions/all_runs.json`. The figures are computed in `src/grjev/distribution.py`, and `scripts/report/results_figures.py` prints them for the tool lists of one run.
 
-`python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `scripts/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page. `docs/paper_runs.pdf` is that page printed from a browser.
+`python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `scripts/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page.
 
 `python scripts/paper/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
 
