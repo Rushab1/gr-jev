@@ -581,7 +581,9 @@
        "name": "MetaTool, 2 correct tools",
        "columns": [
         "Second correct option in the full list",
-        "After the removal"
+        "After the removal",
+        "Full list, renormalised",
+        "After the removal, same examples"
        ],
        "short": "MetaTool"
       },
@@ -590,7 +592,9 @@
        "name": "HotpotQA, 2 supporting passages",
        "columns": [
         "Second correct option in the full list",
-        "After the removal"
+        "After the removal",
+        "Full list, renormalised",
+        "After the removal, same examples"
        ],
        "short": "HotpotQA"
       },
@@ -599,7 +603,9 @@
        "name": "ECtHR, 2 to 4 violated articles",
        "columns": [
         "Second correct option in the full list",
-        "After the removal"
+        "After the removal",
+        "Full list, renormalised",
+        "After the removal, same examples"
        ],
        "short": "ECtHR"
       }

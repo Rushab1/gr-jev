@@ -1,9 +1,11 @@
-\section{The opening example}
+\section{Passage choices in the opening example}
 \label{app:example}
 % The numbers of Table~\ref{tab:example-invented} are the answers of scripts/run/written_request.py to the requests
 % john_jane and john_jane_younger on 2026-10-12, rounded to two decimals.
+Table~\ref{tab:example-passages} gives the full request used for the Choice results in the introduction. Rubin's and Sharapova's passages contain the birth dates needed to answer which player is older.
+
 \begin{table*}[t]
-\caption{The HotpotQA question of the introduction, the instruction and its 10 passages, in the order sent.}
+\caption{The opening HotpotQA question, the instruction to choose every passage that supports the answer, and the 10 passage titles and texts in the order sent.}
 \label{tab:example-passages}
 \centering
 \small
@@ -11,7 +13,7 @@
 \end{table*}
 
 \paragraph{Alternative instructions.}
-The question and 10 passages of Table~\ref{tab:example-passages} were sent with three pairs of Choice instructions and yes/no questions. Each yes/no question was followed by ``Passage:'', the passage title and its text.
+The same question and 10 passages in Table~\ref{tab:example-passages} were sent with each Choice instruction below. Each corresponding yes/no question was asked separately for each passage and followed by ``Passage:'', its title, and its text.
 \begin{itemize}
 \item \emph{Supports.} Choice: ``Choose every passage in the list that supports the answer to the question.'' Yes/no: ``Does this passage support the answer to the question?''
 \item \emph{Needed.} Choice: ``Choose every passage in the list that is needed to answer the question.'' Yes/no: ``Is this passage needed to answer the question?''
@@ -19,15 +21,15 @@ The question and 10 passages of Table~\ref{tab:example-passages} were sent with 
 \end{itemize}
 
 \begin{table*}[t]
-\caption{Mean probabilities over three runs of the opening HotpotQA example. Rubin and Sharapova are the two passages needed to answer the question. \emph{Distr.} is the highest probability among the other eight passages in each run, averaged over the three runs. Luna is GPT-6 Luna Decisions.}
+\caption{Mean Choice probabilities and probabilities of yes over three runs of the same requests for the instructions above. Rubin's and Sharapova's passages are both needed to answer the question. For each run, the distractor value is the highest probability among the other eight passages. The table reports its mean over the three runs. Luna abbreviates GPT-6 Luna Decisions.}
 \label{tab:example-wordings}
 \centering
 \small
 \begin{tabular}{llrrrrrr}
 \toprule
- & & \multicolumn{3}{c}{Choice} & \multicolumn{3}{c}{Yes/no} \\
+ & & \multicolumn{3}{c}{Choice probability} & \multicolumn{3}{c}{Probability of yes} \\
 \cmidrule(lr){3-5} \cmidrule(lr){6-8}
-Wording & Model & Rubin & Sharapova & Distr. & Rubin & Sharapova & Distr. \\
+Instruction & Model & Rubin & Sharapova & Distractor & Rubin & Sharapova & Distractor \\
 \midrule
 Supports & Jev & 0.93 & 0.07 & 0.00 & 0.31 & 0.14 & 0.05 \\
  & Liquid d1 & 0.94 & 0.06 & 0.00 & 0.16 & 0.07 & 0.05 \\
@@ -44,10 +46,12 @@ Part of the question & Jev & 0.77 & 0.23 & 0.00 & 0.63 & 0.52 & 0.10 \\
 \end{tabular}
 \end{table*}
 
-For this question, Rubin's passage receives the highest Choice probability under all three instructions. The yes/no probability for Sharapova's passage ranges from 0.00 to 0.14 with ``supports'' and from 0.52 to 0.96 with ``has information that answers part of the question.'' The instructions also differ in meaning, so this example does not isolate a wording effect independent of the criterion.
+The Choice probabilities favor Rubin's passage under every instruction and model, although Sharapova's passage is also needed to answer the question. The highest-ranked choice alone therefore misses a needed passage. For Sharapova's passage, the probability of yes ranges from 0.00 to 0.14 under Supports and from 0.52 to 0.96 under Part of the question. These instructions differ in meaning, so the comparison does not isolate a wording effect.
+
+The rewritten list in Table~\ref{tab:example-invented-passages} uses invented names and details for the same passage positions. It pairs the list with questions about the older and younger player under the supports instruction.
 
 \begin{table*}[t]
-\caption{The same list with the names, the tournaments and the dates replaced by invented ones, and a second question. John stands for Chanda Rubin and Jane for Maria Sharapova.}
+\caption{The questions, supports instruction, and passage list with invented names, tournaments, dates, and locations. John corresponds to Chanda Rubin and Jane to Maria Sharapova. The passages remain in the order of Table~\ref{tab:example-passages}.}
 \label{tab:example-invented-passages}
 \centering
 \small
@@ -55,7 +59,7 @@ For this question, Rubin's passage receives the highest Choice probability under
 \end{table*}
 
 \begin{table}[t]
-\caption{The probabilities of John's passage and of Jane's passage in the list of Table~\ref{tab:example-invented-passages}, for each question. John is the older one. Luna is GPT-6 Luna Decisions.}
+\caption{Choice probabilities for John's and Jane's passages for each question in Table~\ref{tab:example-invented-passages}, with the same supports instruction and passage list. John is older than Jane. Luna abbreviates GPT-6 Luna Decisions.}
 \label{tab:example-invented}
 \centering
 \small
@@ -70,3 +74,5 @@ Who is younger? & John & 0.02 & 0.15 & 0.03 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+For the older question, Jev and Liquid d1 favor John's passage, while Luna favors Jane's. For the younger question, all three models favor Jane's passage. Luna thus favors the younger player's passage in the rewritten older question, whereas it favors Rubin's passage in the original question.
