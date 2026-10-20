@@ -2,10 +2,10 @@
 \label{app:position}
 % The numbers are from results/metatool_position*/2026-10-11_01/rows.jsonl, lists first and last of the test files
 % similar_tools and scenario. The change is computed before rounding.
-The lists are those of 2,795 MetaTool queries with one correct tool, from the test files \texttt{similar\_tools} and \texttt{scenario}. Each list has 10 tools and ends with the choice ``None''. The correct tool is placed first or tenth, and the other nine tools keep their order. GPT-6 Luna Decisions refused 2 of the lists.
+For 2,795 MetaTool queries with one correct tool, from the test files \texttt{similar\_tools} and \texttt{scenario}, we placed the correct tool first or tenth in a list of 10 tools that ends with the choice ``None''. The other nine tools keep their order. GPT-6 Luna Decisions refused 2 of the lists.
 
-\begin{table}[h]
-\caption{Accuracy with the correct tool in the first and in the tenth place, and the change in percentage points.}
+\begin{table}[!htbp]
+\caption{Accuracy with the correct tool first and tenth, and the change in percentage points.}
 \label{tab:position}
 \centering
 \small
@@ -19,3 +19,4 @@ GPT-6 Luna Decisions & 0.80 & 0.67 & $-13$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+\FloatBarrier
