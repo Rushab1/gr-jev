@@ -40,8 +40,11 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # 12,981 calls of the replaced run on mmlu_na, with 38,858 calls saved. Rushab: "increase man for jev no worries".
 # Raised to 52,336 on 2026-10-14 for the 497 calls of the yes/no run on MetaTool multi_tool, with 51,817 calls saved.
 # Rushab: "increase jev limit". Raised to 53,247 on 2026-10-18 for the 921 new calls of the yes/no run on the 1,000
-# HotpotQA questions of the copied run, with 52,326 calls saved. Rushab: "go for it".
-JEV_CALL_LIMIT = 53247
+# HotpotQA questions of the copied run, with 52,326 calls saved. Rushab: "go for it". Raised to 53,277 on 2026-10-19 for
+# 30 calls that send 10 copied lists per dataset with random IDs as names, with 53,247 calls saved. Rushab: "send it".
+# Raised to 58,386 the same day for the 5,109 new calls of every copied list of MetaTool, HotpotQA and ECtHR with random
+# IDs as names, with 53,277 calls saved. Rushab: "run it now. increase eve limit as requeires".
+JEV_CALL_LIMIT = 58386
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -545,8 +548,11 @@ REWORDINGS_FILES = {
 # The experiments whose lists hold only rewordings or copies of one tool. Every entry is correct, and "None" is not
 # offered.
 REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied")
-# The "copied" experiment lists one correct tool this many times. The names of the copies differ only by extra spaces.
+# The "copied" experiment lists one correct tool this many times. The copies are named by random IDs of this many of
+# these characters, and each description holds the tool's name and description.
 COPIED_TOOLS = 5
+COPY_ID_LENGTH = 4
+COPY_ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 # The "absent" experiments list this many tools that are not correct, and "None" with them. An MMLU question has 3
 # choices that are not correct, and its "absent" list holds the 3.
 ABSENT_LIST_TOOLS = 4

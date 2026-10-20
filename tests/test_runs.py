@@ -287,8 +287,8 @@ def test_a_copied_run_asks_five_copies_of_one_correct_tool_in_every_rotation() -
     assert list(request.questions) == [f"rotated_{moved}" for moved in range(5)]
     copies = item.lists["rotated_0"]
     original = reworded_tool(two_correct, run_config.seed)
-    assert len({copy.name for copy in copies}) == 5 and {copy.name.strip() for copy in copies} == {original}
-    assert {copy.description for copy in copies} == {f"Does thing {original.removeprefix('tool_')}."}
+    assert len({copy.name for copy in copies}) == 5
+    assert {copy.description for copy in copies} == {f"{original}: Does thing {original.removeprefix('tool_')}."}
     assert item.lists["rotated_3"] == copies[3:] + copies[:3]
     assert item.example.labels == [copy.name for copy in copies]
     for question in request.questions.values():
@@ -360,7 +360,8 @@ def test_a_dataset_whose_options_are_not_tools_has_its_own_instruction_and_none_
         assert list(request.questions) == [f"rotated_{moved}" for moved in range(entries)]
         for question_sent in request.questions.values():
             assert isinstance(question_sent, jev.ChoiceQuestion) and question_sent.instructions == asked
-            assert len(question_sent.criteria) == entries and set(question_sent.criteria.values()) == {None}
+            described = {"4"} if experiment == "copied" else {None}
+            assert len(question_sent.criteria) == entries and set(question_sent.criteria.values()) == described
     own = plan(config("own", dataset="mmlu"), {"test_standalone": [question]}, pool)[0]
     assert own.lists["rotated_0"] == CHOICES and own.lists["rotated_1"] == CHOICES[1:] + CHOICES[:1]
     absent = plan(config("absent_random", dataset="mmlu"), {"test_standalone": [question]}, pool)[0]
@@ -920,9 +921,10 @@ def test_fifty_copied_queries_send_one_request_with_five_copies_of_a_correct_too
     correct = {example.id: example.labels or [] for own in examples.values() for example in own}
     for item in planned:
         copies = item.lists["rotated_0"]
-        (original,) = {tuple(copy.name.split()) for copy in copies}
-        assert len({copy.name for copy in copies}) == 5 and len({copy.description for copy in copies}) == 1
-        assert original in {tuple(label.split()) for label in correct[item.example.id]}
+        (description,) = {copy.description for copy in copies}
+        assert len({copy.name for copy in copies}) == 5
+        labels = correct[item.example.id]
+        assert any(description == label or description.startswith(f"{label}: ") for label in labels)
         for question in item.requests[0].questions.values():
             assert isinstance(question, jev.ChoiceQuestion) and len(question.criteria) == 5
 
@@ -1020,7 +1022,7 @@ def test_fifty_mmlu_questions_send_one_request_with_every_rotation(
                 assert sorted(names) == sorted(released)
             elif experiment == "copied":
                 (correct,) = question.example.labels or []
-                assert {" ".join(name.split()) for name in names} == {" ".join(correct.split())}
+                assert {tool.description for tool in listed} == {correct}
             elif experiment == "absent":
                 (correct,) = question.example.labels or []
                 assert sorted(names) == sorted(

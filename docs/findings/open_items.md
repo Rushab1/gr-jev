@@ -7,7 +7,7 @@ Written by Claude Code on 2026-10-04 and updated the same day, after Rushab's de
 Rushab decided all ten on 2026-10-04. `open_items_response.md` holds the check of each proposal, and `docs/plan.md` holds the plan that results.
 
 | # | Item | Proposal (Claude Code) | Decision (Rushab) |
-|---|---|---|---|
+`|---|---|---|---|
 | 1 | Where "None" sits in the list | Last in every list, and a second run of the 995 reliability examples with "None" first | Always last. No run with "None" first. |
 | 2 | How Jev returns two tools on the 497 multi-tool examples | Two rounds: Jev selects a tool, the tool is removed from the list, and Jev selects again | The two highest probabilities of one question. A tie for second place counts as a miss, and the ties are counted. A second question is a spare. |
 | 3 | List lengths | 5, 10, 20, 50, 100 and 199 tools | The lengths are not confirmed. A longer list contains the shorter ones of the same query. |

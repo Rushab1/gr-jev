@@ -28,7 +28,7 @@
     "Each model received 30,695 lists across four datasets. Each list appeared in its 5 cyclic permutations."
    ],
    "limits": [
-    "The copies' names differ by extra spaces. The API needs those spaces to tell them apart.",
+    "The copies are named by random IDs. The API needs different names to tell them apart.",
     "A user does not send a list of identical options. The run with one correct tool among distractors connects this test to real lists. There, the effect is 0.13 for one model and 0.05 or less for the two others.",
     "Each request was sent once. Jev does not always give the same answer to the same request."
    ],
@@ -772,10 +772,10 @@
  "rows": [
   {
    "label": "MetaTool: 5 duplicates of one correct tool",
-   "folder": "results/metatool_copied/2026-10-11_01",
+   "folder": "results/metatool_copied/2026-10-19_01",
    "lists_text": "every list",
    "group": "1. Order: lists whose options are all correct",
-   "about": "The list has 5 copies of one correct tool from the example. Their names differ only by extra spaces. Each example is sent with 5 cyclic permutations of the list. Each option appears at each position once.",
+   "about": "The list has 5 copies of one correct tool from the example. They are named by random IDs. Each example is sent with 5 cyclic permutations of the list. Each option appears at each position once.",
    "instruction": "Pick all the tools in the list that are relevant to the task at hand.",
    "positions": true
   },
@@ -790,7 +790,7 @@
   },
   {
    "label": "HotpotQA: 5 duplicates of one supporting passage",
-   "folder": "results/hotpotqa_copied/2026-10-11_01",
+   "folder": "results/hotpotqa_copied/2026-10-19_01",
    "lists_text": "every list",
    "group": "1. Order: lists whose options are all correct",
    "about": "The list has 5 copies of one passage that supports the question. Each example is sent with 5 cyclic permutations of the list. Each option appears at each position once.",
@@ -799,7 +799,7 @@
   },
   {
    "label": "ECtHR: 5 duplicates of one violated article",
-   "folder": "results/ecthr_copied/2026-10-11_01",
+   "folder": "results/ecthr_copied/2026-10-19_01",
    "lists_text": "every list",
    "group": "1. Order: lists whose options are all correct",
    "about": "The list has 5 copies of one article that the Court found violated in the case. Each example is sent with 5 cyclic permutations of the list. Each option appears at each position once.",

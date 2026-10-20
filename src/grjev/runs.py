@@ -65,6 +65,7 @@ from grjev.jev import (
 )
 from grjev.placement import (
     grown_orders,
+    id_copies,
     in_place_of,
     length_orders,
     orders_of,
@@ -73,7 +74,6 @@ from grjev.placement import (
     reworded_order,
     reworded_tool,
     rotated_orders,
-    spaced_copies,
     wrong_tools,
 )
 
@@ -270,14 +270,14 @@ def rotated_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
 def copied_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with copies of one of its correct tools as its tool list, in every rotation.
 
-    The correct tool is chosen with the seed. The names of the copies differ only by extra spaces, and the labels of
-    the yielded example are the copies.
+    The correct tool is chosen with the seed. The copies are named by random IDs chosen with the example's ID, and the
+    labels of the yielded example are the copies.
     """
     for test_file in config.test_files:
         for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
             original = reworded_tool(example, config.seed)
             tool = next(option for option in example.options if option.name == original)
-            copies = spaced_copies(tool, COPIED_TOOLS, f"{config.seed}/{example.id}/copied")
+            copies = id_copies(tool, COPIED_TOOLS, f"ids/{example.id}")
             lists = rotated_orders(copies)
             relabelled = example.model_copy(update={"labels": [copy.name for copy in copies]})
             yield test_file, relabelled, lists, dict.fromkeys(lists, instruction_of(config, REWORDED_INSTRUCTIONS))

@@ -37,7 +37,7 @@ The distractor setting of HotpotQA~\citep{yang2018hotpotqa} gives a query and up
 
 
 \paragraph{Identical choices.}
-In our first experiment, for every example, we send five identical copies of one of its correct choices. The query and the instruction remain unchanged. The copies are identical in descriptions although the choice label needs to be unique and is annotated with spaces. Appendix~\ref{app:lists} shows the list for the question of Table~\ref{tab:example}. To ensure that every almost identical choice is treated the same, we send each list in five cyclic permutations~\citep{zheng2024large,pezeshkpour2024large}, ensuring that every copy appears once at every position.
+In our first experiment, for every example, we send five identical copies of one of its correct choices. The query and the instruction remain unchanged. Exactly identical copies are rejected by the APIs, hence we name each copy with a random ID. While this is a limitation, it still clearly demonstrates that semantically (exactly) equivalent choices receive widely different probabilities. Appendix~\ref{app:lists} shows the list for the question of Table~\ref{tab:example}. To ensure that every almost identical choice is treated the same, we send each list in five cyclic permutations~\citep{zheng2024large,pezeshkpour2024large}, ensuring that every copy appears once at every position.
 
 We build these lists for 3,292 MetaTool queries, a seeded sample of 1,000 HotpotQA questions and the 847 ECtHR cases with a violated article, 25,695 lists per model. We report the mean probability of the highest and the lowest copy, the gap between them, and the share of predictions at each position. Under position-invariance and uniformity, we would expect the mean probability of each copy to be 0.20, and the gap to be 0.00.
 
@@ -51,7 +51,7 @@ $$
 \mathrm{ECE} = \sum_{b=1}^{B} \frac{|S_b|}{N} \left|\mathrm{acc}(S_b) - \mathrm{conf}(S_b)\right|,
 $$
 
-where $S_b$ is the set of predictions in bin $b$, $N$ is the total number of predictions, and $\mathrm{acc}(S_b)$ and $\mathrm{conf}(S_b)$ are the observed frequency and mean predicted probability in that bin, respectively. In the yes/no questions, 46\% to 78\% of the answers fall in the first bin, and at least 92\% of those are about distractors. We therefore also report the ECE without the first bin, and the average gap across bins with each bin weighted equally.
+where $S_b$ is the set of predictions in bin $b$, $N$ is the total number of predictions, and $\mathrm{acc}(S_b)$ and $\mathrm{conf}(S_b)$ are the observed frequency and mean predicted probability in that bin, respectively. In the yes/no questions, 46\% to 78\% of the answers fall in the first bin, and at least 92\% of those are about distractors. We therefore also report the ECE without the first bin.
 
 \paragraph{Selecting by a threshold.}
 Model providers suggest using a threshold to select multiple valid choices~\citep{typesafe2026choice,openai2026decisions}. For example, TypeSafe's documentation includes an example with three choices, two of which are correct, and uses a threshold of 0.25. A threshold $t$ selects every choice whose probability is at or above $t$. In this experiment, we study whether there is a common threshold that selects all correct choices and no distractors across all examples in the dataset.

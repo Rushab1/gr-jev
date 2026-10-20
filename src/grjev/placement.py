@@ -1,12 +1,13 @@
 """The orders of an example's tool list: the released order, and the correct tools placed at fixed positions."""
 
 import random
-import re
 from collections.abc import Iterable
 from fractions import Fraction
 from math import ceil
 
 from grjev.constants import (
+    COPY_ID_CHARACTERS,
+    COPY_ID_LENGTH,
     OWN_LIST,
     PLACEMENT_MAX_CORRECT,
     PLACEMENT_MIN_TOOLS,
@@ -94,17 +95,13 @@ def reworded_order(example: Example, rewordings: list[Option], seed: int) -> lis
     return order
 
 
-def spaced_copies(tool: Option, copies: int, seed: str) -> list[Option]:
-    """Return copies of a tool whose names differ only by extra spaces, at places chosen with the seed.
-
-    A copy has extra spaces after one run of spaces of the name, or at the end of a name that has no space. The
-    copies have 1 extra space each where the name has enough runs of spaces, and up to as many as it takes otherwise.
-    """
-    places = [match.end() for match in re.finditer(" +", tool.name)] or [len(tool.name)]
-    variants = [(place, extra) for extra in range(1, ceil(copies / len(places)) + 1) for place in places]
-    chosen = random.Random(seed).sample(variants, copies)
+def id_copies(tool: Option, copies: int, seed: str) -> list[Option]:
+    """Return copies of a tool named by random IDs chosen with the seed, with the tool's name in each description."""
+    generator = random.Random(seed)
+    description = f"{tool.name}: {tool.description}" if tool.description.strip() else tool.name
     return [
-        tool.model_copy(update={"name": tool.name[:place] + " " * extra + tool.name[place:]}) for place, extra in chosen
+        Option(name="".join(generator.choices(COPY_ID_CHARACTERS, k=COPY_ID_LENGTH)), description=description)
+        for _ in range(copies)
     ]
 
 

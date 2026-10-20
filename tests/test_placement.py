@@ -6,6 +6,7 @@ from grjev.constants import OWN_LIST, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
 from grjev.placement import (
     grown_orders,
+    id_copies,
     length_orders,
     orders_of,
     outside_tools,
@@ -13,7 +14,6 @@ from grjev.placement import (
     reworded_order,
     reworded_tool,
     rotated_orders,
-    spaced_copies,
     start_positions,
     wrong_tools,
 )
@@ -171,17 +171,16 @@ def test_the_rotations_of_a_list_put_each_tool_at_each_place_once() -> None:
 
 
 @pytest.mark.parametrize(
-    ("name", "most_extra"),
-    [("Travel / Flight Fare Search / Flight Search V2", 1), ("Monitoring / OTP / sms", 2), ("WebRewind", 5)],
+    ("description", "sent"), [("Does the thing.", "WebRewind: Does the thing."), (" ", "WebRewind")]
 )
-def test_the_copies_of_a_tool_differ_only_by_extra_spaces_in_the_name(name: str, most_extra: int) -> None:
-    tool = Option(name=name, description="Does the thing.")
-    copies = spaced_copies(tool, 5, "seed")
-    assert len({copy.name for copy in copies}) == 5 and name not in names(copies)
-    assert all(copy.name.split() == name.split() and copy.description == tool.description for copy in copies)
-    assert max(len(copy.name) for copy in copies) == len(name) + most_extra
-    assert copies == spaced_copies(tool, 5, "seed") and names(copies) != names(spaced_copies(tool, 5, "other"))
-    assert tool.name == name
+def test_the_copies_of_a_tool_are_named_by_random_ids_and_hold_its_name_in_the_description(
+    description: str, sent: str
+) -> None:
+    tool = Option(name="WebRewind", description=description)
+    copies = id_copies(tool, 5, "seed")
+    assert len({copy.name for copy in copies}) == 5 and all(len(copy.name) == 4 for copy in copies)
+    assert {copy.description for copy in copies} == {sent}
+    assert copies == id_copies(tool, 5, "seed") and names(copies) != names(id_copies(tool, 5, "other"))
 
 
 def test_the_wrong_tools_of_an_example_are_chosen_with_the_seed_and_hold_no_correct_tool() -> None:
