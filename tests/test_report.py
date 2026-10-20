@@ -257,8 +257,9 @@ def test_the_definition_of_the_runs_on_every_example_names_51_tables_for_three_m
     assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 51
     assert len({row.label for row in definition.rows}) == 51 and len({row.group for row in definition.rows}) == 6
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
-    # The MetaTool yes/no run was added on 2026-10-14.
-    assert all(row.about and ("/2026-10-11_" in row.folder or "yes_no" in row.folder) for row in definition.rows)
+    # The MetaTool yes/no run was added on 2026-10-14, and the copies with random IDs as names on 2026-10-19.
+    dated = ("/2026-10-11_", "yes_no", "_copied/2026-10-19_")
+    assert all(row.about and any(part in row.folder for part in dated) for row in definition.rows)
     labels = {row.label for row in definition.rows}
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8
     assert all(run in labels for found in definition.findings for run, _ in found.chart.runs)

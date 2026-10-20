@@ -2,38 +2,34 @@
 \label{sec:setup}
 
 \begin{table}[t]
-\caption{Examples of each kind of list, by dataset, with the lists or yes/no questions per model in brackets when there are more than one per example. The three models received the same requests. GPT-6 Luna Decisions refused some, so its figures in Section~\ref{sec:results} use fewer: 490, 7,044 and 183 examples in the removal row, and 983 and 160 in the threshold row.}
-\label{tab:runs}
+\caption{The three datasets, with the number of examples by their number of correct choices, given in brackets for two or more. A list has 10 choices, except the MetaTool scenario lists, with 5, 10 or 15 tools (100, 1,400 and 300 queries), and 60 HotpotQA lists, with 2 to 9 passages.}
+\label{tab:datasets}
 \centering
-\small
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrr}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llll}
 \toprule
-List & MetaTool & HotpotQA & ECtHR \\
+ & MetaTool & HotpotQA & ECtHR \\
 \midrule
-Several correct choices & 497 & 7,405 & 192 (1,920) \\
-Five identical copies & 3,292 (16,460) & 1,000 (5,000) & 847 (4,235) \\
-One correct choice & 2,795 (16,770) & -- & 655 (6,550) \\
-No correct choice, random choices & 3,292 (16,460) & 1,000 (5,000) & -- \\
-No correct choice, the example's own & 995 (3,980) & 7,377 & 153 (1,530) \\
-Random choices and ``none of the above'' & 995 (4,975) & 1,000 (5,000) & -- \\
-The example's own and ``none of the above'' & -- & 1,000 (5,000) & 153 \\
-Highest correct choice removed & 497 & 7,384 & 192 \\
-Yes/no question per choice & 497 (4,970) & 1,000 (10,000) & 1,000 (10,000) \\
-Selecting by a threshold & 497 & 1,000 & 192 \\
+Query & Query & Question & Case facts \\
+Choice & Tool & Passage & Article \\
+Choices per list & 5 to 15 & 2 to 10 & 10 \\
+One correct choice & 2,795 & -- & 655 \\
+Two or more & 497 (2) & 7,405 (2) & 192 (2 to 4) \\
+No correct choice & -- & -- & 153 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \paragraph{Models.}
-We study three decision models: Jev (\texttt{jev-1.13.0})~\citep{almeida2026jev} through TypeSafe's API, and Liquid d1 (\texttt{liquid/d1})~\citep{liquidAI2026d1} and GPT-6 Luna Decisions (\texttt{openai/gpt-6-luna-decisions})~\citep{openai2026decisions} through Vercel AI Gateway~\citep{vercel2026models}, which does not take a model version. A request holds a query, an instruction and a list of named choices, each with a description. The answer holds the selected choice, which we call the prediction, and one probability per choice. These Choice probabilities sum to 1~\citep{typesafe2026choice}. We call the highest probability of an answer its confidence. This is not the \texttt{confidence} field of Jev's answer, which TypeSafe computes from the highest probability and the number of choices~\citep{typesafe2026confidence}. Jev and GPT-6 Luna Decisions return probabilities with two decimals, and Liquid d1 with full precision. GPT-6 Luna Decisions can refuse a question and return no probabilities; Jev and Liquid d1 refused none. The three models received the same requests, and we sent each request once. Table~\ref{tab:runs} gives the number of examples and lists of each kind, and Appendix~\ref{app:runs} the dates.
+We study three decision models: Jev (\texttt{jev-1.13.0})~\citep{almeida2026jev} through TypeSafe's API, and Liquid d1 (\texttt{liquid/d1})~\citep{liquidAI2026d1} and GPT-6 Luna Decisions (\texttt{openai/gpt-6-luna-decisions})~\citep{openai2026decisions} through Vercel AI Gateway~\citep{vercel2026models}, which does not take a model version. A request holds a query, an instruction and a list of named choices, each with a description. The answer holds the selected choice, which we call the prediction, and one probability per choice. These Choice probabilities sum to 1~\citep{typesafe2026choice}. We call the highest probability of an answer its confidence. This is not the \texttt{confidence} field of Jev's answer, which TypeSafe computes from the highest probability and the number of choices~\citep{typesafe2026confidence}. Jev and GPT-6 Luna Decisions return probabilities with two decimals, and Liquid d1 with full precision. GPT-6 Luna Decisions can refuse a question and return no probabilities; Jev and Liquid d1 refused none. The three models received the same requests, and we sent each request once, except for the repeat check in the limitations and the 3 runs of the opening example. Table~\ref{tab:runs} gives the number of examples and lists of each kind.
 
 \paragraph{Datasets.}
 We intentionally chose three datasets from different domains, all of which allow multiple correct choices, or have a subset of examples that do. MetaTool~\citep{huang2024metatool} is a tool selection task. The model sees the query and a list of tools and is asked to select the tools needed to solve the query. Its four tool selection subsets hold 4,287 queries: 995 with one correct tool among tools with similar descriptions, 1,800 with one correct tool among the tools of a scenario, 995 with no correct tool, and 497 with two correct tools.
 
 The distractor setting of HotpotQA~\citep{yang2018hotpotqa} gives a query and up to ten passages, two of which support the answer. While HotpotQA contains training, validation and test sets, we only use the validation set in this study.
  ECtHR, Task~A of LexGLUE~\citep{chalkidis2022lexglue}, is a legal multi-label classification task. Each example
- gives the facts of a case and ten articles of the Convention and it asks the model to select the articles that the case violates. Of its 1,000 test cases, 655 have one violated article, 192 have two to four, and 153 have none. When several choices are correct, the instruction asks for all of them, for example ``Choose every passage in the list that supports the answer to the question.'' Appendix~\ref{app:lists} gives every instruction. Table~\ref{tab:runs} gives the number of examples of each kind of list.
+ gives the facts of a case and ten articles of the Convention and it asks the model to select the articles that the case violates. Of its 1,000 test cases, 655 have one violated article, 192 have two to four, and 153 have none. When several choices are correct, the instruction asks for all of them, for example ``Choose every passage in the list that supports the answer to the question.'' Appendix~\ref{app:lists} gives every instruction. Table~\ref{tab:datasets} gives the number of examples of each kind of list.
 
 
 \paragraph{Identical choices.}
@@ -45,13 +41,7 @@ We build these lists for 3,292 MetaTool queries, a seeded sample of 1,000 Hotpot
 Next, we send the lists as the datasets give them. MetaTool gives 497 queries with two correct tools, and HotpotQA its questions; we send both in their released order. ECtHR gives 192 cases with two to four violated articles; we send each list in its ten cyclic permutations. For each answer, the gap is the highest minus the lowest probability given to a correct choice, and we report its mean. As a reference we use the uniform distribution, which gives each of $n$ choices $1/n$ and prefers none of them. We report the share of lists in which at least one correct choice gets less than $1/n$. To separate this from ranking errors, we also report the share of lists in which every correct choice is above every distractor, and, among those lists, the share in which a correct choice still gets less than $1/n$. These counts use only the released order of the ECtHR lists and leave out the 21 HotpotQA questions whose list has no distractor.
 
 \paragraph{Calibration.}
-A model is calibrated when, among the answers to which it gives a probability $p$, a share $p$ is correct. For lists with exactly one correct choice, we define confidence as the highest probability assigned to any choice. For lists with several correct choices, this definition does not directly apply. We therefore convert each list into several yes/no questions, one per choice, based on the benchmarks' format. For example, for HotpotQA we ask ``Does this passage support the answer to the question?'' for every (question, passage) pair. The models respond with a single probability of ``yes''. We bucket the probabilities into ten bins of equal width (0.0--0.1, 0.1--0.2, ..., 0.9--1.0). For lists with one correct choice, we compare the share of correct predictions in each bin with the mean confidence in that bin. For yes/no questions, we compare the share of true ``yes'' labels with the mean predicted probability of ``yes''. We report the Expected Calibration Error (ECE)~\citep{naeini2015obtaining}, defined as the frequency-weighted average of the absolute difference between accuracy and confidence across bins~\citep{guo2017calibration}:
-
-$$
-\mathrm{ECE} = \sum_{b=1}^{B} \frac{|S_b|}{N} \left|\mathrm{acc}(S_b) - \mathrm{conf}(S_b)\right|,
-$$
-
-where $S_b$ is the set of predictions in bin $b$, $N$ is the total number of predictions, and $\mathrm{acc}(S_b)$ and $\mathrm{conf}(S_b)$ are the observed frequency and mean predicted probability in that bin, respectively. In the yes/no questions, 46\% to 78\% of the answers fall in the first bin, and at least 92\% of those are about distractors. We therefore also report the ECE without the first bin.
+A model is calibrated when, among the answers to which it gives a probability $p$, a share $p$ is correct. For lists with exactly one correct choice, we define confidence as the highest probability assigned to any choice. For lists with several correct choices, this definition does not directly apply. We therefore convert each list into several yes/no questions, one per choice, based on the benchmarks' format. For example, for HotpotQA we ask ``Does this passage support the answer to the question?'' for every (question, passage) pair. The models respond with a single probability of ``yes''. We report the Expected Calibration Error (ECE)~\citep{naeini2015obtaining,guo2017calibration} over ten bins of equal width, which compares the mean confidence, or the mean probability of ``yes'', with the observed share of correct predictions, or of true ``yes'' labels, in each bin. For the yes/no questions, we also report the ECE without the bin from 0 to 0.1.
 
 \paragraph{Selecting by a threshold.}
 Model providers suggest using a threshold to select multiple valid choices~\citep{typesafe2026choice,openai2026decisions}. For example, TypeSafe's documentation includes an example with three choices, two of which are correct, and uses a threshold of 0.25. A threshold $t$ selects every choice whose probability is at or above $t$. In this experiment, we study whether there is a common threshold that selects all correct choices and no distractors across all examples in the dataset.

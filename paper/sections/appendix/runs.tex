@@ -1,7 +1,32 @@
 \section{Runs}
 \label{app:runs}
 \begin{itemize}
-\item 31,721 requests per model, sent on 11 October 2026, and 49 for the support tickets.
-\item The yes/no questions on MetaTool: 497 requests per model, sent on 14 October 2026.
-\item The yes/no questions on HotpotQA: 1,000 requests per model, 79 sent on 11 October 2026 and 921 on 18 October 2026.
+\item 26,582 requests per model, and 49 for the support tickets.
+\item The lists of identical copies: 5,139 requests per model.
+\item The yes/no questions on MetaTool: 497 requests per model.
+\item The yes/no questions on HotpotQA: 1,000 requests per model.
 \end{itemize}
+
+\begin{table}[t]
+\caption{Examples by dataset and list type (lists or yes/no questions per model in parentheses where different). The three models received the same requests. GPT-6 Luna Decisions refused some requests (Appendix~\ref{app:refusals}).}
+\label{tab:runs}
+\centering
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+List & MetaTool & HotpotQA & ECtHR \\
+\midrule
+Several correct choices & 497 & 7,405 & 192 (1,920) \\
+Five identical copies & 3,292 (16,460) & 1,000 (5,000) & 847 (4,235) \\
+One correct choice & 2,795 (16,770) & -- & 655 (6,550) \\
+No correct choice, random choices & 3,292 (16,460) & 1,000 (5,000) & -- \\
+No correct choice, the example's own & 995 (3,980) & 7,377 & 153 (1,530) \\
+Random choices and ``none of the above'' & 995 (4,975) & 1,000 (5,000) & -- \\
+The example's own and ``none of the above'' & -- & 1,000 (5,000) & 153 \\
+Highest correct choice removed & 497 & 7,384 & 192 \\
+Yes/no question per choice & 497 (4,970) & 1,000 (10,000) & 1,000 (10,000) \\
+Selecting by a threshold & 497 & 1,000 & 192 \\
+\bottomrule
+\end{tabular}}
+\end{table}
