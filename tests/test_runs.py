@@ -643,6 +643,14 @@ def test_a_second_run_reads_the_saved_responses(fake: FakeJev) -> None:
     assert sum(count["new_calls"] for count in call_counts(repeat, planned).values()) == 3
 
 
+def test_a_request_planned_twice_is_counted_once_in_the_test_file_that_plans_it_first(fake: FakeJev) -> None:
+    run_config, planned = planned_examples()
+    again = Planned("reliability", planned[0].example, planned[0].lists, planned[0].requests)
+    counts = call_counts(run_config, [*planned, again])
+    assert counts["similar_tools"]["new_calls"] == 2
+    assert (counts["reliability"]["calls"], counts["reliability"]["new_calls"]) == (2, 1)
+
+
 def test_a_run_past_the_call_limit_does_not_start(fake: FakeJev, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(jev, "JEV_CALL_LIMIT", 2)
     with pytest.raises(RuntimeError, match="limit of 2"):
@@ -667,6 +675,12 @@ def test_a_total_number_of_examples_is_spread_over_the_test_files_and_the_first_
     assert [sample_size(total, name) for name in files] == [9, 9, 8, 8, 8, 8]
     assert [sample_size(config("position", *files, examples_per_file=8), name) for name in files] == [8] * 6
     assert [sample_size(config("position", *files), name) for name in files] == [None] * 6
+
+
+def test_a_plan_with_fewer_examples_than_the_total_asked_for_logs_a_warning(caplog: pytest.LogCaptureFixture) -> None:
+    examples = {"similar_tools": [example(0, ["tool_4"])], "reliability": [example(1, ["tool_9"])]}
+    plan(config("position", "similar_tools", "reliability", examples=4), examples, TOOLS)
+    assert "asks for 4 examples and the plan holds 2" in caplog.text
 
 
 def row(test_file: str, labels: list[str], answers: dict[str, tuple[dict[str, float], bool]]) -> Row:

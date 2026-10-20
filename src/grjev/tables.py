@@ -178,7 +178,8 @@ def config_of(folder: Path) -> RunConfig:
 def model_folder(folder: str, model: str, root: Path = REPO_ROOT) -> str:
     """Return the results folder in which the model repeats the Jev run of `folder`, relative to the repository.
 
-    It is the latest folder of the model whose config differs from the config of the Jev run only by the model.
+    It is the folder of the model with the same name, or else the latest one, whose config differs from the config of
+    the Jev run only by the model.
     """
     if model == JEV_MODEL:
         return folder
@@ -188,7 +189,8 @@ def model_folder(folder: str, model: str, root: Path = REPO_ROOT) -> str:
     same = [found for found in sorted(parent.iterdir()) if config_of(found) == wanted]
     if not same:
         raise FileNotFoundError(f"no folder in {parent} repeats {folder}")
-    return str(same[-1].relative_to(root))
+    named = [found for found in same if found.name == (root / folder).name]
+    return str((named or same)[-1].relative_to(root))
 
 
 def uses(spec: RowSpec, name: str) -> bool:

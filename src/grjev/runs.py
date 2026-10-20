@@ -5,6 +5,7 @@ import random
 from collections.abc import Callable, Collection, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -493,23 +494,37 @@ def yes_no_plan(config: RunConfig, examples: dict[str, list[Example]]) -> list[P
 def plan(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> list[Planned]:
     """Return every example of the run with its tool lists and requests."""
     if config.experiment == YES_NO_EXPERIMENT:
-        return yes_no_plan(config, examples)
+        return checked_size(config, yes_no_plan(config, examples))
     planned = []
     for test_file, example, lists, instructions in LISTS[config.experiment](config, examples, tools):
         requests = requests_of(config, example.query, questions_of(config, test_file, lists, instructions))
         planned.append(Planned(test_file, example, lists, requests))
+    return checked_size(config, planned)
+
+
+def checked_size(config: RunConfig, planned: list[Planned]) -> list[Planned]:
+    """Return the plan, with a warning when it holds fewer examples than the total that the run asks for."""
+    if config.examples is not None and len(planned) < config.examples:
+        logger.warning("The run asks for %d examples and the plan holds %d", config.examples, len(planned))
     return planned
 
 
 def call_counts(config: RunConfig, planned: Iterable[Planned]) -> dict[str, dict[str, int]]:
-    """Return, for each test file, its examples, questions and Jev calls, and the calls with no saved response."""
+    """Return, for each test file, its examples, questions and Jev calls, and the calls with no saved response.
+
+    A request with no saved response is counted once, in the test file where the plan first asks it.
+    """
     counts: dict[str, dict[str, int]] = {}
+    missing: set[Path] = set()
     for item in planned:
         count = counts.setdefault(item.test_file, {"examples": 0, "questions": 0, "calls": 0, "new_calls": 0})
         count["examples"] += 1
         count["questions"] += sum(len(request.questions) for request in item.requests)
         count["calls"] += len(item.requests)
-        count["new_calls"] += sum(not response_path(request, config.run).exists() for request in item.requests)
+        paths = {response_path(request, config.run) for request in item.requests} - missing
+        unsaved = {path for path in paths if not path.exists()}
+        count["new_calls"] += len(unsaved)
+        missing |= unsaved
     return counts
 
 
@@ -578,7 +593,7 @@ def run(config: RunConfig, planned: list[Planned]) -> list[Row]:
     A run on Jev does not start past the call limit.
     """
     requests = [request for item in planned for request in item.requests]
-    check_call_limit(sum(not response_path(request, config.run).exists() for request in requests), config.model)
+    check_call_limit(sum(count["new_calls"] for count in call_counts(config, planned).values()), config.model)
     responses: list[JevResponse | None] = []
     with ThreadPoolExecutor(JEV_WORKERS) as workers:
         for response in workers.map(lambda request: ask(request, config.run), requests):

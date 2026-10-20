@@ -89,6 +89,17 @@ def test_a_refused_list_is_counted_and_a_model_with_no_answer_has_no_figure(tmp_
     assert d1[:3] == ["Liquid d1", "0", "1"] and set(d1[3:]) == {"none"}
 
 
+def test_a_list_that_the_model_rejected_is_not_counted_as_refused(tmp_path: Path) -> None:
+    first = Row(
+        id="set/file/0", test_file="file", labels=["a"], answers={"full": answer({"a": 0.7, "b": 0.3})}, input_tokens=1
+    )
+    write_folder(tmp_path, JEV_FOLDER, JEV_MODEL, [first])
+    write_folder(tmp_path, D1_FOLDER, D1_MODEL, [first.model_copy(update={"answers": {}, "rejected": ["full"]})])
+    own = spec(lists=("full",))
+    assert lists_table(own, chosen(tmp_path, own))[2][:3] == ["Liquid d1", "0", "0"]
+    assert yes_no_table(own, chosen(tmp_path, own))[2][:3] == ["Liquid d1", "0", "0"]
+
+
 def test_the_lists_that_hold_only_correct_options_are_counted_apart_from_the_differences(tmp_path: Path) -> None:
     own = spec(lists=("full", "pair"))
     header, jev, _ = lists_table(own, chosen(results(tmp_path), own))

@@ -105,6 +105,9 @@ def test_the_folder_of_a_gateway_model_is_the_latest_one_that_repeats_the_config
         write_folder(tmp_path, f"results/set_copied_d1/2026-10-02_{day}", D1_MODEL, [], **changes)
     assert model_folder(JEV_FOLDER, JEV_MODEL, tmp_path) == JEV_FOLDER
     assert model_folder(JEV_FOLDER, D1_MODEL, tmp_path) == "results/set_copied_d1/2026-10-02_02"
+    # A folder of the model with the name of the Jev folder is chosen over a later one.
+    write_folder(tmp_path, "results/set_copied_d1/2026-10-01_01", D1_MODEL, [])
+    assert model_folder(JEV_FOLDER, D1_MODEL, tmp_path) == "results/set_copied_d1/2026-10-01_01"
     write_folder(tmp_path, "results/set_copied_gpt-6-luna-decisions/2026-10-02_01", LUNA_MODEL, [], seed=7)
     with pytest.raises(FileNotFoundError, match="repeats results/set_copied/2026-10-01_01"):
         model_folder(JEV_FOLDER, LUNA_MODEL, tmp_path)

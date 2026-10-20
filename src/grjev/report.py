@@ -146,7 +146,7 @@ def lists_table(spec: RowSpec, chosen: dict[str, Selected]) -> list[list[str]]:
     headers = [entropy_header(first) if header == ENTROPY_HEADER and first else header for header in shown]
     table = [["Model", "Lists answered", "Lists refused", *headers]]
     for model, own in chosen.items():
-        counts = [f"{len(found[model]):,}", f"{sum(unanswered(own)):,}"]
+        counts = [f"{len(found[model]):,}", f"{unanswered(own)[1]:,}"]
         texts = [cells[header].get(model) or NOT_MEASURED for header in shown]
         table.append([MODEL_TITLES[model], *counts, *texts])
     return table
@@ -176,7 +176,7 @@ def yes_no_table(spec: RowSpec, chosen: dict[str, Selected]) -> list[list[str]]:
             [
                 MODEL_TITLES[model],
                 f"{found.correct + found.distractors:,}",
-                f"{sum(unanswered(own)):,}",
+                f"{unanswered(own)[1]:,}",
                 NOT_MEASURED if found.correct_mean is None else two(found.correct_mean),
                 share(found.correct_yes, found.correct),
                 NOT_MEASURED if found.distractor_mean is None else two(found.distractor_mean),
@@ -274,8 +274,8 @@ def figures_of(chosen: dict[str, Selected]) -> dict[str, Distribution]:
 
 def confidence_text(found: Distribution, own: Selected) -> str:
     """Return the mean confidence of a model, with the share of the lists that it refused when it refused one."""
-    refused = sum(unanswered(own))
-    share_refused = f", refused {refused / (found.answers + refused):.0%}" if refused else ""
+    rejected, refused = unanswered(own)
+    share_refused = f", refused {refused / (found.answers + rejected + refused):.0%}" if refused else ""
     return two(found.confidence) + share_refused
 
 
