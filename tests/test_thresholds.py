@@ -6,7 +6,19 @@ import pytest
 
 from grjev.constants import JEV_MODEL
 from grjev.runs import ListAnswer, Row
-from grjev.thresholds import best, exact, f1, other_recall, paired, paper_table, precision, recall
+from grjev.thresholds import (
+    best,
+    detail_cells,
+    embolden,
+    exact,
+    f1,
+    other_recall,
+    paired,
+    paper_table,
+    precision,
+    ranked,
+    recall,
+)
 
 # Two examples with two correct choices each: a list that puts most of its probability on one correct choice, and
 # one that gives both correct choices more than a distractor.
@@ -71,3 +83,25 @@ def test_the_table_of_the_paper_gives_the_best_exact_set_accuracy_of_the_list_an
     lines = paper_table({("Set", JEV_MODEL): (FOUND, FOUND[:1])}).splitlines()
     assert lines[2:5] == [r" & \multicolumn{2}{c}{Set} \\", r"\cmidrule(lr){2-3}", r"Model & List & Yes/no \\"]
     assert lines[6] == r"Jev & 0.50 & 1.00 \\"
+
+
+# An example whose distractor is above one of its correct choices.
+UNRANKED = [[(0.6, True), (0.1, True), (0.3, False)]]
+
+
+def test_an_example_is_ranked_when_every_correct_choice_is_above_every_distractor() -> None:
+    assert ranked(UNRANKED + FOUND) == FOUND
+    assert ranked([[(0.4, True), (0.3, True), (0.3, False)]]) == []
+
+
+def test_the_detail_cells_are_read_at_the_threshold_with_the_highest_exact_set_accuracy() -> None:
+    # At 0.04 only the first example of FOUND is exact. 8 choices are selected, 6 of them correct.
+    assert detail_cells(UNRANKED + FOUND) == ["0.04", "0.33", "0.67", "0.50", "0.75", "1.00", "0.86 (0.04)"]
+
+
+def test_the_highest_and_the_lowest_value_of_a_bold_column_are_in_bold() -> None:
+    rows = [["0.02", "0.50", "0.70", "0.60"], ["0.05", "0.40", "0.80", "0.70"], ["0.02", "0.45", "0.90", "0.65"]]
+    embolden(rows)
+    assert [row[0] for row in rows] == [r"\textbf{0.02}", r"\textbf{0.05}", r"\textbf{0.02}"]
+    assert [row[1] for row in rows] == [r"\textbf{0.50}", r"\textbf{0.40}", "0.45"]
+    assert [row[2] for row in rows] == ["0.70", "0.80", "0.90"]

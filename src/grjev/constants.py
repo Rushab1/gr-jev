@@ -700,6 +700,9 @@ THRESHOLD_PAPER_FIGURES = {
 # The table of the paper made by scripts/report/threshold_charts.py --paper: the best exact set accuracy over the
 # thresholds, list against yes/no, as a LaTeX file in PAPER_TABLES_DIR.
 THRESHOLD_PAPER_TABLE = "thresholds"
+# The table of the appendix made by the same script: for each model, dataset and form, the threshold with the highest
+# exact set accuracy, the measures at that threshold and the best F1.
+THRESHOLD_PAPER_DETAIL_TABLE = "threshold_detail"
 # The width of the reliability diagram of the yes/no answers and the heights of its two rows, the diagram and its
 # distance from the diagonal, in inches: on a page of docs/, and across the two columns of the paper.
 RELIABILITY_PAGE_SIZE = (13.0, (4.0, 2.4))

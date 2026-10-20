@@ -38,6 +38,9 @@ FORMS = (("list", "-"), ("yes/no", "--"))
 BEST_SHOWN = ("Exact set accuracy", "F1")
 # The measures whose charts mark the best value of each curve.
 BEST_MARKED = ("Exact set accuracy",)
+# The columns of `detail_cells` whose highest and lowest value of each form the detail table of the paper puts in
+# bold: the threshold, the exact set accuracy and the exact set accuracy of the ranked examples.
+DETAIL_BOLD = (0, 1, 3)
 
 
 def choices(probabilities: dict[str, float], labels: Sequence[str]) -> Choices:
@@ -240,6 +243,54 @@ def paper_table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]
             max(exact(forms, t) for t in thresholds()) for dataset in datasets for forms in found[(dataset, model)]
         ]
         lines.append(MODEL_TITLES[model] + "".join(f" & {value:.2f}" for value in values) + r" \\")
+    return "\n".join([*lines, r"\bottomrule", r"\end{tabular}"]) + "\n"
+
+
+def ranked(found: Sequence[Choices]) -> list[Choices]:
+    """Return the examples with every correct choice above every distractor. A tie is not a correct ranking."""
+    return [
+        example
+        for example in found
+        if min(value for value, hit in example if hit) > max(value for value, hit in example if not hit)
+    ]
+
+
+def detail_cells(found: Sequence[Choices]) -> list[str]:
+    """Return the threshold with the highest exact set accuracy, that accuracy, the share of ranked examples, the
+    exact set accuracy of those examples, precision and recall at that threshold, and the best F1."""
+    t, value = top(found, exact)
+    kept = ranked(found)
+    numbers = [t, value, len(kept) / len(found), exact(kept, t), precision(found, t), recall(found, t)]
+    return [f"{number:.2f}" for number in numbers] + [best(found, f1)]
+
+
+def embolden(rows: Sequence[list[str]]) -> None:
+    """Put in bold the highest and the lowest value of each column of DETAIL_BOLD over the rows."""
+    for column in DETAIL_BOLD:
+        values = [float(cells[column]) for cells in rows]
+        for cells in rows:
+            if float(cells[column]) in (min(values), max(values)):
+                cells[column] = rf"\textbf{{{cells[column]}}}"
+
+
+def paper_detail_table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]]) -> str:
+    """Return a LaTeX `tabular` of the cells of `detail_cells`, with a row for each dataset, model and form. The
+    highest and the lowest value of each form in the columns of DETAIL_BOLD are in bold."""
+    cells = {
+        (key, form): detail_cells(forms)
+        for key, pairs in found.items()
+        for (form, _), forms in zip(FORMS, pairs, strict=True)
+    }
+    for form, _ in FORMS:
+        embolden([row for (_, own), row in cells.items() if own == form])
+    header = "Model & Dataset & Setting & Threshold & Exact set accuracy & Ranked & Exact among ranked & Precision"
+    lines = [r"\begin{tabular}{lllrrrrrrr}", r"\toprule", header + r" & Recall & Best F1 \\", r"\midrule"]
+    for place, (dataset, model) in enumerate(found):
+        lines += [r"\midrule"] if place else []
+        for index, (form, _) in enumerate(FORMS):
+            title = "" if index else MODEL_TITLES[model]
+            row = " & ".join(cells[((dataset, model), form)])
+            lines.append(f"{title} & {dataset} & {form.capitalize()} & {row} \\\\")
     return "\n".join([*lines, r"\bottomrule", r"\end{tabular}"]) + "\n"
 
 
