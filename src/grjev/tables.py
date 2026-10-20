@@ -152,26 +152,8 @@ class FindingSpec(BaseModel):
     yes_bins: list[YesBinsSpec] = []
 
 
-class FigureRowSpec(BaseModel):
-    """One group of rows of the figure of the paper: a run with full lists, and the run with the removal."""
-
-    name: str
-    run: str
-    removal: str
-
-
-class FigureSpec(BaseModel):
-    """The figure of the paper. `file` names its LaTeX file in the folder of the paper."""
-
-    file: str
-    rows: list[FigureRowSpec]
-
-
 class TableSpec(BaseModel):
-    """The definition of a document with one table per model, or of a report with findings and one table per run.
-
-    A report can also define the figure of the paper.
-    """
+    """The definition of a document with one table per model, or of a report with findings and one table per run."""
 
     title: str
     intro: str
@@ -181,7 +163,6 @@ class TableSpec(BaseModel):
     rows: list[RowSpec]
     conclusions: list[str] = []
     findings: list[FindingSpec] = []
-    figure: FigureSpec | None = None
 
 
 def read_spec(path: Path) -> TableSpec:

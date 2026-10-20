@@ -60,8 +60,6 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/paper/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
 
-`python scripts/paper/paper_figure.py paper_runs` writes the figure of the paper to `paper/figures/` as a TikZ picture: the lowest and the highest correct option of the lists with several correct options, the highest distractor, the second correct option before and after the removal, and the threshold of TypeSafe's example code. The code is in `src/grjev/figure.py`.
-
 `python scripts/report/below_uniform.py --out docs/below_uniform.md` counts, on the lists with several correct options of the paper's runs, the correct options whose probability is below 1/n for a list of n options, and the lists whose correct options are all above every distractor.
 
 `python scripts/report/threshold_charts.py --chart docs/thresholds.png --table docs/thresholds.md` compares, on the same examples with several correct options, the probabilities of the list of `UNIFORM_RUNS` with the yes/no questions of `THRESHOLD_YES_NO_RUNS`. It charts exact set accuracy, precision, recall, the recall of the correct options other than the highest one, and F1 against a probability threshold from 0 to 1. The code is in `src/grjev/thresholds.py`. The runs and lists are `UNIFORM_RUNS` in `constants.py`, and the code is in `src/grjev/uniform.py`.

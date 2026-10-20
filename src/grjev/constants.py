@@ -662,7 +662,7 @@ PAPER_RUNS: tuple[tuple[str, ...], ...] = (
 TABLES_DIR = REPO_ROOT / "scripts" / "definitions"
 # The LaTeX tables of the paper, written by scripts/paper/paper_tables.py.
 PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
-# The figure of the paper, written by scripts/paper/paper_figure.py.
+# The figures of the paper, written by scripts/report/threshold_charts.py and scripts/report/reliability_chart.py.
 PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
 # The runs of the lists with several correct options in paper_runs.json, by dataset: the label of the row, and the
 # list of the run with the options in the released order. scripts/report/below_uniform.py reads them.
