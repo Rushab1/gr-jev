@@ -128,6 +128,7 @@ Documents, paper text and dashboard text are plain and neutral. State the claim 
 
 - No em dashes, no colons and no semicolons in prose. Write two sentences instead.
 - Do not say the same thing twice.
+- Do not stack "every" or "all", and do not list everything something does. State the one fact a reader needs.
 - No sales or authority phrasing, such as "worth it", "it is important to note" or "anyone who wants X will want to know Y".
 - No hype and no evaluative adjectives.
 - Say plainly when a figure has not been verified.
