@@ -126,7 +126,7 @@ Each run writes to `results/<name>/<date>_<incr>/`, for example `results/metatoo
 
 Documents, paper text and dashboard text are plain and neutral. State the claim and stop.
 
-- No em dashes.
+- No em dashes, no colons and no semicolons in prose. Write two sentences instead.
 - Do not say the same thing twice.
 - No sales or authority phrasing, such as "worth it", "it is important to note" or "anyone who wants X will want to know Y".
 - No hype and no evaluative adjectives.
