@@ -2,7 +2,7 @@
 
 Last updated 2026-10-09. The claims of the paper, the results on four decision models, and the runs on every example with their cost are in `docs/paper_plan.md`. Three sets of runs have been made on Jev: runs on subsets of MetaTool, 849 calls, runs on subsets of StableToolBench, 911 calls, and five runs on a subset of MMLU, 250 calls. The MetaTool runs are a subset of the position and length experiments with 350 calls, a second run of the position subset with 250 calls, a run with rewordings of one correct tool with 49 calls, a run with copies of one correct tool with 50 calls, two runs with the correct tool removed with 50 calls each, and a run with random tools and no correct tool with 50 calls. The StableToolBench runs are the wording run and a second run of it with 300 calls each, the list-length run with 59 calls, four runs with rewordings of one relevant API with 50 calls each, a run with copies of one relevant API with 50 calls, and two single requests.
 
-This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/` holds a code review, a list of proposals, and a response to each.
+This file holds the plan: the next steps, the first run, the rules for building a tool list, the measures, the later runs, and the points not decided. Background on Jev, the datasets and prior work is in `docs/starter.md`. `docs/dashboard.html` shows the same plan with the datasets. `docs/findings/open_items_2026-10-20.md` holds the open items of the paper and of this plan.
 
 ## Next steps
 
@@ -21,7 +21,7 @@ Rushab decided on 2026-10-07 to repeat the second run and the runs with rewordin
 6. Calibration with several correct options uses only the yes/no questions. Rushab, 2026-10-14: calibration is not defined for the probabilities of a list when several options are correct, and "top" is not defined either, so no top-label calibration. The yes/no run on the 497 MetaTool multi-tool queries was made on 2026-10-14 on Jev, Liquid d1 and GPT-6 Luna Decisions: 4,970 questions per model, none refused, $0.13 for the three models. Rushab, 2026-10-18: the HotpotQA yes/no questions are asked on the same 1,000 questions as the run with copies, in place of a separate sample of 500: 10,000 questions per model, 24 refused by GPT-6 Luna Decisions, $0.44 for the three models. The answers to the examples with two or more correct options go into 10 bins of the probability of yes of width 0.1, as for ECE (Rushab, 2026-10-15, in place of 5 bins that each held 50 or more answers). `yes_bins` in `src/grjev/distribution.py` computes them, and the table is under finding 4 in `docs/paper_runs.html`. On MetaTool, the tools given 0.9 to 1.0 for yes are correct in 80% to 89% of the answers. Across the three datasets that share is 80% to 100%.
 5. The runner for other decision models is built: `scripts/run/run_experiment.py --model` asks Liquid d1, GPT-6 Luna Decisions or Laya through Vercel AI Gateway. Rushab decided on 2026-10-08 that no model is hosted by us, and the 18 runs were repeated on the three models on 2026-10-09. List length is decided later: possibly a short section at the end of the paper on the 50 examples already run.
 
-The three open points of the code review in `docs/findings/review_2026-10-04.md` were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/run/check_jev.py` uses 1 Jev call of the limit.
+The three open points of the code review of 2026-10-04 were applied on 2026-10-05, on Rushab's instruction. `jev.ask` validates a response before it is saved (finding 2). The documents name `--effort low` (finding 4). The two check scripts make a new call on every run (finding 3). Claude Code took that option, and Rushab confirmed it the same day: a health check on a model calls the model. One run of `scripts/run/check_jev.py` uses 1 Jev call of the limit.
 
 ## Two results so far
 
@@ -121,7 +121,6 @@ Rushab, 2026-10-07: the normal lists show no effect of the place because their t
 - Rushab, 2026-10-07, after two single requests with 5 copies of one API: "There is our paper." His proposal for the claim: decision models exaggerate probabilities.
 - Claude Code's view of the claim: the copies show the exaggeration with a known answer, 0.34 against 0.20 for an even split, and they show that the place decides the selection. For different tools, Jev's question asks for one choice, and a high probability for one tool is a possible reading of the question. A claim that the runs support: Jev's probabilities follow how the list is written, and they do not state how relevant each tool is.
 - Missing for a paper, in Claude Code's view: a second model, since no open-weight decision model has been run; a consequence for a user of Jev; and runs on every query, of which the copied run costs about $0.25 on both datasets.
-- `docs/findings/review_prompt_2026-10-07.md` holds a prompt that asks a reviewer with no context to check the two results.
 
 ## Subset of 2026-10-05
 
@@ -833,7 +832,7 @@ These runs are designed in detail after the result of the first run is read.
 
 - Distractors. Plain random tools. Rushab, 2026-10-04: if random distractors show the claim, the most similar tools are not run. At 199 tools both give the same list.
 - Building a list. For each query the other 198 tools are shuffled once with a seed. A list of L tools is the correct tool and the first L − 1 tools of that order. Each longer list contains the shorter ones, and the list of 199 tools is every tool.
-- Lengths. 5, 10, 20, 50, 100 and 199 tools are proposed in `docs/findings/open_items.md`. Not confirmed.
+- Lengths. 5, 10, 20, 50, 100 and 199 tools were proposed by Claude Code on 2026-10-04. Not confirmed.
 - Placement. The correct tool at the 5 positions in every list.
 - Queries. The 1,790 different queries with one correct tool, each once per list. The similar-tools file has 995 different queries and the scenario file 1,060, and 265 are in both. In these runs the list is built by the rule above, and a repeated query would be the same request.
 - Size. 1,790 queries, 6 lengths and 5 placements give 53,700 tool lists in 10,740 requests. About $4 for Jev, estimated at 4 characters per token.
