@@ -7,10 +7,9 @@ from the findings files of 2026-10-04 to 2026-10-19, which were deleted, and the
 
 | # | Where | Item | Source |
 |---|---|---|---|
-| 1 | `paper/sections/results.tex:39` | The first sentence of the copies paragraph says the gap between the highest and the lowest copy is "17 to 78 percentage points". Table 4 (`paper/tables/copies.tex`) gives 17 to 79, as do the same paragraph, the abstract and `paper/sections/introduction.tex:31`. | New |
+| 1 | `paper/sections/results.tex:39` | Done: the first sentence now says 17 to 79. The first sentence of the copies paragraph says the gap between the highest and the lowest copy is "17 to 78 percentage points". Table 4 (`paper/tables/copies.tex`) gives 17 to 79, as do the same paragraph, the abstract and `paper/sections/introduction.tex:31`. | New |
 | 2 | `paper/tables/threshold_detail.tex` | No script in `scripts/` or `src/` writes the table. `AGENTS.md` asks for every paper table to be built by code in the repository. | Remaining items of 2026-10-19, item 9 |
-| 3 | `paper/tables/sharapova_rubin_short.tex` | The bold dates and the ellipsis in place of Sharapova's Russian name are edits by hand (`paper/sections/introduction.tex:7`). Running `scripts/paper/paper_request.py` again overwrites them. | Review of 2026-10-19, row 12 |
-| 4 | `paper/sections/appendix/terms.tex`, `paper/sections/appendix/refusals.tex` | Done: the "Choice" entry and the refusal counts were committed in ca9aa28. | Remaining items of 2026-10-19, items 13 and 14 |
+| 3 | `paper/tables/sharapova_rubin_short.tex` | The bold dates and the ellipsis in place of Sharapova's Russian name are edits by hand (`paper/sections/introduction.tex:7`). Running `scripts/paper/paper_request.py` again overwrites them. Done: the file and the comment in the introduction say that the file is written by hand. | Review of 2026-10-19, row 12 |
 | 5 | Introduction, setup, related work | Their length, rows 5, 7, 9 and 10 of the review of 2026-10-19, is left for the cut later. | Remaining items of 2026-10-19, item 8 |
 | 13 | `paper/sections/limitations.tex:5` | "Three models, one day." The runs of the paper were sent on several days: the lists of identical copies on 2026-10-19, the yes/no questions on MetaTool on 2026-10-14 and most of those on HotpotQA on 2026-10-18. The section is in the paper since f33ea95. | Check of 2026-10-20 against f33ea95 |
 
@@ -18,9 +17,9 @@ from the findings files of 2026-10-04 to 2026-10-19, which were deleted, and the
 
 | # | Where | Item | Source |
 |---|---|---|---|
-| 6 | `docs/findings/review_2026-10-15_thresholds.md:19-32` | The table "Figures checked" and the paragraph under it no longer match `docs/thresholds.md`, rebuilt on 2026-10-19. HotpotQA now has 983 to 1,000 examples, not 494 to 498. At 0.25, yes/no recall is 0.52 to 0.97, not 0.54 to 0.97. The recall of the other correct choices at 0.25 is 0.15 to 0.35 for the list and 0.25 to 0.96 for yes/no, not 0.15 to 0.36 and 0.28 to 0.96. | New |
+| 6 | `docs/findings/review_2026-10-15_thresholds.md:19-32` | Done: the figures now match `docs/thresholds.md`. The table "Figures checked" and the paragraph under it no longer match `docs/thresholds.md`, rebuilt on 2026-10-19. HotpotQA now has 983 to 1,000 examples, not 494 to 498. At 0.25, yes/no recall is 0.52 to 0.97, not 0.54 to 0.97. The recall of the other correct choices at 0.25 is 0.15 to 0.35 for the list and 0.25 to 0.96 for yes/no, not 0.15 to 0.36 and 0.28 to 0.96. | New |
 
-## `docs/plan.md`
+## `docs/plan.md`, for the second paper
 
 None of these items changes the paper. They concern measures of the first MetaTool run that the paper does not use.
 The check of 2026-10-20 against f33ea95 found no run of the paper that uses them. They can move to `docs/plan.md` as

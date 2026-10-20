@@ -12,15 +12,15 @@ A reviewer's reading of the threshold charts, saved on Rushab's instruction, wit
 
 ## Figures checked
 
-The ranges run over Jev, Liquid d1 and GPT-6 Luna Decisions. The examples are 497 MetaTool queries, 494 to 498 of the
-500 HotpotQA questions of the yes/no run and 160 to 192 ECtHR cases, each answered both as a list and as yes/no
+The ranges run over Jev, Liquid d1 and GPT-6 Luna Decisions. The examples are 497 MetaTool queries, 983 to 1,000 of the
+1,000 HotpotQA questions of the yes/no run and 160 to 192 ECtHR cases, each answered both as a list and as yes/no
 questions.
 
 | Claim of the review | Checked figure |
 |---|---|
 | At 0.25, list precision 0.80 to 0.96 | 0.80 to 0.96 |
 | At 0.25, list recall 0.51 to 0.67 | 0.51 to 0.67 |
-| At 0.25, yes/no recall 0.54 to 0.97 | 0.54 to 0.97 |
+| At 0.25, yes/no recall 0.54 to 0.97 | 0.52 to 0.97 |
 | At 0.50, list recall 0.37 to 0.48 | 0.37 to 0.48 |
 | At 0.50, yes/no recall 0.66 to 0.85 on MetaTool and 0.68 to 0.94 on ECtHR | 0.66 to 0.85 and 0.68 to 0.94 |
 | Models can rank reasonably well | Every correct choice is above every distractor in 52% to 85% of the lists (`docs/below_uniform.md`) |
@@ -28,7 +28,7 @@ questions.
 The list's recall at 0.50 is the highest correct choice of each example alone. Probabilities that sum to 1 cannot put
 two choices above 0.50. One correct choice per example gives a recall of 0.50 on MetaTool and HotpotQA, with 2 correct
 choices each, and of 0.44 on ECtHR, with 435 correct articles in the 192 cases that Jev and Liquid d1 answered. The recall of the correct choices other
-than the highest one is 0.00 at 0.50 for every model and dataset. At 0.25 it is 0.15 to 0.36 for the list, and 0.28 to
+than the highest one is 0.00 at 0.50 for every model and dataset. At 0.25 it is 0.15 to 0.35 for the list, and 0.25 to
 0.96 for yes/no. The table gives it as "Recall of the other correct choices".
 
 ## The review
