@@ -11,7 +11,7 @@ from the findings files of 2026-10-04 to 2026-10-19, which were deleted, and the
 | 2 | `paper/tables/threshold_detail.tex` | No script in `scripts/` or `src/` writes the table. `AGENTS.md` asks for every paper table to be built by code in the repository. | Remaining items of 2026-10-19, item 9 |
 | 3 | `paper/tables/sharapova_rubin_short.tex` | The bold dates and the ellipsis in place of Sharapova's Russian name are edits by hand (`paper/sections/introduction.tex:7`). Running `scripts/paper/paper_request.py` again overwrites them. Done: the file and the comment in the introduction say that the file is written by hand. | Review of 2026-10-19, row 12 |
 | 5 | Introduction, setup, related work | Their length, rows 5, 7, 9 and 10 of the review of 2026-10-19, is left for the cut later. | Remaining items of 2026-10-19, item 8 |
-| 13 | `paper/sections/limitations.tex:5` | "Three models, one day." The runs of the paper were sent on several days: the lists of identical copies on 2026-10-19, the yes/no questions on MetaTool on 2026-10-14 and most of those on HotpotQA on 2026-10-18. The section is in the paper since f33ea95. | Check of 2026-10-20 against f33ea95 |
+| 13 | `paper/sections/limitations.tex:5` | Done: the section is written as prose without this sentence. "Three models, one day." The runs of the paper were sent on several days: the lists of identical copies on 2026-10-19, the yes/no questions on MetaTool on 2026-10-14 and most of those on HotpotQA on 2026-10-18. The section is in the paper since f33ea95. | Check of 2026-10-20 against f33ea95 |
 
 ## Findings files
 
