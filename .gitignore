@@ -30,3 +30,12 @@ results/
 .DS_Store
 .idea/
 .vscode/
+
+# The built paper
+paper/*.pdf
+# Files that LaTeX and BibTeX write next to the paper
+paper/*.aux
+paper/*.log
+paper/*.blg
+paper/*.bbl
+paper/*.out

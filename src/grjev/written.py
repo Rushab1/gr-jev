@@ -1,0 +1,89 @@
+"""Requests written for the paper. A file holds the example it comes from, what was changed, and the request."""
+
+import re
+from collections.abc import Collection
+from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel
+
+from grjev.jev import ChoiceQuestion, JevRequest
+from grjev.report import latex
+
+# A run of Cyrillic words, with their stress marks. The paper typesets it with \cyrillic, in a font with these letters.
+CYRILLIC = re.compile(r"[\u0400-\u04FF\u0300-\u036F]+(?:\s+[\u0400-\u04FF\u0300-\u036F]+)*")
+
+
+# The characters outside ASCII that a table can hold, with the LaTeX that typesets them in the fonts of the paper.
+TYPESET = {
+    "–": "--",
+    "á": "\\'{a}",
+    "é": "\\'{e}",
+    "í": "\\'{\\i}",
+    "ó": "\\'{o}",
+    "ú": "\\'{u}",
+    "ñ": "\\~{n}",
+    "ü": '\\"{u}',
+}
+
+
+def typeset(text: str) -> str:
+    """Return text for a LaTeX table: commands escaped, and a run of Cyrillic words inside \\cyrillic.
+
+    Another character outside ASCII that has no entry in TYPESET raises an error, since the fonts would drop it.
+    """
+    escaped = latex(text)
+    unknown = sorted({char for char in CYRILLIC.sub("", escaped) if ord(char) > 127 and char not in TYPESET})
+    if unknown:
+        raise ValueError(f"no LaTeX for the characters {unknown}")
+    mapped = "".join(TYPESET.get(char, char) for char in escaped)
+    return CYRILLIC.sub(lambda run: f"\\cyrillic{{{run.group()}}}", mapped)
+
+
+class WrittenRequest(BaseModel):
+    """One written request: its source, the changes made to it, and the request without the model."""
+
+    source: str
+    written: str
+    request: dict[str, Any]
+
+
+def read_written(path: Path, model: str) -> JevRequest:
+    """Return the request of a file, addressed to the model."""
+    written = WrittenRequest.model_validate_json(path.read_bytes())
+    return JevRequest.model_validate(written.request | {"model": model})
+
+
+def shortened(text: str, cuts: Collection[str]) -> str:
+    """Return the text for a LaTeX table, ended with an ellipsis after the first of the phrases that it holds."""
+    ends = [text.index(cut) + len(cut) for cut in cuts if cut in text]
+    return typeset(text[: min(ends)]) + " \\ldots" if ends else typeset(text)
+
+
+def request_latex(
+    requests: list[JevRequest], only: Collection[str] = (), cuts: Collection[str] = (), titles: bool = True
+) -> str:
+    """Return a LaTeX tabular with the query of each request, and the instruction and the options that they share.
+
+    The options are those of the first list of the requests, or the named ones of them. The requests must hold the
+    same lists. An option that holds one of the phrases in cuts is shown up to the end of that phrase. Without
+    titles the tabular has one column: the queries, the instruction and the descriptions of the options.
+    """
+    lists = requests[0].questions
+    first = next(iter(lists.values()))
+    if any(request.questions != lists for request in requests) or not isinstance(first, ChoiceQuestion):
+        raise ValueError("the requests of one table hold the same lists, and the first is a list of options")
+    shown = {name: shortened(text or "", cuts) for name, text in first.criteria.items() if not only or name in only}
+    if not titles:
+        rows = [f"Question: {typeset(request.state)} \\\\" for request in requests]
+        rows += [f"Instruction: {typeset(first.instructions)} \\\\", "\\midrule"]
+        rows += [f"{text} \\\\" for text in shown.values()]
+        return (
+            "\n".join(["\\begin{tabular}{@{}p{\\linewidth}@{}}", "\\toprule", *rows, "\\bottomrule", "\\end{tabular}"])
+            + "\n"
+        )
+    rows = [f"Question & {typeset(request.state)} \\\\" for request in requests]
+    rows += [f"Instruction & {typeset(first.instructions)} \\\\", "\\midrule", "Title & Passage \\\\", "\\midrule"]
+    rows += [f"{typeset(name)} & {text} \\\\" for name, text in shown.items()]
+    top = ["\\begin{tabular}{@{}p{0.25\\linewidth}p{0.68\\linewidth}@{}}", "\\toprule"]
+    return "\n".join([*top, *rows, "\\bottomrule", "\\end{tabular}"]) + "\n"

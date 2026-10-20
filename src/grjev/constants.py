@@ -1,13 +1,16 @@
 """Every constant in the project: paths, URLs, hashes, model names, seeds and thresholds."""
 
+from fractions import Fraction
 from pathlib import Path
 
 # The package is installed in editable mode, so this file sits in <repo>/src/grjev/.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"
+RESULTS_DIR = REPO_ROOT / "results"
 
 HTTP_TIMEOUT_SECONDS = 60.0
 GITHUB_RAW_URL = "https://raw.githubusercontent.com"
+HUGGINGFACE_URL = "https://huggingface.co"
 
 JEV_URL = "https://api.typesafe.ai/v1/systemone"
 JEV_MODEL = "jev-1.13.0"
@@ -18,6 +21,61 @@ JEV_RETRY_STATUSES = (429, 503, 529)
 JEV_MAX_ATTEMPTS = 5
 JEV_BACKOFF_SECONDS = 2.0
 JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
+# Rushab's limit on the number of Jev calls. A run that would pass it does not start. Raise it only on his instruction.
+# Raised from 100 to 360 on 2026-10-05 for the first subset, to 651 on 2026-10-06 for the 300 calls of the wording
+# subset on StableToolBench, to 710 the same day for the 59 calls of the growth subset of 50 queries, and to 760 the
+# same day for the 50 calls of the reworded subset of the same 50 queries. Raised to 1,110 on 2026-10-06 for a second
+# run of the 300 requests of the wording subset and for 50 calls of the reworded subset with only the rewordings listed.
+# Raised to 1,160 on 2026-10-07 for 50 calls of the reworded subset with the rewordings in a seeded order, and to
+# 1,210 the same day for the 50 calls of the rotated subset. Raised to 1,510 on 2026-10-07 for MetaTool: a second run of
+# the 250 requests of the position subset, and the 50 calls of the rotated subset. Raised to 1,511 the same day for one
+# request that lists one API five times, and to 1,512 for a second such request. Raised to 1,612 the same day for the
+# copied subsets of MetaTool and StableToolBench, 50 calls each, and to 1,662 for the 50 calls of the absent subset of
+# MetaTool, to 1,712 for the 50 calls of its absent_random subset, and to 1,762 for the 50 calls of its unrelated
+# subset. Raised to 1,962 on 2026-10-08 for four subsets of MMLU with 50 calls each: own, copied, unrelated and
+# absent_random. Raised to 2,012 the same day for the 50 calls of the absent subset of MMLU. Raised to 5,000 on
+# 2026-10-09 on Rushab's instruction ("increase jev limit to 5k"), when single HotpotQA questions needed Jev calls.
+# Raised to 42,000 on 2026-10-11 for the runs on every example, which need 39,512: 2,723 saved calls and 36,789 new
+# ones. Claude Code proposed 42,000, and Rushab answered "you can cal jev". Raised to 51,839 on 2026-10-12 for the
+# 12,981 calls of the replaced run on mmlu_na, with 38,858 calls saved. Rushab: "increase man for jev no worries".
+# Raised to 52,336 on 2026-10-14 for the 497 calls of the yes/no run on MetaTool multi_tool, with 51,817 calls saved.
+# Rushab: "increase jev limit". Raised to 53,247 on 2026-10-18 for the 921 new calls of the yes/no run on the 1,000
+# HotpotQA questions of the copied run, with 52,326 calls saved. Rushab: "go for it". Raised to 53,277 on 2026-10-19 for
+# 30 calls that send 10 copied lists per dataset with random IDs as names, with 53,247 calls saved. Rushab: "send it".
+# Raised to 58,386 the same day for the 5,109 new calls of every copied list of MetaTool, HotpotQA and ECtHR with random
+# IDs as names, with 53,277 calls saved. Rushab: "run it now. increase eve limit as requeires".
+JEV_CALL_LIMIT = 58386
+# Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
+JEV_WORKERS = 8
+
+# Vercel AI Gateway serves other decision models through an API with the request and response of TypeSafe's.
+GATEWAY_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone"
+GATEWAY_KEY_ENV = "VERCEL_GATEWAY_API_KEY"
+GATEWAY_CACHE_DIR = DATA_DIR / "cache" / "gateway"
+LAYA_MODEL = "convaiinnovations/laya"
+D1_MODEL = "liquid/d1"
+LUNA_MODEL = "openai/gpt-6-luna-decisions"
+# The gateway takes no version of these models. A saved response holds the model name that the gateway returns.
+GATEWAY_MODELS = (LAYA_MODEL, D1_MODEL, LUNA_MODEL)
+# The name of a gateway model in the name of its results folders.
+RESULTS_MODEL_NAMES = {LAYA_MODEL: "laya", D1_MODEL: "d1", LUNA_MODEL: "gpt-6-luna-decisions"}
+# The name of a model in a document.
+MODEL_TITLES = {JEV_MODEL: "Jev", LAYA_MODEL: "Laya", D1_MODEL: "Liquid d1", LUNA_MODEL: "GPT-6 Luna Decisions"}
+# The colour of a model in a chart. The three colours of the report were checked on 2026-10-11 against the six
+# checks of a categorical palette on a white page, for colour-blind readers too.
+MODEL_COLORS = {JEV_MODEL: "#2a78d6", D1_MODEL: "#eb6834", LUNA_MODEL: "#1baf7a", LAYA_MODEL: "#8a6fd1"}
+# Laya on the gateway rejects a request when one of its tool lists is too long for the model, with one of these
+# statuses. Each list goes to Laya in a request of its own, and a rejected list is saved as rejected. On 2026-10-08
+# Laya answered a list of 16 APIs with descriptions (463 input tokens) and rejected the same list with 20.
+ONE_LIST_MODELS = (LAYA_MODEL,)
+REJECTED_STATUSES = (413, 422)
+# Prices on https://ai-gateway.vercel.sh/v1/models on 2026-10-08. Laya is free there through 2026-10-31.
+DOLLARS_PER_MILLION_INPUT_TOKENS = {JEV_MODEL: 0.042, LAYA_MODEL: 0.0, D1_MODEL: 0.04, LUNA_MODEL: 0.10}
+# The candidates of one request hold at most this many characters. The largest request of the 2026-10-05 subset had
+# 38,701 input tokens. Jev accepts 64,000 tokens per request.
+JEV_REQUEST_CHARACTERS = 120_000
+# A run logs its progress after this many answered requests.
+PROGRESS_EVERY = 500
 
 CLAUDE_CACHE_DIR = DATA_DIR / "cache" / "claude"
 CLAUDE_TIMEOUT_SECONDS = 300
@@ -91,11 +149,36 @@ STABLETOOLBENCH_SHA256 = {
     "G3_instruction.json": "f923d1a9452646bd1a415b266117d90675d0f8fc04cf014db58d3cd78c25634f",
 }
 
+# MMLU (Hendrycks et al., 2021), from the Hugging Face dataset cais/mmlu at this revision.
+MMLU_REVISION = "c30699e8356da336a370243923dbaf21066bb9fe"
+MMLU_BASE_URL = f"{HUGGINGFACE_URL}/datasets/cais/mmlu/resolve/{MMLU_REVISION}/"
+MMLU_RAW_DIR = DATA_DIR / "mmlu" / "raw"
+# The test questions of all 57 subjects in one file.
+MMLU_RAW_FILE = "all/test-00000-of-00001.parquet"
+MMLU_SHA256 = {MMLU_RAW_FILE: "74a41822ce7d3def56e1682f958469c04642a5336a5ce912fa375fdb90fb25d7"}
+
+# HotpotQA (Yang et al., 2018), distractor setting, from the Hugging Face dataset hotpotqa/hotpot_qa at this revision.
+HOTPOTQA_REVISION = "1908d6afbbead072334abe2965f91bd2709910ab"
+HOTPOTQA_BASE_URL = f"{HUGGINGFACE_URL}/datasets/hotpotqa/hotpot_qa/resolve/{HOTPOTQA_REVISION}/"
+HOTPOTQA_RAW_DIR = DATA_DIR / "hotpotqa" / "raw"
+HOTPOTQA_RAW_FILE = "distractor/validation-00000-of-00001.parquet"
+HOTPOTQA_SHA256 = {HOTPOTQA_RAW_FILE: "c20b638ca82b21d04fe12e14ff417ad05153d4d215a65de54497fca4e972f7c6"}
+
+# ECtHR Task A of LexGLUE (Chalkidis et al., 2022), from the Hugging Face dataset coastalcph/lex_glue at this revision.
+ECTHR_REVISION = "c23fdff1a6bf74e0e1a71cb86f1e781d37da888c"
+ECTHR_BASE_URL = f"{HUGGINGFACE_URL}/datasets/coastalcph/lex_glue/resolve/{ECTHR_REVISION}/"
+ECTHR_RAW_DIR = DATA_DIR / "ecthr" / "raw"
+ECTHR_RAW_FILE = "ecthr_a/test-00000-of-00001.parquet"
+ECTHR_SHA256 = {ECTHR_RAW_FILE: "e306383d3ffd3baec21ba7419c03a9d2273f1c0946cf2d5512cf98c81d1a3f8b"}
+
 BFCL_COMMIT = "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8"
 BFCL_BASE_URL = (
     f"{GITHUB_RAW_URL}/ShishirPatil/gorilla/{BFCL_COMMIT}/berkeley-function-call-leaderboard/bfcl_eval/data/"
 )
 BFCL_RAW_DIR = DATA_DIR / "bfcl" / "raw"
+# The folders, next to the test files, of the ground-truth files and of the function definition files.
+BFCL_ANSWER_DIR = "possible_answer"
+BFCL_FUNC_DOC_DIR = "multi_turn_func_doc"
 # The 20 BFCL v4 test files at BFCL_COMMIT, with their SHA-256.
 BFCL_TEST_SHA256 = {
     "BFCL_v4_format_sensitivity.json": "1e7ebd0ec441198d3f7d3b60be73d0c9eba54094d2c3731b830f5da7a2c63c19",
@@ -155,8 +238,8 @@ BFCL_FUNC_DOC_SHA256 = {
 }
 BFCL_SHA256 = (
     BFCL_TEST_SHA256
-    | {f"possible_answer/{name}": sha256 for name, sha256 in BFCL_ANSWER_SHA256.items()}
-    | {f"multi_turn_func_doc/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
+    | {f"{BFCL_ANSWER_DIR}/{name}": sha256 for name, sha256 in BFCL_ANSWER_SHA256.items()}
+    | {f"{BFCL_FUNC_DOC_DIR}/{name}": sha256 for name, sha256 in BFCL_FUNC_DOC_SHA256.items()}
 )
 
 METATOOL_PROCESSED_DIR = DATA_DIR / "metatool" / "processed"
@@ -171,6 +254,471 @@ METATOOL_TEST_FILES = {
 }
 # One line of the numbered tool list in a MetaTool prompt: the number and the tool name.
 METATOOL_TOOL_LINE = r"^(\d+)\. tool name: (.*?), tool description: "
+
+STABLETOOLBENCH_PROCESSED_DIR = DATA_DIR / "stabletoolbench" / "processed"
+# The six test files, named as in the raw download without ".json", in the order the dashboard shows them.
+STABLETOOLBENCH_TEST_FILES = (
+    "G1_instruction",
+    "G1_tool",
+    "G1_category",
+    "G2_instruction",
+    "G2_category",
+    "G3_instruction",
+)
+
+BFCL_PROCESSED_DIR = DATA_DIR / "bfcl" / "processed"
+
+MMLU_PROCESSED_DIR = DATA_DIR / "mmlu" / "processed"
+# The processed file with every test question, and the one with the questions whose choices can be moved, copied and
+# replaced: the 4 choices differ, and none refers to another choice.
+MMLU_TEST_FILE = "test"
+MMLU_STANDALONE_FILE = "test_standalone"
+MMLU_TEST_FILES = (MMLU_TEST_FILE, MMLU_STANDALONE_FILE)
+# A choice that matches this pattern, with upper and lower case taken as the same, refers to other choices.
+MMLU_REFERRING_CHOICE = (
+    r"\b(none|all|both|neither|either) of (the|these)|\b(above|the other)\b|^(I|II|III|IV)\b"
+    r"|\b(A|B|C|D) and (A|B|C|D)\b"
+)
+# MMLU in the protocol of Tam et al. (2025), kept as a dataset of its own: the test questions outside the subject that
+# the paper leaves out, with 4 different choices and no choice that already says "none of the above". The paper also
+# keeps only the questions that it labels as suited to "None of the above". It does not publish these labels.
+MMLU_NA_PROCESSED_DIR = DATA_DIR / "mmlu_na" / "processed"
+MMLU_NA_EXCLUDED_SUBJECT = "moral_scenarios"
+MMLU_NONE_NAME = "None of the above"
+HOTPOTQA_PROCESSED_DIR = DATA_DIR / "hotpotqa" / "processed"
+# The processed file with every validation question, and the one with the questions that have 10 passages.
+HOTPOTQA_TEST_FILE = "validation"
+HOTPOTQA_TEN_FILE = "validation_ten"
+HOTPOTQA_TEST_FILES = (HOTPOTQA_TEST_FILE, HOTPOTQA_TEN_FILE)
+HOTPOTQA_PASSAGES = 10
+
+# Support tickets for the team question of TypeSafe's documentation of the Choice question. The file holds TypeSafe's
+# example request with its documented answer, and issues that Claude Opus 5.5 wrote for the three teams of that
+# question. No file is downloaded for this dataset.
+TICKETS_FILE = Path(__file__).parent / "stimuli" / "tickets.json"
+TICKETS_PROCESSED_DIR = DATA_DIR / "tickets" / "processed"
+# Requests written for the paper, one file each: the example a request comes from, what was changed in it, and the
+# request without its model. `scripts/run/written_request.py` sends one.
+WRITTEN_REQUESTS_DIR = REPO_ROOT / "scripts" / "run" / "requests"
+# The processed files: tickets with two issues for two teams in both orders, the same issues one per ticket, and the
+# ticket of TypeSafe's example, which names an issue for each of the three teams.
+TICKETS_TWO_FILE = "two_issues"
+TICKETS_ONE_FILE = "one_issue"
+TICKETS_EXAMPLE_FILE = "typesafe_example"
+TICKETS_TEST_FILES = (TICKETS_TWO_FILE, TICKETS_ONE_FILE, TICKETS_EXAMPLE_FILE)
+# TypeSafe's example code notifies a second team whose probability is above this value.
+SECOND_TEAM_PROBABILITY = 0.25
+# The second correct option is renormalised on the examples whose options other than the top correct one hold at
+# least this probability. Jev and GPT-6 Luna Decisions return probabilities with 2 decimals, and a smaller
+# remainder is within a few rounding steps of 0.01.
+RENORMALISED_REST = 0.1
+
+ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
+# The processed file with every test case, and the one with the cases that have a violated article.
+ECTHR_TEST_FILE = "test"
+ECTHR_VIOLATED_FILE = "test_violated"
+ECTHR_TEST_FILES = (ECTHR_TEST_FILE, ECTHR_VIOLATED_FILE)
+# The 10 articles of the European Convention on Human Rights that a case is labelled with, in the order of the label
+# numbers of LexGLUE, each with its title in the Convention.
+ECTHR_ARTICLES = (
+    ("Article 2", "Right to life"),
+    ("Article 3", "Prohibition of torture"),
+    ("Article 5", "Right to liberty and security"),
+    ("Article 6", "Right to a fair trial"),
+    ("Article 8", "Right to respect for private and family life"),
+    ("Article 9", "Freedom of thought, conscience and religion"),
+    ("Article 10", "Freedom of expression"),
+    ("Article 11", "Freedom of assembly and association"),
+    ("Article 14", "Prohibition of discrimination"),
+    ("Article 1 of Protocol 1", "Protection of property"),
+)
+# A raw test file is named BFCL_FILE_PREFIX, the test file's name and ".json". Its ground truth has the same file
+# name in the folder BFCL_ANSWER_DIR.
+BFCL_FILE_PREFIX = "BFCL_v4_"
+# A single-turn file whose correct output has no call, and the one that accepts any call. Neither kind has a
+# ground-truth file.
+BFCL_NO_CALL_FILES = ("irrelevance", "live_irrelevance")
+BFCL_ANY_CALL_FILES = ("live_relevance",)
+BFCL_SINGLE_TURN_FILES = (
+    "simple_python",
+    "simple_java",
+    "simple_javascript",
+    "multiple",
+    "parallel",
+    "parallel_multiple",
+    "irrelevance",
+    "live_simple",
+    "live_multiple",
+    "live_parallel",
+    "live_parallel_multiple",
+    "live_irrelevance",
+    "live_relevance",
+)
+BFCL_MULTI_TURN_FILES = (
+    "multi_turn_base",
+    "multi_turn_miss_func",
+    "multi_turn_miss_param",
+    "multi_turn_long_context",
+)
+# The two agentic files. Their answers are text, and a row names API classes instead of listing functions.
+BFCL_WEB_SEARCH_FILE = "web_search"
+BFCL_MEMORY_FILE = "memory"
+# Every test file that has examples, in the order the dashboard shows them. format_sensitivity lists ids of examples
+# in other files.
+BFCL_TEST_FILES = (*BFCL_SINGLE_TURN_FILES, *BFCL_MULTI_TURN_FILES, BFCL_WEB_SEARCH_FILE, BFCL_MEMORY_FILE)
+# API class named by a multi-turn or web search row -> the file in BFCL_FUNC_DOC_DIR that defines its functions.
+BFCL_CLASS_DOCS = {
+    "GorillaFileSystem": "gorilla_file_system.json",
+    "MathAPI": "math_api.json",
+    "MessageAPI": "message_api.json",
+    "TwitterAPI": "posting_api.json",
+    "TicketAPI": "ticket_api.json",
+    "TradingBot": "trading_bot.json",
+    "TravelAPI": "travel_booking.json",
+    "VehicleControlAPI": "vehicle_control.json",
+    "WebSearchAPI": "web_search.json",
+}
+# BFCL runs a memory row once on each memory backend. Backend -> the file in BFCL_FUNC_DOC_DIR with its functions.
+BFCL_MEMORY_DOCS = {"kv": "memory_kv.json", "vector": "memory_vector.json", "rec_sum": "memory_rec_sum.json"}
+# Where a model that only selects could take a parameter value from, in the order the sources are tried. A value
+# with none of them is "other".
+BFCL_VALUE_SOURCES = ("query", "boolean", "schema", "left_out", "description", "other")
+# The names BFCL's function definitions use for the true-or-false type, in lower case.
+BFCL_BOOLEAN_TYPES = ("boolean", "bool")
+
+# Experiment -> dataset -> the test files it sends, in order. "position" sends every example in the released order and
+# with its correct tools at each placement. "length" sends each different one-tool query with lists of several lengths.
+# "wording" sends every example with one tool list and each wording of the instruction for several correct tools.
+# "growth" sends every example with its tool list and with random other tools added up to several list lengths.
+# "reworded" sends every example with a list that holds only rewordings of one of its correct tools.
+# "rotated" sends that list in every rotation of the order in which the rewordings are written.
+# "copied" sends every example with a list of copies of one of its correct tools, in every rotation. "copied_spaced"
+# does the same with copies whose names differ only by extra spaces, as the copied runs of 2026-10-11 did. Their
+# results folders say "copied".
+# "absent" sends every example with a list that has no correct tool: other tools of the example and "None", in every
+# rotation. "absent_random" does the same with random tools of the dataset that are not in the list of the example.
+# "unrelated" sends every example with a list of such random tools and without "None", in every rotation.
+# "own" sends every example with its own list in every rotation.
+# The MetaTool test files whose examples have a correct tool to reword.
+METATOOL_REWORDED_FILES = ("similar_tools", "scenario", "multi_tool")
+COPIED_TEST_FILES = {
+    "metatool": METATOOL_REWORDED_FILES,
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "mmlu": (MMLU_STANDALONE_FILE,),
+    "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    "ecthr": (ECTHR_VIOLATED_FILE,),
+}
+EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
+    "position": {"metatool": ("similar_tools", "scenario", "multi_tool", "reliability")},
+    "length": {"metatool": ("similar_tools", "scenario")},
+    "wording": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "growth": {"stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "reworded": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "rotated": {"metatool": METATOOL_REWORDED_FILES, "stabletoolbench": STABLETOOLBENCH_TEST_FILES},
+    "copied": COPIED_TEST_FILES,
+    "copied_spaced": COPIED_TEST_FILES,
+    "absent": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,), "hotpotqa": (HOTPOTQA_TEN_FILE,)},
+    # "replaced" sends the list of the example, and the list with "None" in the place of the correct option and of
+    # one other option, in the order of the example.
+    "replaced": {"mmlu_na": (MMLU_TEST_FILE,)},
+    "absent_random": {
+        "metatool": ("similar_tools",),
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    },
+    "unrelated": {
+        "metatool": METATOOL_REWORDED_FILES,
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEN_FILE,),
+    },
+    "own": {"mmlu": (MMLU_STANDALONE_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+    # "distractors" lists options of the example that are not correct, with no correct option and no "None".
+    "distractors": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
+    # "removal" sends the list of the example, the list without each correct option, and the list without all of them.
+    "removal": {
+        "metatool": ("multi_tool",),
+        "hotpotqa": (HOTPOTQA_TEST_FILE,),
+        "ecthr": (ECTHR_VIOLATED_FILE,),
+        "tickets": TICKETS_TEST_FILES,
+    },
+    # "with_none" sends the list of the example with the "None" candidate added.
+    "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
+    # "yes_no" asks one yes/no question about each option of the example, and no list.
+    "yes_no": {"metatool": ("multi_tool",), "hotpotqa": (HOTPOTQA_TEST_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+}
+# Dataset -> test files whose benchmark lets the model answer that no tool applies. Their lists end with this candidate.
+NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
+    "metatool": ("similar_tools", "scenario", "reliability"),
+    "stabletoolbench": (),
+    "mmlu": (),
+    "mmlu_na": (),
+    "hotpotqa": (),
+    "ecthr": (),
+    "tickets": (),
+}
+NONE_NAME = "None"
+NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
+# Dataset -> the name and the description of its "None" candidate, where the options are not tools.
+NONE_CANDIDATES = {
+    "mmlu": (MMLU_NONE_NAME, ""),
+    "mmlu_na": (MMLU_NONE_NAME, ""),
+    "hotpotqa": ("None of the passages", "No passage in the list supports the answer to the question."),
+    "ecthr": ("None of these articles", "The Court found no violation of an article in the list."),
+}
+# Dataset -> the instruction of every list of the dataset, where the options are not tools. The labels of HotpotQA
+# mark the passages that support the answer, and those of ECtHR the articles that the Court found violated.
+DATASET_INSTRUCTIONS = {
+    "mmlu": "Choose the correct answer to the question.",
+    "mmlu_na": "Choose the correct answer to the question.",
+    "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
+    "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+    # The instruction of the team question of TypeSafe's example, unchanged.
+    "tickets": "Which team should handle this?",
+}
+# Dataset -> other wordings of its instruction by name. A "removal" run sends the list of the example with each.
+REMOVAL_WORDINGS = {
+    "hotpotqa": {
+        "may": "Choose every passage in the list that may support the answer to the question.",
+        "definitely": "Choose every passage in the list that definitely supports the answer to the question.",
+    },
+}
+# The instruction of the lists of a "removal" run on a dataset of tools. It does not say how many tools are correct.
+REMOVAL_TOOL_INSTRUCTIONS = "Choose every tool in the list that is needed to solve the user's query."
+# Dataset -> the yes/no question about one option, which is followed by the option.
+YES_NO_QUESTIONS = {
+    "metatool": "Is this tool needed to solve the user's query? Tool:",
+    "hotpotqa": "Does this passage support the answer to the question? Passage:",
+    "ecthr": "Did the European Court of Human Rights find a violation of this article in this case? Article:",
+}
+YES_NO_EXPERIMENT = "yes_no"
+# The names of the lists of a "removal" run: the list of the example, the list without correct option number n, and
+# the list without every correct option.
+FULL_LIST = "full"
+WITHOUT_LIST = "without"
+WITHOUT_ALL_LIST = "without_all"
+# Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
+# its k highest-probability tools.
+SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
+    "metatool": ("multi_tool",),
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "mmlu": (),
+    "mmlu_na": (),
+    "hotpotqa": HOTPOTQA_TEST_FILES,
+    "ecthr": ECTHR_TEST_FILES,
+    "tickets": TICKETS_TEST_FILES,
+}
+ONE_TOOL_INSTRUCTIONS = (
+    "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
+)
+# The wordings of the instruction for two tools that are compared, by name, and the one a run uses by default.
+TWO_TOOL_INSTRUCTIONS = {
+    "one": "Two tools in the list are appropriate to solve the user's query. Choose one of them.",
+    "both": "Two tools in the list are appropriate to solve the user's query. Choose both.",
+}
+TWO_TOOL_WORDING = "one"
+# The "wording" experiment. Name of a wording -> an instruction that states the number of correct tools, written as a
+# word in place of {number}. These wordings are sent for a query with two or more correct tools.
+COUNTED_OPENING = "{number} tools in the list are appropriate to solve the user's query."
+COUNTED_WORDINGS = {
+    "one": f"{COUNTED_OPENING} Choose one of them.",
+    "all": f"{COUNTED_OPENING} Choose all of them.",
+    "equal": f"{COUNTED_OPENING} Choose all of them with equal probability.",
+}
+# Name of a wording -> an instruction that does not state the number of correct tools. It is sent for every query.
+UNCOUNTED_WORDINGS = {"every": "Choose every tool in the list that is needed to solve the user's query."}
+NUMBER_WORDS = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six"}
+# In the "wording" experiment a list with fewer tools than this gets random other tools of the dataset added.
+PADDED_LIST_TOOLS = 5
+# The "growth" experiment. Dataset -> the list lengths that the padded list of an example is grown to with random
+# other tools of the dataset.
+GROWTH_LENGTHS = {"stabletoolbench": (20, 50, 100, 199)}
+# The wordings that the "growth" experiment sends with every list.
+GROWTH_WORDINGS = ("all", "every")
+# The name of the padded list of an example before it is grown.
+OWN_LIST = "own"
+# The other lists of a "replaced" run, after Tam et al. (2025): "None" in the place of the correct option, and "None"
+# in the place of one option that is not correct, chosen with the seed.
+NONE_AS_ANSWER_LIST = "none_as_answer"
+NONE_AS_DISTRACTOR_LIST = "none_as_distractor"
+# The "reworded" experiment. One correct tool of a query is chosen with the seed, and the list that is sent holds only
+# rewordings of its name and description, in a seeded order. Dataset -> the file of rewordings: the name of a tool ->
+# its 5 rewordings. Claude Opus 5.5 wrote them on 2026-10-06 and 2026-10-07. A rewording of a StableToolBench API
+# keeps the category and the tool of the name, and rewords the API name and the description. A blank description stays
+# blank. A rewording of a MetaTool tool rewords the name and the description.
+REWORDINGS_FILES = {
+    "metatool": Path(__file__).parent / "rewordings" / "metatool.json",
+    "stabletoolbench": Path(__file__).parent / "rewordings" / "stabletoolbench.json",
+}
+# The experiments whose lists hold only rewordings or copies of one tool. Every entry is correct, and "None" is not
+# offered.
+REWORDING_EXPERIMENTS = ("reworded", "rotated", "copied", "copied_spaced")
+# The "copied" experiment lists one correct tool this many times. The copies are named by random IDs of this many of
+# these characters, and each description holds the tool's name and description.
+COPIED_TOOLS = 5
+COPY_ID_LENGTH = 4
+COPY_ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+# The "absent" experiments list this many tools that are not correct, and "None" with them. An MMLU question has 3
+# choices that are not correct, and its "absent" list holds the 3.
+ABSENT_LIST_TOOLS = 4
+# The experiments whose lists do not get "None" added at the end: the lists of rewordings and of copies, and the
+# "absent" lists, which hold "None" at a place of its own, and the "unrelated" lists, which offer no "None".
+NO_ADDED_NONE_EXPERIMENTS = (
+    *REWORDING_EXPERIMENTS,
+    "absent",
+    "absent_random",
+    "unrelated",
+    "distractors",
+    "removal",
+    "with_none",
+)
+# The "unrelated" experiment lists this many random tools, as many as the "copied" experiment lists copies.
+UNRELATED_TOOLS = 5
+REWORDED_INSTRUCTIONS = "Pick all the tools in the list that are relevant to the task at hand."
+# The name of the list that holds the rewordings.
+REWORDED_LIST = "reworded"
+# The "rotated" experiment names a list by this and the number of places its rewordings are moved towards the start.
+ROTATED_LIST = "rotated"
+# Dataset -> the list lengths of the "length" experiment. MetaTool has 199 tools, so its last list holds every tool.
+LIST_LENGTHS = {"metatool": (5, 10, 20, 50, 100, 199)}
+# The name of the order in which a test file lists the tools.
+RELEASED_ORDER = "released"
+# Name of a placement -> how far down the list the correct tool goes: the share of the positions after the first.
+PLACEMENTS = {
+    "first": Fraction(0),
+    "quarter": Fraction(1, 4),
+    "middle": Fraction(1, 2),
+    "three_quarters": Fraction(3, 4),
+    "last": Fraction(1),
+}
+# The pairs of placements used for two correct tools with distractors between them.
+SEPARATED_PLACEMENTS = (("first", "last"), ("first", "middle"), ("middle", "last"))
+# The placement rule is decided for lists of at least this many tools, with at most this many correct tools.
+PLACEMENT_MIN_TOOLS = 5
+PLACEMENT_MAX_CORRECT = 2
+# Seed of the order of the distractors, and of which of two correct tools comes first.
+ORDER_SEED = 2026
+
+# A bootstrap interval resamples the examples this many times from this seed, and leaves this share of the resampled
+# means outside at each end, which gives a 95% interval.
+BOOTSTRAP_RESAMPLES = 2000
+BOOTSTRAP_SEED = 1
+INTERVAL_TAIL = Fraction(1, 40)
+# An answer counts as confident in the figures of a run when its highest probability is at least this. It is the
+# value at which arXiv 2609.26550 counts. Rushab has not decided the threshold.
+CONFIDENT_PROBABILITY = 0.9
+# The figures of the probability distribution round a probability to this many decimals first. Jev returns values
+# such as 0.33999999999999997 for 0.34, which would hide a tie.
+PROBABILITY_DECIMALS = 6
+# The expected calibration error puts the answers in this many bins of equal width by confidence.
+ECE_BINS = 10
+# A yes/no answer counts as yes when its probability of yes is at least this.
+YES_PROBABILITY = 0.5
+# The edges of the bins of the probability of yes, for the calibration of the yes/no answers to examples with two or
+# more labels. A bin holds the probabilities above its lower edge up to its upper edge, and the first bin also holds 0.
+# Rushab, 2026-10-15: 10 bins of width 0.1, as for ECE, in place of 5 bins that each held 50 or more answers.
+YES_BIN_EDGES = tuple(step / 10 for step in range(11))
+# The yes/no ECE is also given without this many bins from 0. Rushab, 2026-10-18: the bin from 0.0 to 0.1 holds 46% to
+# 78% of the yes/no answers, most of them about distractors, and it sets the size of the ECE over every bin.
+YES_ECE_SKIPPED_BINS = 1
+# A table of runs lists the positions of a list that has fewer options than this. Rushab, 2026-10-08: "only if choice
+# set is less than 10".
+POSITIONS_SHOWN_BELOW = 10
+# The runs of `docs/paper_plan.md`, each as the arguments of scripts/run/run_experiment.py: the experiment, the dataset,
+# and the test files or the sample where the run does not send every example of the experiment. MMLU is run on
+# 1,000 questions, and so are the HotpotQA runs with 5 cyclic permutations and the HotpotQA run with "None". The
+# HotpotQA yes/no control is run on the 1,000 questions of the copied run, and the MetaTool one on the 497 multi-tool
+# queries.
+PAPER_RUNS: tuple[tuple[str, ...], ...] = (
+    ("copied", "metatool"),
+    ("copied_spaced", "mmlu", "--examples", "1000"),
+    ("copied", "hotpotqa", "--examples", "1000"),
+    ("copied", "ecthr"),
+    ("rotated", "metatool"),
+    ("position", "metatool", "--test-files", "similar_tools", "scenario", "reliability"),
+    ("own", "mmlu", "--examples", "1000"),
+    ("position", "metatool", "--test-files", "multi_tool"),
+    ("position", "metatool", "--test-files", "multi_tool", "--two-tool-wording", "both"),
+    ("removal", "metatool"),
+    ("removal", "hotpotqa"),
+    ("removal", "ecthr"),
+    ("own", "ecthr"),
+    ("unrelated", "metatool"),
+    ("unrelated", "mmlu", "--examples", "1000"),
+    ("unrelated", "hotpotqa", "--examples", "1000"),
+    ("distractors", "metatool"),
+    ("distractors", "mmlu", "--examples", "1000"),
+    ("absent_random", "metatool"),
+    ("absent_random", "mmlu", "--examples", "1000"),
+    ("absent_random", "hotpotqa", "--examples", "1000"),
+    ("absent", "mmlu", "--examples", "1000"),
+    ("absent", "hotpotqa", "--examples", "1000"),
+    ("with_none", "ecthr"),
+    ("yes_no", "metatool"),
+    ("yes_no", "hotpotqa", "--test-files", HOTPOTQA_TEN_FILE, "--examples", "1000"),
+    ("yes_no", "ecthr"),
+    ("removal", "tickets"),
+)
+# The definitions of the tables of runs: the title, the text and the rows of each table.
+TABLES_DIR = REPO_ROOT / "scripts" / "definitions"
+# The LaTeX tables of the paper, written by scripts/paper/paper_tables.py.
+PAPER_TABLES_DIR = REPO_ROOT / "paper" / "tables"
+# The figures of the paper, written by scripts/report/threshold_charts.py and scripts/report/reliability_chart.py.
+PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
+# The runs of the lists with several correct options in paper_runs.json, by dataset: the label of the row, and the
+# list of the run with the options in the released order. scripts/report/below_uniform.py reads them.
+UNIFORM_DEFINITION = "paper_runs"
+UNIFORM_RUNS = {
+    "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
+    "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
+    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", f"{ROTATED_LIST}_0"),
+}
+# The datasets whose rows are also counted by the number of labels of the example.
+UNIFORM_BY_LABELS = ("ECtHR",)
+# The yes/no run of each dataset of UNIFORM_RUNS in paper_runs.json, by the label of its row. scripts/report/
+# threshold_charts.py compares the list of UNIFORM_RUNS with these yes/no questions on the same examples.
+THRESHOLD_YES_NO_RUNS = {
+    "MetaTool": "MetaTool: a yes/no question per tool",
+    "HotpotQA": "HotpotQA: a yes/no question per passage",
+    "ECtHR": "ECtHR: a yes/no question per article",
+}
+# The run of each dataset of UNIFORM_RUNS in paper_runs.json with five identical copies of one correct choice, by the
+# label of its row.
+COPIES_RUNS = {
+    "MetaTool": "MetaTool: 5 duplicates of one correct tool",
+    "HotpotQA": "HotpotQA: 5 duplicates of one supporting passage",
+    "ECtHR": "ECtHR: 5 duplicates of one violated article",
+}
+# The table of the appendix made by scripts/paper/paper_intervals.py: the 95% bootstrap intervals of the main figures
+# of the paper, as a LaTeX file in PAPER_TABLES_DIR.
+INTERVALS_PAPER_TABLE = "intervals"
+# The thresholds of the charts, from 0 to 1 in steps of 0.01, and those of the table under them.
+THRESHOLD_STEPS = 100
+THRESHOLDS_TABLED = (0.1, 0.25, 0.5)
+# The width of a threshold chart and the height of each of its rows, in inches: on a page of docs/, and across the two
+# columns of the paper.
+THRESHOLD_PAGE_SIZE = (13.0, 3.6)
+THRESHOLD_PAPER_SIZE = (6.3, 1.9)
+# The ticks of both axes of every threshold chart, the major ones labelled and the minor ones not.
+THRESHOLD_MAJOR_TICKS = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+THRESHOLD_MINOR_TICKS = (0.1, 0.3, 0.5, 0.7, 0.9)
+# The figures of the paper made by scripts/report/threshold_charts.py --paper, each a PDF file in PAPER_FIGURES_DIR
+# with the measures of src/grjev/thresholds.py that it draws: exact set accuracy.
+THRESHOLD_PAPER_FIGURES = {
+    "exact_set": ("Exact set accuracy",),
+}
+# The table of the paper made by scripts/report/threshold_charts.py --paper: the best exact set accuracy over the
+# thresholds, list against yes/no, as a LaTeX file in PAPER_TABLES_DIR.
+THRESHOLD_PAPER_TABLE = "thresholds"
+# The table of the appendix made by the same script: for each model, dataset and form, the threshold with the highest
+# exact set accuracy, the measures at that threshold and the best F1.
+THRESHOLD_PAPER_DETAIL_TABLE = "threshold_detail"
+# The width of the reliability diagram of the yes/no answers and the heights of its two rows, the diagram and its
+# distance from the diagonal, in inches: on a page of docs/, and across the two columns of the paper.
+RELIABILITY_PAGE_SIZE = (13.0, (4.0, 2.4))
+RELIABILITY_PAPER_SIZE = (6.3, (2.0, 1.2))
+# The resolution of every figure, in dots per inch: the pixels of a PNG and of any raster part of a PDF. Rushab asked
+# for 600 dpi on 2026-10-19.
+FIGURE_DPI = 600
 
 # The tool list of a processed dataset. Every other .jsonl file in the folder is a test file.
 TOOLS_FILE_NAME = "tools.jsonl"
@@ -202,9 +750,31 @@ DOWNLOADS = {
     "metatool": (METATOOL_BASE_URL, METATOOL_SHA256, METATOOL_RAW_DIR),
     "stabletoolbench": (STABLETOOLBENCH_BASE_URL, STABLETOOLBENCH_SHA256, STABLETOOLBENCH_RAW_DIR),
     "bfcl": (BFCL_BASE_URL, BFCL_SHA256, BFCL_RAW_DIR),
+    "mmlu": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
+    "mmlu_na": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
+    "hotpotqa": (HOTPOTQA_BASE_URL, HOTPOTQA_SHA256, HOTPOTQA_RAW_DIR),
+    "ecthr": (ECTHR_BASE_URL, ECTHR_SHA256, ECTHR_RAW_DIR),
 }
 
 # Dataset name -> where its files in the common format are written.
-PROCESSED_DIRS = {"metatool": METATOOL_PROCESSED_DIR}
+PROCESSED_DIRS = {
+    "metatool": METATOOL_PROCESSED_DIR,
+    "stabletoolbench": STABLETOOLBENCH_PROCESSED_DIR,
+    "bfcl": BFCL_PROCESSED_DIR,
+    "mmlu": MMLU_PROCESSED_DIR,
+    "mmlu_na": MMLU_NA_PROCESSED_DIR,
+    "hotpotqa": HOTPOTQA_PROCESSED_DIR,
+    "ecthr": ECTHR_PROCESSED_DIR,
+    "tickets": TICKETS_PROCESSED_DIR,
+}
 # Dataset name -> its test files, in the order they are shown.
-TEST_FILES = {"metatool": tuple(METATOOL_TEST_FILES)}
+TEST_FILES = {
+    "metatool": tuple(METATOOL_TEST_FILES),
+    "stabletoolbench": STABLETOOLBENCH_TEST_FILES,
+    "bfcl": BFCL_TEST_FILES,
+    "mmlu": MMLU_TEST_FILES,
+    "mmlu_na": (MMLU_TEST_FILE,),
+    "hotpotqa": HOTPOTQA_TEST_FILES,
+    "ecthr": ECTHR_TEST_FILES,
+    "tickets": TICKETS_TEST_FILES,
+}

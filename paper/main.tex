@@ -1,0 +1,88 @@
+% Outline of the short paper: each section holds its main points as bullets, to be written as prose by the author.
+% Each section is a file in sections/. The tables in tables/ are written by scripts/paper/paper_tables.py. A prose draft of 2026-10-11 is in the commit 7e98cbc.
+%
+% Build: tectonic paper/main.tex
+% Style: acl.sty and acl_natbib.bst, the ACL style files, downloaded on 2026-10-12 from
+% https://github.com/acl-org/acl-style-files at the commit d5adc823ff0f80f98c80405ca0ab66c68e684409. The preamble
+% follows acl_latex.tex of that commit. The format is two columns on A4. formatting.md of that commit gives a short
+% paper up to 4 pages of content for review and 5 in the final version, plus the references, and in the final
+% version the acknowledgments. acl_latex.tex has an unnumbered Limitations section after the main text.
+%
+% The option of the style sets the version of the paper:
+%   preprint              the arXiv version, with the author shown and with page numbers (used now)
+%   review                an anonymous submission, with line numbers and page numbers
+%   final                 the camera-ready version, with the author shown and without page numbers (the default)
+\documentclass[11pt]{article}
+\usepackage[preprint]{acl}
+
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{placeins}
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+% Cyrillic text in a passage of a table. Times has no Cyrillic letters. FreeSerif is the Times design of GNU FreeFont.
+\DeclareFontFamily{TU}{cyr}{}
+\DeclareFontShape{TU}{cyr}{m}{n}{<-> "[FreeSerif.otf]"}{}
+\newcommand{\cyrillic}[1]{{\fontencoding{TU}\fontfamily{cyr}\selectfont #1}}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% Metadata
+% ---------------------------------------------------------------------------------------------------------------------
+% Author:          Rushab Munot, independent researcher, no affiliation
+% Contact:         to be decided
+% arXiv category:  cs.CL (to be confirmed)
+% Licence:         to be decided
+% Version, date:   draft of 2026-10-11
+% Code:            https://github.com/Rushab1/gr-jev
+% ---------------------------------------------------------------------------------------------------------------------
+
+\title{Decision-Model Probabilities Are Shares of a List,\\Not Probabilities That an Option Is Correct}
+
+\author{%
+  Rushab Munot \\
+  Independent Researcher \\
+  % \texttt{email to be decided} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\input{sections/introduction}
+
+\input{sections/setup}
+
+\input{sections/results}
+
+\input{sections/conclusion}
+
+\input{sections/limitations}
+
+% acl.sty sets the bibliography style acl_natbib.
+\bibliography{references}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\appendix
+
+\input{sections/appendix}
+
+\input{sections/availability}
+
+\end{document}

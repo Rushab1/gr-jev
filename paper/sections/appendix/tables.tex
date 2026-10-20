@@ -1,0 +1,25 @@
+\section{Removal of the highest correct choice}
+\label{app:tables}
+For each list with two or more correct choices, we sent the list again without the correct choice with the highest probability, and report the correct choice with the second highest probability. If the other choices kept their ratios, its probability after the removal would be its probability in the full list divided by one minus the probability of the removed choice (\emph{Renorm.}).
+
+\begin{table}[H]
+\caption{Mean probability of the second correct choice in the full list (\emph{Before}) and after the removal (\emph{After}).}
+\label{tab:removal}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/removal}}
+\end{table}
+
+\begin{table}[H]
+\caption{Mean probability of the second correct choice after renormalisation (\emph{Renorm.}) and after the removal (\emph{After$^*$}), on the examples in which the choices other than the removed one hold 0.1 or more.}
+\label{tab:removal-renormalised}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/removal_renormalised}}
+\end{table}
+
+% Figure~\ref{fig:reliability} belongs to Appendix~\ref{app:calibration}. It is set here to print on the page of that appendix.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/reliability}
+\caption{Reliability diagram of the yes/no questions on examples with two or more correct choices, in bins of width 0.1. Each point is at the mean probability of yes of its bin. Top: the observed frequency of correct choices. Bottom: the observed frequency minus the mean probability, in percentage points. The bars give the share of the answers in each bin, on a log scale.}
+\label{fig:reliability}
+\end{figure*}
