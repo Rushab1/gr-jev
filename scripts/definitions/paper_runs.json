@@ -282,58 +282,59 @@
    },
    "tables": [
     {
-     "caption": "Lists with no correct option. Without NOTA: the mean confidence on the lists the model answered, and the share of the lists that it refused. With NOTA: the share of predictions that select NOTA, the only correct option.",
+     "caption": "Lists with no correct option: the mean confidence on the lists the model answered.",
      "parts": [
       {
        "run": "MetaTool: 5 random tools, no \"None\"",
        "name": "MetaTool, 5 random tools",
        "columns": [
-        "Mean confidence",
-        "Lists refused"
+        "Mean confidence"
        ],
        "short": "MetaTool",
-       "group": "Without NOTA, random choices"
+       "group": "Random choices"
       },
       {
        "run": "HotpotQA: 5 random passages, no NOTA",
        "name": "HotpotQA, 5 random passages",
        "columns": [
-        "Mean confidence",
-        "Lists refused"
+        "Mean confidence"
        ],
        "short": "HotpotQA",
-       "group": "Without NOTA, random choices"
+       "group": "Random choices"
       },
       {
        "run": "MetaTool: 4 distractors of the example, no \"None\"",
        "name": "MetaTool, 4 distractors",
        "columns": [
-        "Mean confidence",
-        "Lists refused"
+        "Mean confidence"
        ],
        "short": "MetaTool",
-       "group": "Without NOTA, the example's own"
+       "group": "The example's own"
       },
       {
        "run": "HotpotQA: the passages without the supporting passages",
        "name": "HotpotQA, no supporting passage",
        "columns": [
-        "Mean confidence",
-        "Lists refused"
+        "Mean confidence"
        ],
        "short": "HotpotQA",
-       "group": "Without NOTA, the example's own"
+       "group": "The example's own"
       },
       {
        "run": "ECtHR: cases with no violated article, no NOTA",
        "name": "ECtHR, no violated article",
        "columns": [
-        "Mean confidence",
-        "Lists refused"
+        "Mean confidence"
        ],
        "short": "ECtHR",
-       "group": "Without NOTA, the example's own"
-      },
+       "group": "The example's own"
+      }
+     ],
+     "file": "abstention"
+    },
+    {
+     "caption": "Lists with no correct option and NOTA: the share of predictions that select NOTA, the only correct option.",
+     "parts": [
       {
        "run": "MetaTool: 4 random tools and \"None\"",
        "name": "MetaTool, 4 random tools and \"None\"",
@@ -341,7 +342,7 @@
         "Predictions of none of the above"
        ],
        "short": "MetaTool",
-       "group": "With NOTA, random choices"
+       "group": "Random choices"
       },
       {
        "run": "HotpotQA: 4 random passages and NOTA",
@@ -350,7 +351,7 @@
         "Predictions of none of the above"
        ],
        "short": "HotpotQA",
-       "group": "With NOTA, random choices"
+       "group": "Random choices"
       },
       {
        "run": "HotpotQA: 4 distractors of the question and NOTA",
@@ -359,7 +360,7 @@
         "Predictions of none of the above"
        ],
        "short": "HotpotQA",
-       "group": "With NOTA, the example's own"
+       "group": "The example's own"
       },
       {
        "run": "ECtHR: the 10 articles and NOTA, cases with no violated article",
@@ -368,10 +369,10 @@
         "Predictions of none of the above"
        ],
        "short": "ECtHR",
-       "group": "With NOTA, the example's own"
+       "group": "The example's own"
       }
      ],
-     "file": "abstention"
+     "file": "nota"
     }
    ]
   },
@@ -471,7 +472,7 @@
    ],
    "tables": [
     {
-     "caption": "Expected calibration error in percentage points, over ten bins of width 0.1. For lists with one correct option it uses the confidence. For the yes/no questions on examples with several correct options it uses the probability of yes, over every bin and without the bin from 0 to 0.1.",
+     "caption": "Expected calibration error in percentage points of the confidence on lists with one correct option, over ten bins of width 0.1.",
      "parts": [
       {
        "run": "MetaTool: one correct tool, the 6 orders of the list",
@@ -490,7 +491,13 @@
        ],
        "short": "ECtHR",
        "group": "One correct choice"
-      },
+      }
+     ],
+     "file": "calibration_one"
+    },
+    {
+     "caption": "Expected calibration error in percentage points of the probability of yes on the yes/no questions on examples with several correct options, over ten bins of width 0.1, over every bin and without the bin from 0 to 0.1.",
+     "parts": [
       {
        "run": "MetaTool: a yes/no question per tool",
        "name": "MetaTool, a yes/no question per tool",
@@ -581,7 +588,38 @@
        "name": "MetaTool, 2 correct tools",
        "columns": [
         "Second correct option in the full list",
-        "After the removal",
+        "After the removal"
+       ],
+       "short": "MetaTool"
+      },
+      {
+       "run": "HotpotQA: the second correct option before and after the removal",
+       "name": "HotpotQA, 2 supporting passages",
+       "columns": [
+        "Second correct option in the full list",
+        "After the removal"
+       ],
+       "short": "HotpotQA"
+      },
+      {
+       "run": "ECtHR: the second correct option before and after the removal",
+       "name": "ECtHR, 2 to 4 violated articles",
+       "columns": [
+        "Second correct option in the full list",
+        "After the removal"
+       ],
+       "short": "ECtHR"
+      }
+     ],
+     "file": "removal"
+    },
+    {
+     "caption": "The mean probability of the second correct option in the full list renormalised over the other options, and after removing the correct option with the highest probability, on the examples in which the other options hold 0.1 or more.",
+     "parts": [
+      {
+       "run": "MetaTool: the second correct option before and after the removal",
+       "name": "MetaTool, 2 correct tools",
+       "columns": [
         "Full list, renormalised",
         "After the removal, same examples"
        ],
@@ -591,8 +629,6 @@
        "run": "HotpotQA: the second correct option before and after the removal",
        "name": "HotpotQA, 2 supporting passages",
        "columns": [
-        "Second correct option in the full list",
-        "After the removal",
         "Full list, renormalised",
         "After the removal, same examples"
        ],
@@ -602,15 +638,13 @@
        "run": "ECtHR: the second correct option before and after the removal",
        "name": "ECtHR, 2 to 4 violated articles",
        "columns": [
-        "Second correct option in the full list",
-        "After the removal",
         "Full list, renormalised",
         "After the removal, same examples"
        ],
        "short": "ECtHR"
       }
      ],
-     "file": "removal"
+     "file": "removal_renormalised"
     }
    ]
   },

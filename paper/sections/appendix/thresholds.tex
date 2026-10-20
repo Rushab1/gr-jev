@@ -1,19 +1,10 @@
 \section{Selecting by a threshold}
 \label{app:thresholds}
-The examples are those of Table~\ref{tab:thresholds}. Precision, recall and F1 pool the choices of all examples. Table~\ref{tab:threshold-detail} gives each measure at the threshold with the highest exact set accuracy.
-
-\begin{table*}[t]
-\caption{For each model, dataset and setting: the threshold with the highest exact set accuracy (\emph{Threshold}), the exact set accuracy, precision and recall at that threshold, the share of examples with every correct choice above every distractor (\emph{Ranked}), the share of those examples whose set is exact at that threshold (\emph{Exact among ranked}), and the highest F1 over all thresholds, with its threshold in parentheses (\emph{Best F1}). \emph{List} uses the probabilities of the list and \emph{Yes/no} the probability of yes of each choice. The highest and the lowest value of each setting in the columns Threshold, Exact set accuracy and Exact among ranked are in bold.}
-\label{tab:threshold-detail}
-\centering
-\resizebox{\textwidth}{!}{\input{tables/threshold_detail}}
-\end{table*}
-
 For a yes/no question, a probability of yes below 0.5 is an answer of no. The thresholds that maximize the exact set accuracy of the yes/no questions are below 0.5 for 6 of the 9 models and datasets, and 0.13 or lower on HotpotQA. At 0.5, the exact set accuracy of the yes/no questions is 0.07 to 0.49 (Figure~\ref{fig:exact-set}).
 
-\begin{figure*}[h]
+\begin{table}[!htbp]
+\caption{The threshold with the highest exact set accuracy on the examples of Table~\ref{tab:thresholds} (\emph{Threshold}), the share of examples with every correct choice above every distractor (\emph{Ranked}), and the share of those examples whose set is exact at that threshold (\emph{Exact among ranked}). \emph{List} uses the probabilities of the list, and \emph{Yes/no} the probability of yes of each choice. The highest and the lowest value of each setting in the columns Threshold and Exact among ranked are in bold.}
+\label{tab:threshold-detail}
 \centering
-\includegraphics[width=\linewidth]{figures/exact_set}
-\caption{Exact set accuracy: the share of examples in which every correct choice is at or above the threshold $t$ and every distractor is below it. Above 0.50 the list curves are 0 by construction.}
-\label{fig:exact-set}
-\end{figure*}
+\resizebox{\linewidth}{!}{\input{tables/threshold_detail}}
+\end{table}

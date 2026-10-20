@@ -1,7 +1,7 @@
 """Independently check threshold and calibration figures in the paper."""
 
 import statistics
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from paper_support import PaperRuns, named_answers, paper_table_values
 
@@ -13,7 +13,7 @@ from grjev.constants import (
     UNIFORM_RUNS,
     YES_BIN_EDGES,
 )
-from grjev.tables import Selected
+from grjev.tables import Selected, TableSpec
 from grjev.thresholds import read_pairs
 
 
@@ -94,8 +94,14 @@ def independent_ece(pairs: Sequence[tuple[float, bool]], edges: Sequence[float],
 def test_calibration_table_uses_answer_weighted_bins_and_excludes_the_first_yes_bin(paper_runs: PaperRuns) -> None:
     """Recalculate ECE from the saved predictions for every calibration column."""
     spec, _, chosen = paper_runs
-    calibration = next(table for finding in spec.findings for table in finding.tables if table.file == "calibration")
-    actual = paper_table_values(spec, chosen, "calibration")
+    for file in ("calibration_one", "calibration"):
+        check_calibration(spec, chosen, file)
+
+
+def check_calibration(spec: TableSpec, chosen: Callable[[str, str], Selected], file: str) -> None:
+    """Compare the cells of one calibration table with ECE recalculated from the saved predictions."""
+    calibration = next(table for finding in spec.findings for table in finding.tables if table.file == file)
+    actual = paper_table_values(spec, chosen, file)
     for model in spec.models:
         expected: list[str] = []
         for part in calibration.parts:

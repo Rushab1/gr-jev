@@ -1,8 +1,23 @@
 \section{Lists with no correct choice}
 \label{app:abstention}
-\begin{table*}[t]
-\caption{Lists with no correct choice. Without NOTA (``none of the above''): the mean confidence on the lists the model answered (\emph{Conf.}), and the share of the lists that it refused. With NOTA: the share of predictions that select NOTA, the only correct choice.}
+% Figure~\ref{fig:exact-set} belongs to Appendix~\ref{app:thresholds}. It is set here to print on the page of that appendix.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/exact_set}
+\caption{Exact set accuracy: the share of examples in which every correct choice is at or above the threshold $t$ and every distractor is below it. Above 0.50 the list curves are 0 by construction.}
+\label{fig:exact-set}
+\end{figure*}
+
+\begin{table}[!htbp]
+\caption{Mean confidence on the answered lists with no correct choice and no ``none of the above'' choice (\emph{Conf.}). Appendix~\ref{app:refusals} counts the refused lists.}
 \label{tab:abstention}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/abstention}}
-\end{table*}
+\end{table}
+
+\begin{table}[!htbp]
+\caption{Share of predictions that select ``none of the above'', the only correct choice (\emph{Selected}).}
+\label{tab:nota}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/nota}}
+\end{table}

@@ -1,6 +1,7 @@
 """Independently check removal, abstention, and ticket figures in the paper."""
 
 import statistics
+from collections.abc import Callable
 
 from paper_support import PaperRuns, named_answers, paper_table_values
 
@@ -13,14 +14,28 @@ from grjev.constants import (
     WITHOUT_LIST,
 )
 from grjev.report import paper_cells
-from grjev.tables import uses
+from grjev.tables import Selected, TableSpec, uses
+
+# The removal columns of the paper tables, in the order the test computes them.
+REMOVAL_COLUMNS = (
+    "Second correct option in the full list",
+    "After the removal",
+    "Full list, renormalised",
+    "After the removal, same examples",
+)
 
 
 def test_removal_table_follows_the_second_correct_option_into_the_matching_list(paper_runs: PaperRuns) -> None:
     """Recalculate each before/after value, and the renormalised value, from the full and matching removal lists."""
     spec, _, chosen = paper_runs
-    table = next(table for finding in spec.findings for table in finding.tables if table.file == "removal")
-    actual = paper_table_values(spec, chosen, "removal")
+    for file in ("removal", "removal_renormalised"):
+        check_removal(spec, chosen, file)
+
+
+def check_removal(spec: TableSpec, chosen: Callable[[str, str], Selected], file: str) -> None:
+    """Compare the cells of one removal table with the values recalculated from the saved lists."""
+    table = next(table for finding in spec.findings for table in finding.tables if table.file == file)
+    actual = paper_table_values(spec, chosen, file)
     for model in spec.models:
         expected: list[str] = []
         for part in table.parts:
@@ -40,7 +55,8 @@ def test_removal_table_follows_the_second_correct_option_into_the_matching_list(
                     renormalised.append(full.probabilities[second] / rest)
                     kept.append(without.probabilities[second])
             assert before and len(before) == len(after), (part.run, model)
-            expected.extend(f"{statistics.fmean(values):.2f}" for values in (before, after, renormalised, kept))
+            values = dict(zip(REMOVAL_COLUMNS, (before, after, renormalised, kept), strict=True))
+            expected.extend(f"{statistics.fmean(values[column]):.2f}" for column in part.columns)
         assert actual[model] == expected, model
 
 

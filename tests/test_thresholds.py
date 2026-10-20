@@ -96,12 +96,12 @@ def test_an_example_is_ranked_when_every_correct_choice_is_above_every_distracto
 
 def test_the_detail_cells_are_read_at_the_threshold_with_the_highest_exact_set_accuracy() -> None:
     # At 0.04 only the first example of FOUND is exact. 8 choices are selected, 6 of them correct.
-    assert detail_cells(UNRANKED + FOUND) == ["0.04", "0.33", "0.67", "0.50", "0.75", "1.00", "0.86 (0.04)"]
+    assert detail_cells(UNRANKED + FOUND) == ["0.04", "0.67", "0.50"]
 
 
 def test_the_highest_and_the_lowest_value_of_a_bold_column_are_in_bold() -> None:
-    rows = [["0.02", "0.50", "0.70", "0.60"], ["0.05", "0.40", "0.80", "0.70"], ["0.02", "0.45", "0.90", "0.65"]]
+    rows = [["0.02", "0.70", "0.50"], ["0.05", "0.80", "0.40"], ["0.02", "0.90", "0.45"]]
     embolden(rows)
     assert [row[0] for row in rows] == [r"\textbf{0.02}", r"\textbf{0.05}", r"\textbf{0.02}"]
-    assert [row[1] for row in rows] == [r"\textbf{0.50}", r"\textbf{0.40}", "0.45"]
-    assert [row[2] for row in rows] == ["0.70", "0.80", "0.90"]
+    assert [row[1] for row in rows] == ["0.70", "0.80", "0.90"]
+    assert [row[2] for row in rows] == [r"\textbf{0.50}", r"\textbf{0.40}", "0.45"]
