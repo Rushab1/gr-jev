@@ -692,10 +692,8 @@ THRESHOLD_PAPER_SIZE = (6.3, 1.9)
 THRESHOLD_MAJOR_TICKS = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 THRESHOLD_MINOR_TICKS = (0.1, 0.3, 0.5, 0.7, 0.9)
 # The figures of the paper made by scripts/report/threshold_charts.py --paper, each a PDF file in PAPER_FIGURES_DIR
-# with the measures of src/grjev/thresholds.py that it draws. The reviewer of 2026-10-15 put the recall of the other
-# correct options in the main text, and exact set accuracy, precision, recall and F1 in the appendix.
+# with the measures of src/grjev/thresholds.py that it draws: exact set accuracy, and precision, recall and F1.
 THRESHOLD_PAPER_FIGURES = {
-    "other_recall": ("Recall of the other correct choices",),
     "exact_set": ("Exact set accuracy",),
     "threshold_measures": ("Precision", "Recall", "F1"),
 }
