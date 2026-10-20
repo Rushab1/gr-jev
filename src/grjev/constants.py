@@ -692,10 +692,9 @@ THRESHOLD_PAPER_SIZE = (6.3, 1.9)
 THRESHOLD_MAJOR_TICKS = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 THRESHOLD_MINOR_TICKS = (0.1, 0.3, 0.5, 0.7, 0.9)
 # The figures of the paper made by scripts/report/threshold_charts.py --paper, each a PDF file in PAPER_FIGURES_DIR
-# with the measures of src/grjev/thresholds.py that it draws: exact set accuracy, and precision, recall and F1.
+# with the measures of src/grjev/thresholds.py that it draws: exact set accuracy.
 THRESHOLD_PAPER_FIGURES = {
     "exact_set": ("Exact set accuracy",),
-    "threshold_measures": ("Precision", "Recall", "F1"),
 }
 # The table of the paper made by scripts/report/threshold_charts.py --paper: the best exact set accuracy over the
 # thresholds, list against yes/no, as a LaTeX file in PAPER_TABLES_DIR.
