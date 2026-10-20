@@ -58,7 +58,7 @@ The frontier models are Claude Sonnet 5 and Claude Opus 5, called through the `c
 
 `python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds the report of the runs on every example: one table per run, with the models as rows and the figures as columns. Its runs and text are in `scripts/definitions/paper_runs.json`, and `src/grjev/report.py` builds the page.
 
-`python scripts/paper/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results.
+`python scripts/paper/paper_tables.py paper_runs` writes the table of each finding of that report to `paper/tables/` as a LaTeX file, which `paper/main.tex` includes. Rebuild the tables after a change to the definition or to the results. `python scripts/paper/paper_intervals.py` writes `paper/tables/intervals.tex`: the 95% bootstrap intervals over the examples of the gap, the ranked and below-1/n shares, the gap of the identical copies and the best exact set accuracy, for the runs of `UNIFORM_RUNS`, `COPIES_RUNS` and `THRESHOLD_YES_NO_RUNS`. The code is in `src/grjev/intervals.py`.
 
 `python scripts/report/below_uniform.py --out docs/below_uniform.md` counts, on the lists with several correct options of the paper's runs, the correct options whose probability is below 1/n for a list of n options, and the lists whose correct options are all above every distractor.
 

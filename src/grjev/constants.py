@@ -681,6 +681,16 @@ THRESHOLD_YES_NO_RUNS = {
     "HotpotQA": "HotpotQA: a yes/no question per passage",
     "ECtHR": "ECtHR: a yes/no question per article",
 }
+# The run of each dataset of UNIFORM_RUNS in paper_runs.json with five identical copies of one correct choice, by the
+# label of its row.
+COPIES_RUNS = {
+    "MetaTool": "MetaTool: 5 duplicates of one correct tool",
+    "HotpotQA": "HotpotQA: 5 duplicates of one supporting passage",
+    "ECtHR": "ECtHR: 5 duplicates of one violated article",
+}
+# The table of the appendix made by scripts/paper/paper_intervals.py: the 95% bootstrap intervals of the main figures
+# of the paper, as a LaTeX file in PAPER_TABLES_DIR.
+INTERVALS_PAPER_TABLE = "intervals"
 # The thresholds of the charts, from 0 to 1 in steps of 0.01, and those of the table under them.
 THRESHOLD_STEPS = 100
 THRESHOLDS_TABLED = (0.1, 0.25, 0.5)
