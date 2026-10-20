@@ -2,38 +2,21 @@
 \label{app:tables}
 For each list with two or more correct choices, we sent the list again without the correct choice with the highest probability, and report the correct choice with the second highest probability. If the other choices kept their ratios, its probability after the removal would be its probability in the full list divided by one minus the probability of the removed choice (\emph{Renorm.}).
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \caption{Mean probability of the second correct choice in the full list (\emph{Before}) and after the removal (\emph{After}).}
 \label{tab:removal}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/removal}}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \caption{Mean probability of the second correct choice after renormalisation (\emph{Renorm.}) and after the removal (\emph{After$^*$}), on the examples in which the choices other than the removed one hold 0.1 or more.}
 \label{tab:removal-renormalised}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/removal_renormalised}}
 \end{table}
-\FloatBarrier
 
-\section{Calibration}
-\label{app:calibration}
-\begin{table}[!htbp]
-\caption{ECE in percentage points of the confidence on lists with one correct choice.}
-\label{tab:calibration-one}
-\centering
-\footnotesize
-\input{tables/calibration_one}
-\end{table}
-
-\begin{table}[!htbp]
-\caption{ECE in percentage points of the probability of yes on the yes/no questions, over all bins (\emph{All bins}) and without the bin from 0 to 0.1 (\emph{From 0.1}).}
-\label{tab:calibration}
-\centering
-\resizebox{\linewidth}{!}{\input{tables/calibration}}
-\end{table}
-
+% Figure~\ref{fig:reliability} belongs to Appendix~\ref{app:calibration}. It is set here to print on the page of that appendix.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/reliability}

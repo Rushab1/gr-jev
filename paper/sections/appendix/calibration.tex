@@ -1,0 +1,18 @@
+\section{Calibration}
+\label{app:calibration}
+On lists with one correct choice, the ECE of the confidence is 8 to 14 percentage points on MetaTool and 1 to 3 on ECtHR (Table~\ref{tab:calibration-one}). Without the bin from 0 to 0.1, the ECE of the yes/no questions is highest for GPT-6 Luna Decisions on MetaTool, 18 percentage points, and lowest for Liquid d1 and GPT-6 Luna Decisions on ECtHR, 8 (Table~\ref{tab:calibration}).
+
+\begin{table}[H]
+\caption{ECE in percentage points of the confidence on lists with one correct choice.}
+\label{tab:calibration-one}
+\centering
+\footnotesize
+\input{tables/calibration_one}
+\end{table}
+
+\begin{table}[H]
+\caption{ECE in percentage points of the probability of yes on the yes/no questions, over all bins (\emph{All bins}) and without the bin from 0 to 0.1 (\emph{From 0.1}).}
+\label{tab:calibration}
+\centering
+\resizebox{\linewidth}{!}{\input{tables/calibration}}
+\end{table}
