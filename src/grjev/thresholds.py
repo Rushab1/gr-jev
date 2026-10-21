@@ -256,11 +256,12 @@ def ranked(found: Sequence[Choices]) -> list[Choices]:
 
 
 def detail_cells(found: Sequence[Choices]) -> list[str]:
-    """Return the threshold with the highest exact set accuracy, the share of ranked examples, and the exact set
-    accuracy of those examples at that threshold."""
+    """Return the threshold with the highest exact set accuracy, the share of ranked examples, the exact set accuracy
+    of those examples, precision and recall at that threshold, and the best F1."""
     t, _ = top(found, exact)
     kept = ranked(found)
-    return [f"{number:.2f}" for number in (t, len(kept) / len(found), exact(kept, t))]
+    numbers = [t, len(kept) / len(found), exact(kept, t), precision(found, t), recall(found, t)]
+    return [f"{number:.2f}" for number in numbers] + [best(found, f1)]
 
 
 def embolden(rows: Sequence[list[str]]) -> None:
@@ -282,8 +283,8 @@ def paper_detail_table(found: dict[tuple[str, str], tuple[list[Choices], list[Ch
     }
     for form, _ in FORMS:
         embolden([row for (_, own), row in cells.items() if own == form])
-    header = r"Model & Dataset & Setting & Threshold & Ranked & Exact among ranked \\"
-    lines = [r"\begin{tabular}{lllrrr}", r"\toprule", header, r"\midrule"]
+    header = r"Model & Dataset & Setting & Threshold & Ranked & Exact among ranked & Precision & Recall & Best F1 \\"
+    lines = [r"\begin{tabular}{lllrrrrrr}", r"\toprule", header, r"\midrule"]
     for place, (dataset, model) in enumerate(found):
         lines += [r"\midrule"] if place else []
         for index, (form, _) in enumerate(FORMS):

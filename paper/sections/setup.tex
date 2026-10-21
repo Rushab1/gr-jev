@@ -16,7 +16,7 @@ Choice & Tool & Passage & Article \\
 Choices per list & 5 to 15 & 2 to 10 & 10 \\
 One correct choice & 2,795 & -- & 655 \\
 Two or more & 497 (2) & 7,405 (2) & 192 (2 to 4) \\
-No correct choice & -- & -- & 153 \\
+No correct choice & 995 & -- & 153 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -44,9 +44,9 @@ Next, we send the lists as the datasets give them. MetaTool gives 497 queries wi
 A model is calibrated when, among the answers to which it gives a probability $p$, a share $p$ is correct. For lists with exactly one correct choice, we define confidence as the highest probability assigned to any choice. For lists with several correct choices, this definition does not directly apply. We therefore convert each list into several yes/no questions, one per choice, based on the benchmarks' format. For example, for HotpotQA we ask ``Does this passage support the answer to the question?'' for every (question, passage) pair. The models respond with a single probability of ``yes''. We report the Expected Calibration Error (ECE)~\citep{naeini2015obtaining,guo2017calibration} over ten bins of equal width, which compares the mean confidence, or the mean probability of ``yes'', with the observed share of correct predictions, or of true ``yes'' labels, in each bin. For the yes/no questions, we also report the ECE without the bin from 0 to 0.1.
 
 \paragraph{Selecting by a threshold.}
-Model providers suggest using a threshold to select multiple correct choices~\citep{typesafe2026choice,openai2026decisions}. For example, TypeSafe's documentation includes an example with three choices, two of which are correct, and uses a threshold of 0.25. A threshold $t$ selects every choice whose probability is at or above $t$. In this experiment, we study whether there is a common threshold that selects all correct choices and no distractors across all examples in the dataset.
+Model providers suggest using a threshold~\citep{openai2026decisions}, and TypeSafe uses one to select multiple correct choices~\citep{typesafe2026choice}. For example, TypeSafe's documentation includes an example with three choices, two of which are correct, and uses a threshold of 0.25. A threshold $t$ selects every choice whose probability is at or above $t$. In this experiment, we study whether there is a common threshold that selects all correct choices and no distractors across all examples in the dataset.
 
-We start with examples answered both as lists and as yes/no questions, vary $t$ from 0 to 1, and compare the two formats. We define exact set accuracy as the share of examples in which every correct choice is selected and every distractor is rejected. We define recall as the proportion of correct choices above the threshold, and precision as the proportion of choices above the threshold that are correct. We compute precision, recall, and F1 from counts pooled across all examples. We plot exact set accuracy, recall, precision and F1 as functions of the threshold $t$ from 0 to 1.
+We start with examples answered both as lists and as yes/no questions, vary $t$ from 0 to 1, and compare the two formats. We define exact set accuracy as the share of examples in which every correct choice is selected and every distractor is rejected. We define recall as the proportion of correct choices above the threshold, and precision as the proportion of choices above the threshold that are correct. We compute precision, recall, and F1 from counts pooled across all examples. We plot exact set accuracy as a function of the threshold $t$ from 0 to 1, and precision, recall and F1 are reported in Appendix~\ref{app:thresholds}.
 
 % Rushab, 2026-10-18: the abstract and the introduction do not mention the results of this paragraph or of the
 % removal in Other lists. Revisit after the results are written.

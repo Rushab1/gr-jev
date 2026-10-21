@@ -12,10 +12,10 @@ Table~\ref{tab:example-passages} gives the request of the introduction. Rubin's 
 \input{tables/sharapova_rubin}
 \end{table}
 
-We sent the same question and passages with three Choice instructions. They were ``Choose every passage in the list that supports the answer to the question'' (\emph{Supports}), ``\ldots{} that is needed to answer the question'' (\emph{Needed}) and ``\ldots{} that has information that answers part of the question'' (\emph{Part of the question}). The matching yes/no questions were ``Does this passage support the answer to the question?'', ``Is this passage needed to answer the question?'' and ``Does this passage have information that answers part of the question?'', each followed by ``Passage:'' and the title and text of one passage. We sent each request three times.
+We sent the same question and passages with three Choice instructions. They were ``Choose every passage in the list that supports the answer to the question'' (\emph{Supports}), ``\ldots{} that is needed to answer the question'' (\emph{Needed}) and ``\ldots{} that has information that answers part of the question'' (\emph{Part of the question}). The matching yes/no questions were ``Does this passage support the answer to the question?'', ``Is this passage needed to answer the question?'' and ``Does this passage have information that answers part of the question?'', each followed by ``Passage:'' and the title and text of one passage.
 
 \begin{table}[H]
-\caption{Mean Choice probability over three runs. \emph{Distractor} is the highest probability among the other eight passages in each run, averaged over the three runs. Luna is GPT-6 Luna Decisions.}
+\caption{Mean Choice probability. \emph{Distractor} is the highest probability among the other eight passages. Luna is GPT-6 Luna Decisions.}
 \label{tab:example-wordings}
 \centering
 \resizebox{\linewidth}{!}{%
@@ -39,7 +39,7 @@ Part of the question & Jev & 0.77 & 0.23 & 0.00 \\
 \end{table}
 
 \begin{table}[H]
-\caption{Mean probability of yes over three runs, with \emph{Distractor} as in Table~\ref{tab:example-wordings}.}
+\caption{Mean probability of yes, with \emph{Distractor} as in Table~\ref{tab:example-wordings}.}
 \label{tab:example-wordings-yes}
 \centering
 \resizebox{\linewidth}{!}{%
