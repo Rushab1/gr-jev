@@ -211,6 +211,14 @@ Rushab, 2026-10-18: the HotpotQA yes/no row is replaced by the 1,000 questions o
 - MMLU has no list with several correct options, and HotpotQA none with one correct option.
 - A refusal of GPT-6 Luna Decisions is counted and reported for every run, apart from its answers.
 
+### ChaosNLI, the split of 100 annotators
+
+Rushab, 2026-10-21: run on every example of ChaosNLI on the three models, as a separate experiment, not in the paper yet. The method, the requests and the tables are in `docs/chaosnli.md`.
+
+- On the 1,487 examples where two labels each have at least 30% of 100 annotators, the annotators' gap between the two labels is 0.17 to 0.21 and the models' gap is 0.62 to 0.80.
+- In 37% to 51% of those answers the larger probability goes to the label fewer annotators chose.
+- The runs made 4,645 Jev calls. `JEV_CALL_LIMIT` is 78,386.
+
 ### List length
 
 Rushab, 2026-10-09: decided later. Possibly a short section at the end of the paper on 50 examples, enough for a side claim.

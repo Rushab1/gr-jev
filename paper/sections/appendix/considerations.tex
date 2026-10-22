@@ -1,0 +1,41 @@
+\section{Common considerations}
+\label{app:considerations}
+
+\begin{table*}[t]
+\caption{Common considerations and explanations.}
+\label{tab:considerations}
+\centering
+\small
+\begin{tabular}{p{0.34\textwidth}p{0.60\textwidth}}
+\toprule
+Consideration & Explanation \\
+\midrule
+Probabilities that sum to 1 over a list cannot tell us how likely each of several correct choices is to be correct. Correct choices can differ in relevance and need not get equal probability.
+& Section~1 states the first point. We do not treat an unequal split between two correct choices as an error by itself. We test a weaker property that a threshold still needs. Every correct choice should get more probability than every distractor. Identical choices should get the same probability. Probabilities that sum to 1 allow both. Yet the highest of five identical copies of a correct choice gets 17 to 79 percentage points more than the lowest (Table~\ref{tab:copies}). \\
+\addlinespace
+TypeSafe and OpenAI describe a Choice question as selecting one option. Using its probabilities to select several choices goes beyond that use.
+& The providers suggest a threshold on these probabilities. TypeSafe's documentation sends a ticket to a second team when that team's probability is above 0.25, in an example with three choices and two correct ones (Section~\ref{sec:setup}). \\
+\addlinespace
+A model that selects one choice can break a tie between identical copies by their position.
+& This explains which copy the model predicts. It does not explain probabilities that differ by 17 to 79 percentage points between identical copies. Equal probabilities would give each copy 0.20. \\
+\addlinespace
+A yes/no question shows one HotpotQA passage without the others, even though the answer needs two passages.
+& An ECtHR article or a MetaTool tool can be judged without the others. Without the bin from 0 to 0.1, the ECE of the yes/no answers is 8 to 18 percentage points on MetaTool and ECtHR, and 12 to 17 on HotpotQA (Table~\ref{tab:calibration}). \\
+\addlinespace
+One threshold for a whole dataset is a narrow rule.
+& One threshold is the rule the providers describe. We report the threshold with the best result on the evaluation data. No other single threshold does better. It selects exactly the correct choices in 34\% to 64\% of the examples (Table~\ref{tab:thresholds}). \\
+\addlinespace
+Each copy has a different random ID. The result may come from the IDs or the order rather than the copies.
+& The APIs reject a list with two identical choices, so each copy needs its own name. The random ID is the only difference between the copies. We send each list in its five cyclic orders. Every copy appears once at every position. We drew one set of IDs and did not vary it. \\
+\addlinespace
+ECE without the bin from 0 to 0.1 is not the usual ECE. Calibration of yes/no answers does not show calibration of the list probabilities.
+& We report the ECE with and without that bin. Between 46\% and 78\% of the answers fall in it, and at least 92\% of those are about distractors. The ECE without it is a conditional calibration error over the other answers. We report lists with one correct choice separately. Their ECE is 1 to 14 percentage points (Appendix~\ref{app:calibration}). \\
+\addlinespace
+GPT-6 Luna Decisions refuses some requests.
+& It refused 5\% of the lists of copies (1,374 of 25,695), 4\% of the other lists (3,792 of 86,222) and 138 of 24,970 yes/no questions. Most of its refusals, 14,420 of 31,435, are on lists of random choices. These lists have no correct choice and appear only in Appendix~\ref{app:abstention} (Appendix~\ref{app:refusals}). \\
+\addlinespace
+Two of the models have no fixed version.
+& Jev is pinned to \texttt{jev-1.13.0}. Liquid AI and OpenAI publish no version for the other two models. Each saved response records the model name the gateway returned. \\
+\bottomrule
+\end{tabular}
+\end{table*}

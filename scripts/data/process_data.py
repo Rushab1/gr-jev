@@ -3,6 +3,7 @@
 import argparse
 
 from grjev.bfcl import process_bfcl
+from grjev.chaosnli import process_chaosnli, process_chaosnli_alpha
 from grjev.constants import DOWNLOADS, PROCESSED_DIRS, TICKETS_FILE
 from grjev.ecthr import process_ecthr
 from grjev.hotpotqa import process_hotpotqa
@@ -20,6 +21,8 @@ PROCESSORS = {
     "hotpotqa": process_hotpotqa,
     "ecthr": process_ecthr,
     "tickets": process_tickets,
+    "chaosnli": process_chaosnli,
+    "chaosnli_alpha": process_chaosnli_alpha,
 }
 
 

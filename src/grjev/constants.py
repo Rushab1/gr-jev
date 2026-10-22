@@ -44,7 +44,10 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # 30 calls that send 10 copied lists per dataset with random IDs as names, with 53,247 calls saved. Rushab: "send it".
 # Raised to 58,386 the same day for the 5,109 new calls of every copied list of MetaTool, HotpotQA and ECtHR with random
 # IDs as names, with 53,277 calls saved. Rushab: "run it now. increase eve limit as requeires".
-JEV_CALL_LIMIT = 58386
+# Raised to 68,386 on 2026-10-21 for ChaosNLI, with 58,386 calls saved. Rushab: "Rais ejev limit by 10k".
+# Raised to 78,386 the same day for the 4,645 calls of the "own" runs on every ChaosNLI example, with 58,486 calls
+# saved. Rushab: "just go. increase jev budget by 10000".
+JEV_CALL_LIMIT = 78386
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -170,6 +173,19 @@ ECTHR_BASE_URL = f"{HUGGINGFACE_URL}/datasets/coastalcph/lex_glue/resolve/{ECTHR
 ECTHR_RAW_DIR = DATA_DIR / "ecthr" / "raw"
 ECTHR_RAW_FILE = "ecthr_a/test-00000-of-00001.parquet"
 ECTHR_SHA256 = {ECTHR_RAW_FILE: "e306383d3ffd3baec21ba7419c03a9d2273f1c0946cf2d5512cf98c81d1a3f8b"}
+
+# ChaosNLI (Nie, Zhou and Bansal, 2020), 100 new labels for each of 1,514 SNLI, 1,599 MNLI matched and 1,532 alphaNLI
+# development examples, from the Hugging Face dataset earino/chaosnli at this revision. That dataset is a copy of the
+# files of the ChaosNLI repository, whose Dropbox link returned a web page instead of the file on 2026-10-21.
+CHAOSNLI_REVISION = "bf8d66a1d3434ac8b90ffc392b1b5e44bdf7e439"
+CHAOSNLI_BASE_URL = f"{HUGGINGFACE_URL}/datasets/earino/chaosnli/resolve/{CHAOSNLI_REVISION}/"
+CHAOSNLI_RAW_DIR = DATA_DIR / "chaosnli" / "raw"
+CHAOSNLI_ALPHA_RAW_FILE = "raw/chaosNLI_alphanli.jsonl"
+CHAOSNLI_SHA256 = {
+    "raw/chaosNLI_snli.jsonl": "99f9015ddda7d85f66a087452bc30d53974314fe27e7d589e2f41ad44bd509c1",
+    "raw/chaosNLI_mnli_m.jsonl": "8eb49b589488e7b1a9ec95fb8a864bd50f0509b4f808eed0aed3f8167617664d",
+    CHAOSNLI_ALPHA_RAW_FILE: "f55817ecc11a02ba3030cd7d2c567d23843456809020723abad53f4fde024c9e",
+}
 
 BFCL_COMMIT = "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8"
 BFCL_BASE_URL = (
@@ -313,6 +329,19 @@ SECOND_TEAM_PROBABILITY = 0.25
 # remainder is within a few rounding steps of 0.01.
 RENORMALISED_REST = 0.1
 
+CHAOSNLI_PROCESSED_DIR = DATA_DIR / "chaosnli" / "processed"
+CHAOSNLI_ALPHA_PROCESSED_DIR = DATA_DIR / "chaosnli_alpha" / "processed"
+# The processed SNLI and MNLI files of ChaosNLI, by the raw file of each.
+CHAOSNLI_NLI_FILES = {"snli": "raw/chaosNLI_snli.jsonl", "mnli_m": "raw/chaosNLI_mnli_m.jsonl"}
+CHAOSNLI_ALPHA_FILE = "alphanli"
+# The 3 labels of SNLI and MNLI: the code of ChaosNLI, the name sent to the model, and a description in the words of
+# the MNLI prompt to the annotators who wrote the hypotheses (Williams et al., 2018, Figure 1).
+CHAOSNLI_LABELS = (
+    ("e", "entailment", "The hypothesis is definitely correct about the situation or event in the premise."),
+    ("n", "neutral", "The hypothesis might be correct about the situation or event in the premise."),
+    ("c", "contradiction", "The hypothesis is definitely incorrect about the situation or event in the premise."),
+)
+
 ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
 # The processed file with every test case, and the one with the cases that have a violated article.
 ECTHR_TEST_FILE = "test"
@@ -431,7 +460,12 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "mmlu": (MMLU_STANDALONE_FILE,),
         "hotpotqa": (HOTPOTQA_TEN_FILE,),
     },
-    "own": {"mmlu": (MMLU_STANDALONE_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+    "own": {
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "ecthr": (ECTHR_TEST_FILE,),
+        "chaosnli": tuple(CHAOSNLI_NLI_FILES),
+        "chaosnli_alpha": (CHAOSNLI_ALPHA_FILE,),
+    },
     # "distractors" lists options of the example that are not correct, with no correct option and no "None".
     "distractors": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
     # "removal" sends the list of the example, the list without each correct option, and the list without all of them.
@@ -455,6 +489,8 @@ NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "hotpotqa": (),
     "ecthr": (),
     "tickets": (),
+    "chaosnli": (),
+    "chaosnli_alpha": (),
 }
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
@@ -472,6 +508,11 @@ DATASET_INSTRUCTIONS = {
     "mmlu_na": "Choose the correct answer to the question.",
     "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
     "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+    # The question of the NLI annotation in the words of the MNLI prompt (Williams et al., 2018, Figure 1), and the
+    # alphaNLI task in the words of Bhagavatula et al. (2020), who asked people to "choose the more plausible
+    # hypothesis".
+    "chaosnli": "Choose how the hypothesis relates to the situation or event in the premise.",
+    "chaosnli_alpha": "Choose the more plausible hypothesis of what happened between the two observations.",
     # The instruction of the team question of TypeSafe's example, unchanged.
     "tickets": "Which team should handle this?",
 }
@@ -506,6 +547,8 @@ SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,
+    "chaosnli": (),
+    "chaosnli_alpha": (),
 }
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
@@ -667,6 +710,27 @@ PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
 # The runs of the lists with several correct options in paper_runs.json, by dataset: the label of the row, and the
 # list of the run with the options in the released order. scripts/report/below_uniform.py reads them.
 UNIFORM_DEFINITION = "paper_runs"
+# The ChaosNLI runs compared with the shares of the 100 annotators of each example, by dataset and model, as results
+# folders under RESULTS_DIR. Each sends the labels of every example in every cyclic order.
+ANNOTATOR_RUNS = {
+    "chaosnli": {
+        JEV_MODEL: "chaosnli_own/2026-10-21_01",
+        D1_MODEL: "chaosnli_own_d1/2026-10-21_01",
+        LUNA_MODEL: "chaosnli_own_gpt-6-luna-decisions/2026-10-21_01",
+    },
+    "chaosnli_alpha": {
+        JEV_MODEL: "chaosnli_alpha_own/2026-10-21_01",
+        D1_MODEL: "chaosnli_alpha_own_d1/2026-10-21_01",
+        LUNA_MODEL: "chaosnli_alpha_own_gpt-6-luna-decisions/2026-10-21_01",
+    },
+}
+# An example is split when two of its labels each have at least this share of the annotators. Claude Code chose the
+# value on 2026-10-21. It is not taken from ChaosNLI.
+ANNOTATOR_SPLIT_SHARE = 0.3
+# A probability below the first value or above the second is at an end. A label in the middle has a share of the
+# annotators between these two values. Both pairs were chosen by Claude Code on 2026-10-21.
+ANNOTATOR_EDGES = (0.1, 0.9)
+ANNOTATOR_MIDDLE = (0.3, 0.7)
 UNIFORM_RUNS = {
     "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
     "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
@@ -754,6 +818,8 @@ DOWNLOADS = {
     "mmlu_na": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
     "hotpotqa": (HOTPOTQA_BASE_URL, HOTPOTQA_SHA256, HOTPOTQA_RAW_DIR),
     "ecthr": (ECTHR_BASE_URL, ECTHR_SHA256, ECTHR_RAW_DIR),
+    "chaosnli": (CHAOSNLI_BASE_URL, CHAOSNLI_SHA256, CHAOSNLI_RAW_DIR),
+    "chaosnli_alpha": (CHAOSNLI_BASE_URL, CHAOSNLI_SHA256, CHAOSNLI_RAW_DIR),
 }
 
 # Dataset name -> where its files in the common format are written.
@@ -766,6 +832,8 @@ PROCESSED_DIRS = {
     "hotpotqa": HOTPOTQA_PROCESSED_DIR,
     "ecthr": ECTHR_PROCESSED_DIR,
     "tickets": TICKETS_PROCESSED_DIR,
+    "chaosnli": CHAOSNLI_PROCESSED_DIR,
+    "chaosnli_alpha": CHAOSNLI_ALPHA_PROCESSED_DIR,
 }
 # Dataset name -> its test files, in the order they are shown.
 TEST_FILES = {
@@ -777,4 +845,6 @@ TEST_FILES = {
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,
+    "chaosnli": tuple(CHAOSNLI_NLI_FILES),
+    "chaosnli_alpha": (CHAOSNLI_ALPHA_FILE,),
 }
