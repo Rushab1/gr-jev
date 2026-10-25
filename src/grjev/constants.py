@@ -780,6 +780,40 @@ COPIES_RUNS = {
 # The table of the appendix made by scripts/paper/paper_intervals.py: the 95% bootstrap intervals of the main figures
 # of the paper, as a LaTeX file in PAPER_TABLES_DIR.
 INTERVALS_PAPER_TABLE = "intervals"
+# The three models of the paper, in the order of its tables.
+EXAMPLE_TABLE_MODELS = (JEV_MODEL, D1_MODEL, LUNA_MODEL)
+# The short name of each model in the header of that table, which is too narrow for the full names.
+EXAMPLE_MODEL_HEADERS = {JEV_MODEL: "Jev", D1_MODEL: "d1", LUNA_MODEL: "Luna"}
+# One example from each dataset and test file, for the table of the appendix: the dataset, the test file, the results
+# folder of Jev and the list in it. The folders of the other models add the model's name from RESULTS_MODEL_NAMES.
+EXAMPLE_TABLE_ROWS = (
+    ("metatool", "similar_tools", "metatool_position/2026-10-11_01", "released"),
+    ("metatool", "scenario", "metatool_position/2026-10-11_01", "released"),
+    ("metatool", "multi_tool", "metatool_removal/2026-10-11_01", "full"),
+    ("metatool", "reliability", "metatool_position/2026-10-11_01", "released"),
+    ("hotpotqa", "validation", "hotpotqa_removal/2026-10-11_01", "full"),
+    ("ecthr", "test", "ecthr_own/2026-10-11_01", "rotated_0"),
+    ("chaosnli", "snli", "chaosnli_own/2026-10-21_01", "rotated_0"),
+    ("chaosnli", "mnli_m", "chaosnli_own/2026-10-21_01", "rotated_0"),
+    ("chaosnli_alpha", "alphanli", "chaosnli_alpha_own/2026-10-21_01", "rotated_0"),
+)
+# The name of each test file in that table.
+EXAMPLE_TITLES = {
+    "similar_tools": "MetaTool, one correct tool among tools with similar descriptions",
+    "scenario": "MetaTool, one correct tool among the tools of a scenario",
+    "multi_tool": "MetaTool, two correct tools",
+    "reliability": "MetaTool, no correct tool",
+    "validation": "HotpotQA, two passages support the answer",
+    "test": "ECtHR, the articles a case violates",
+    "snli": "ChaosNLI SNLI, the votes of 100 annotators",
+    "mnli_m": "ChaosNLI MNLI, the votes of 100 annotators",
+    "alphanli": "ChaosNLI $\\alpha$NLI, the votes of 100 annotators",
+}
+# A query or a choice longer than this many characters is cut at a space and followed by an ellipsis.
+EXAMPLE_QUERY_CHARACTERS = 420
+EXAMPLE_CHOICE_CHARACTERS = 170
+# The table of those examples, as a LaTeX file in PAPER_TABLES_DIR.
+EXAMPLES_PAPER_TABLE = "examples"
 # The ChaosNLI table and figure of the paper, written by scripts/paper/paper_annotators.py.
 ANNOTATORS_PAPER_TABLE = "chaosnli"
 ANNOTATORS_PAPER_FIGURE = "annotator_gap"
