@@ -6,52 +6,5 @@
 \label{tab:considerations}
 \centering
 \small
-\begin{tabular}{p{0.34\textwidth}p{0.60\textwidth}}
-\toprule
-Consideration & Explanation
-\\
-
-\midrule
-Multiple valid alternatives can differ in relevance and need not get equal probability.
-& Section~1 states the first point. We do not treat an unequal split between two correct choices as an error by itself. In the Sharapova/Rubin example [cite], two multiple chocies are equally relevant and hence must get equal probailities, if decision model probabilities are to have a practical interpretation. Further, a threshold, finetuned or not, still needs a global value that can seaprate distractors from valid choices. If two choices are identical, they must receive equal probabilities.
-\\
-
-\addlinespace
-TypeSafe and OpenAI describe a Choice question as selecting one option. Using its probabilities to select several choices goes beyond that use.
-& The providers suggest a threshold on these probabilities. TypeSafe's documentation sends a ticket to a second team when that team's probability is above 0.25, in an example with three choices (Section~\ref{sec:setup}).
-\\
-
-\addlinespace
-A model that selects one choice can break a tie between identical copies by their position.
-& This explains which copy the model predicts. It does not explain probabilities that differ by 17 to 79 percentage points between identical copies. Equal probabilities would give each copy 0.20.
-\\
-
-\addlinespace
-A yes/no question shows one HotpotQA passage without the others, even though the answer needs two passages.
-& An ECtHR article or a MetaTool tool can be judged without the others. Even on those datasets, the probabilities of ``yes'' are not calibratied(Table~\ref{tab:calibration}).
-\\
-
-\addlinespace
-One threshold for a whole dataset is a narrow rule.
-& One threshold is the rule the providers describe. We hence report the best threshold and corresponding exact set accuracy and F1 scores. (Table~\ref{tab:thresholds}).
-\\
-
-\addlinespace
-Differing probabilities over identical choices can come from the random ids.
-& The APIs reject a list with identical choices. Hence, randomizing the id is the ideal way to differentiate. We also rotate the ids through all positions. If the models differentiate on basis on randomized id, that is a separate critical failure.
-\\
-
-\addlinespace
-ECE without the bin from 0 to 0.1 is not the usual ECE. Calibration of yes/no answers does not show calibration of the list probabilities.
-& We report the ECE with and without that bin. The dataset is imbalanced because there are about 5x more ditractors than correct choices. Hence, calibration failures on the correct choice class, is largely hidden by the large share of examples in the majority distractor class. Excluding the majority class is crucial to understand calibration failure on intermediate probabilities. An analogy is that when accuracy is high, looking at the confusion matrix and F1 can still show critical modes of failure.
-The ECE without the first bin is a conditional calibration error over the other answers. (Appendix~\ref{app:calibration}).
-\\
-
-\addlinespace
-GPT-6 Luna Decisions refuses some requests.
-& A refused list returns no probabilities, and we leave it out. The refusals do not change the findings. On the lists with several correct choices in Table~\ref{tab:allocation}, GPT-6 Luna Decisions refuses 96 of 80,590. Jev and Liquid d1 refuse none and show the same uneven allocation (Appendix~\ref{app:refusals}).
-\\
-
-\bottomrule
-\end{tabular}
+\input{tables/considerations}
 \end{table*}

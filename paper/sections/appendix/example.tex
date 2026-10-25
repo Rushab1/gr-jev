@@ -1,7 +1,5 @@
 \section{Passage choices in the opening example}
 \label{app:example}
-% The numbers of Table~\ref{tab:example-invented} are the answers of scripts/run/written_request.py to the requests
-% john_jane and john_jane_younger on 2026-10-12, rounded to two decimals.
 Table~\ref{tab:example-passages} gives the question in the introduction and the first sentence of each of the 10 passages. Rubin's and Sharapova's passages give the birth dates needed to determine which player is older.
 
 \begin{table}[H]
@@ -19,23 +17,7 @@ We send the same question and passages with three Choice instructions. They are 
 \label{tab:example-wordings}
 \centering
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{llrrr}
-\toprule
-Instruction & Model & Rubin & Sharapova & Distractor \\
-\midrule
-Supports & Jev & 0.93 & 0.07 & 0.00 \\
- & Liquid d1 & 0.94 & 0.06 & 0.00 \\
- & Luna & 0.93 & 0.02 & 0.01 \\
-\midrule
-Needed & Jev & 0.78 & 0.22 & 0.00 \\
- & Liquid d1 & 0.91 & 0.09 & 0.00 \\
- & Luna & 0.95 & 0.01 & 0.01 \\
-\midrule
-Part of the question & Jev & 0.77 & 0.23 & 0.00 \\
- & Liquid d1 & 0.95 & 0.05 & 0.00 \\
- & Luna & 0.87 & 0.01 & 0.03 \\
-\bottomrule
-\end{tabular}}
+\input{tables/example_wordings}}
 \end{table}
 
 \begin{table}[H]
@@ -43,23 +25,7 @@ Part of the question & Jev & 0.77 & 0.23 & 0.00 \\
 \label{tab:example-wordings-yes}
 \centering
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{llrrr}
-\toprule
-Instruction & Model & Rubin & Sharapova & Distractor \\
-\midrule
-Supports & Jev & 0.31 & 0.14 & 0.05 \\
- & Liquid d1 & 0.16 & 0.07 & 0.05 \\
- & Luna & 0.47 & 0.00 & 0.01 \\
-\midrule
-Needed & Jev & 0.61 & 0.40 & 0.05 \\
- & Liquid d1 & 0.53 & 0.41 & 0.03 \\
- & Luna & 1.00 & 0.87 & 0.80 \\
-\midrule
-Part of the question & Jev & 0.63 & 0.52 & 0.10 \\
- & Liquid d1 & 0.81 & 0.52 & 0.08 \\
- & Luna & 1.00 & 0.96 & 0.50 \\
-\bottomrule
-\end{tabular}}
+\input{tables/example_wordings_yes}}
 \end{table}
 
 Under each Choice instruction, every model assigns Rubin's passage a probability of at least 0.77. The probability assigned to Sharapova's passage is at most 0.23 (Table~\ref{tab:example-wordings}). The probability of yes for Sharapova's passage is 0.00 to 0.14 under Supports and 0.52 to 0.96 under Part of the question (Table~\ref{tab:example-wordings-yes}). The three instructions differ in meaning. This comparison does not separate the effect of wording from the effect of meaning.
@@ -79,14 +45,5 @@ Table~\ref{tab:example-invented-passages} gives the same list with invented name
 \label{tab:example-invented}
 \centering
 \small
-\begin{tabular}{llrrr}
-\toprule
-Question & Passage & Jev & Liquid d1 & Luna \\
-\midrule
-Who is older?   & John & 0.91 & 0.94 & 0.06 \\
-                & Jane & 0.09 & 0.06 & 0.79 \\
-Who is younger? & John & 0.02 & 0.15 & 0.03 \\
-                & Jane & 0.98 & 0.85 & 0.89 \\
-\bottomrule
-\end{tabular}
+\input{tables/example_invented}
 \end{table}

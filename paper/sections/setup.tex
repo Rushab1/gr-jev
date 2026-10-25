@@ -6,21 +6,7 @@
 \label{tab:datasets}
 \centering
 \small
-\begin{tabular}{lllllll}
-\toprule
- & & & & \multicolumn{3}{c}{ChaosNLI} \\
-\cmidrule{5-7}
- & MetaTool & HotpotQA & ECtHR & SNLI & MNLI & $\alpha$NLI \\
-\midrule
-Query & Query & Question & Case facts & \multicolumn{2}{l}{Premise, hypothesis} & Observations \\
-Choice & Tool & Passage & Article & Label & Label & Hypothesis \\
-Choices per list & 5 to 15 & 2 to 10 & 10 & 3 & 3 & 2 \\
-One correct choice & 2,795 & -- & 655 & -- & -- & -- \\
-Two or more & 497 (2) & 7,405 (2) & 192 (2 to 4) & -- & -- & -- \\
-No correct choice & 995 & -- & 153 & -- & -- & -- \\
-Votes of 100 annotators & -- & -- & -- & 1,514 & 1,599 & 1,532 \\
-\bottomrule
-\end{tabular}
+\input{tables/datasets}
 \end{table*}
 
 \paragraph{Models.}
