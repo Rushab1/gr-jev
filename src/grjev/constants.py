@@ -47,7 +47,8 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # Raised to 68,386 on 2026-10-21 for ChaosNLI, with 58,386 calls saved. Rushab: "Rais ejev limit by 10k".
 # Raised to 78,386 the same day for the 4,645 calls of the "own" runs on every ChaosNLI example, with 58,486 calls
 # saved. Rushab: "just go. increase jev budget by 10000".
-JEV_CALL_LIMIT = 78386
+# Raised by 100,000 on 2026-10-22, by Rushab, for the "mixed" experiment.
+JEV_CALL_LIMIT = 178386
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -475,6 +476,8 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "ecthr": (ECTHR_VIOLATED_FILE,),
         "tickets": TICKETS_TEST_FILES,
     },
+    # "mixed" sends the list of the example with its two correct options at the places of MIXED_PLACES.
+    "mixed": {"metatool": ("multi_tool",)},
     # "with_none" sends the list of the example with the "None" candidate added.
     "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
     # "yes_no" asks one yes/no question about each option of the example, and no list.
@@ -537,6 +540,15 @@ YES_NO_EXPERIMENT = "yes_no"
 FULL_LIST = "full"
 WITHOUT_LIST = "without"
 WITHOUT_ALL_LIST = "without_all"
+# The name of a list of the "mixed" experiment, followed by its number in MIXED_PLACES.
+MIXED_LIST = "mixed"
+# The places of the two correct options in each list of the "mixed" experiment, counted from 1. The first five put
+# them next to each other at five places, and the last five put them 5 apart at five places. Together they vary the
+# place of the pair as rotation does (Zheng et al., 2024) and its separation as Baker et al. (2024) do. Place 7 and 8
+# is the released order of the MetaTool multi_tool lists, whose two correct tools are always there.
+MIXED_PLACES = ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10), (1, 6), (2, 7), (3, 8), (4, 9), (5, 10))
+# The number of correct options that a list of the "mixed" experiment places.
+MIXED_CORRECT = 2
 # Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
 # its k highest-probability tools.
 SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {

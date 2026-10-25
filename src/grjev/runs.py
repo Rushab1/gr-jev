@@ -21,6 +21,7 @@ from grjev.constants import (
     JEV_REQUEST_CHARACTERS,
     JEV_WORKERS,
     LIST_LENGTHS,
+    MIXED_CORRECT,
     NO_ADDED_NONE_EXPERIMENTS,
     NONE_AS_ANSWER_LIST,
     NONE_AS_DISTRACTOR_LIST,
@@ -69,6 +70,7 @@ from grjev.placement import (
     id_copies,
     in_place_of,
     length_orders,
+    mixed_orders,
     orders_of,
     outside_tools,
     padded_order,
@@ -382,6 +384,22 @@ def removal_lists(config: RunConfig, examples: dict[str, list[Example]], tools: 
             yield test_file, example, lists, {name: wordings.get(name, instruction) for name in lists}
 
 
+def mixed_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
+    """Yield each example with its two correct options at the places of each entry of MIXED_PLACES.
+
+    The instruction is that of a "removal" run, so the list that puts the pair at places 7 and 8 is the released
+    order of a MetaTool multi_tool list and reads its answer from the saved calls. An example without exactly
+    MIXED_CORRECT correct options is left out.
+    """
+    instruction = instruction_of(config, REMOVAL_TOOL_INSTRUCTIONS)
+    for test_file in config.test_files:
+        for example in sampled(examples[test_file], sample_size(config, test_file), config.seed):
+            if len(example.labels or []) != MIXED_CORRECT:
+                continue
+            lists = mixed_orders(example.options, example.labels or [])
+            yield test_file, example, lists, dict.fromkeys(lists, instruction)
+
+
 def with_none_lists(config: RunConfig, examples: dict[str, list[Example]], tools: list[Option]) -> ExampleLists:
     """Yield each example with its own list and the "None" candidate last. "None" is correct when it has no label."""
     instruction = instruction_of(config, ONE_TOOL_INSTRUCTIONS)
@@ -425,6 +443,7 @@ LISTS = {
     "own": own_lists,
     "distractors": distractor_lists,
     "removal": removal_lists,
+    "mixed": mixed_lists,
     "with_none": with_none_lists,
     "replaced": replaced_lists,
 }
