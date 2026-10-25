@@ -1,10 +1,10 @@
 \section{Confidence intervals}
 \label{app:intervals}
 % The table is written by scripts/paper/paper_intervals.py.
-The intervals are 95\% bootstrap intervals over the examples, from 2,000 resamples. A resample keeps every answer to an example together. The exact set accuracy is read at the threshold with the highest exact set accuracy on all the examples, and its interval leaves out the choice of that threshold.
+We compute 95\% bootstrap intervals using 2,000 resamples of the examples. A resample keeps every answer to an example together. We select the threshold with the highest exact set accuracy across all examples. We use that threshold to compute exact set accuracy in every resample.
 
 \begin{table}[H]
-\caption{The figures of Tables~\ref{tab:allocation}, \ref{tab:copies} and~\ref{tab:thresholds} with their 95\% intervals. \emph{Gap} and \emph{Gap of the copies} are in percentage points, and \emph{Ranked} and \emph{Below $1/n$} in percent.}
+\caption{The figures of Tables~\ref{tab:allocation}, \ref{tab:copies} and~\ref{tab:thresholds} with their 95\% intervals. \emph{Gap} and \emph{Gap of the copies} are in percentage points, and \emph{Ranked} and \emph{Below $1/n$} in percent. \emph{Below $1/n$, all lists} is the share of all lists with a correct choice below $1/n$, in percent.}
 \label{tab:intervals}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/intervals}}
