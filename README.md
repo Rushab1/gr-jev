@@ -15,6 +15,32 @@ Many tasks have several correct choices. An agent can need two tools. A question
 
 Over the lists with several correct choices, the chart gives the mean probability of the highest correct choice and of the lowest correct choice. The highest correct choice gets 55 to 72 percentage points more than the lowest. The lowest correct choice gets 0.12 to 0.19 on average. A uniform split over the n choices of a list gives each choice 1/n, which is 0.1 for a list of 10. The MetaTool results average 10 permutations of each list. The ECtHR results average 10 cyclic permutations of each list.
 
+## Two examples
+
+Each question needs the birth dates of two people. Each list has 5 passages. Two passages give the birth dates, and both are needed to answer the question. The other 3 passages are about tennis tournaments. The instruction is "Choose every passage in the list that supports the answer to the question."
+
+**Who is older, Maria Sharapova or Chanda Rubin?** The question and passages come from HotpotQA (validation question `5a7bbcd65542997c3ec97268`), cut to 5 of its 10 passages.
+
+| Passage, in the order sent | Jev | Liquid d1 | GPT-6 Luna Decisions |
+|---|---|---|---|
+| 1997 IGA Classic – Doubles | 0.00 | 0.00 | 0.02 |
+| 1997 EA-Generali Ladies Linz | 0.00 | 0.00 | 0.02 |
+| 1997 Australian Open – Women's Doubles | 0.00 | 0.00 | 0.04 |
+| Chanda Rubin, "born February 18, 1976" (needed) | **0.95** | **0.97** | **0.83** |
+| Maria Sharapova, "born April 19, 1987" (needed) | **0.05** | **0.03** | **0.09** |
+
+**Who is older, Jane or John?** The same structure with invented names, places and dates, so that no model can know the two players.
+
+| Passage, in the order sent | Jev | Liquid d1 | GPT-6 Luna Decisions |
+|---|---|---|---|
+| 1998 Harlow Classic – Doubles | 0.01 | 0.00 | 0.07 |
+| 1998 Varden Indoor Open | 0.01 | 0.00 | 0.08 |
+| 1998 Corvale Open – Doubles | 0.01 | 0.00 | 0.05 |
+| John, "born December 12, 1976" (needed) | **0.88** | **0.89** | **0.21** |
+| Jane, "born January 13, 1990" (needed) | **0.09** | **0.11** | **0.59** |
+
+Both needed passages support the answer equally. The models give one of them 0.59 to 0.97 and the other 0.03 to 0.21. A threshold of 0.25 keeps one needed passage in all 6 answers and drops the other. The requests are `scripts/run/requests/sharapova_rubin_five.json` and `john_jane_five.json`, sent once to each model on 2026-10-25.
+
 ## Findings
 
 - **Identical copies.** Five identical copies of one correct choice should get the same probability. The highest copy gets 17 to 79 percentage points more than the lowest copy. Liquid d1 and GPT-6 Luna Decisions predict the copy in the first position in 76% to 98% of their answers.
