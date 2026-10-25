@@ -4,11 +4,11 @@ import statistics
 
 from paper_support import PaperRuns, named_answers, paper_table_values
 
-from grjev.constants import PROBABILITY_DECIMALS, UNIFORM_RUNS
+from grjev.constants import ALLOCATION_RUNS, PROBABILITY_DECIMALS
 from grjev.tables import Selected
 
 
-def allocation_counts(own: Selected, name: str) -> tuple[str, str, str]:
+def allocation_counts(own: Selected, names: tuple[str, ...] | None) -> tuple[str, str, str]:
     """Calculate the gap, ranking share and below-uniform share directly from list entries."""
     gaps: list[float] = []
     for row, answer in named_answers(own):
@@ -18,16 +18,17 @@ def allocation_counts(own: Selected, name: str) -> tuple[str, str, str]:
         gaps.append(max(correct) - min(correct))
     ranked = below = total = 0
     for row in own.rows:
-        listed = row.answers.get(name)
-        if listed is None or len(row.labels) < 2 or len(listed.candidates) <= len(row.labels):
-            continue
-        probabilities = {key: round(value, PROBABILITY_DECIMALS) for key, value in listed.probabilities.items()}
-        correct = [probabilities[key] for key in row.labels]
-        distractors = [value for key, value in probabilities.items() if key not in row.labels]
-        total += 1
-        if min(correct) > max(distractors):
-            ranked += 1
-            below += min(correct) < round(1 / len(listed.candidates), PROBABILITY_DECIMALS)
+        for name in names or row.answers:
+            listed = row.answers.get(name)
+            if listed is None or len(row.labels) < 2 or len(listed.candidates) <= len(row.labels):
+                continue
+            probabilities = {key: round(v, PROBABILITY_DECIMALS) for key, v in listed.probabilities.items()}
+            correct = [probabilities[key] for key in row.labels]
+            distractors = [value for key, value in probabilities.items() if key not in row.labels]
+            total += 1
+            if min(correct) > max(distractors):
+                ranked += 1
+                below += min(correct) < round(1 / len(listed.candidates), PROBABILITY_DECIMALS)
     return f"{100 * statistics.fmean(gaps):.0f}", f"{ranked / total:.0%}", f"{below / ranked:.0%}"
 
 
@@ -37,7 +38,7 @@ def test_allocation_table_uses_the_correct_options_and_distractors_of_each_answe
     actual = paper_table_values(spec, chosen, "allocation")
     for model in spec.models:
         expected = [
-            cell for label, name in UNIFORM_RUNS.values() for cell in allocation_counts(chosen(label, model), name)
+            cell for label, names in ALLOCATION_RUNS.values() for cell in allocation_counts(chosen(label, model), names)
         ]
         assert actual[model] == expected, model
 

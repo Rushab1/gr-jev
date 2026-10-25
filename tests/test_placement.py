@@ -2,12 +2,13 @@
 
 import pytest
 
-from grjev.constants import OWN_LIST, PLACEMENTS, RELEASED_ORDER
+from grjev.constants import MIXED_PLACES, OWN_LIST, PLACEMENTS, RELEASED_ORDER
 from grjev.examples import Example, Option
 from grjev.placement import (
     grown_orders,
     id_copies,
     length_orders,
+    mixed_orders,
     orders_of,
     outside_tools,
     padded_order,
@@ -242,3 +243,33 @@ def test_length_orders_need_one_correct_tool_and_enough_tools() -> None:
         length_orders(example(10, ["tool_4"]), example(10, []).options, [20], SEED)
     with pytest.raises(ValueError):
         length_orders(example(10, ["tool_4", "tool_5"]), example(10, []).options, [5], SEED)
+
+
+def test_the_mixed_lists_put_the_correct_pair_at_five_places_at_each_of_two_separations() -> None:
+    held = example(10, ["tool_7", "tool_8"])
+    orders = mixed_orders(held.options, held.labels or [])
+    assert list(orders) == [f"mixed_{number}" for number in range(10)]
+    places = {
+        name: sorted(1 + order.index(tool) for tool in held.options if tool.name in (held.labels or []))
+        for name, order in orders.items()
+    }
+    assert list(places.values()) == [list(pair) for pair in MIXED_PLACES]
+    apart = [pair[1] - pair[0] for pair in places.values()]
+    assert apart == [1, 1, 1, 1, 1, 5, 5, 5, 5, 5]
+    assert sorted(pair[0] for pair in places.values()) == [1, 1, 2, 3, 3, 4, 5, 5, 7, 9]
+
+
+def test_the_mixed_list_of_places_7_and_8_is_the_released_order() -> None:
+    held = example(10, ["tool_7", "tool_8"])
+    assert mixed_orders(held.options, held.labels or [])["mixed_3"] == held.options
+
+
+def test_a_mixed_list_is_left_out_when_its_places_fall_outside_the_tools() -> None:
+    held = example(6, ["tool_5", "tool_6"])
+    assert list(mixed_orders(held.options, held.labels or [])) == ["mixed_0", "mixed_1", "mixed_2", "mixed_5"]
+
+
+def test_mixed_orders_refuses_a_list_without_exactly_two_correct_tools() -> None:
+    held = example(10, ["tool_7"])
+    with pytest.raises(ValueError, match="not 2"):
+        mixed_orders(held.options, held.labels or [])

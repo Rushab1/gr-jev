@@ -1,0 +1,83 @@
+% The paper of ../main.tex in the TMLR style, for a submission to Transactions on Machine Learning Research.
+% The text, tables and figures are the files of the ACL version, read from the folder above through \input@path and
+% \graphicspath, so the two versions have the same words. Only the style and the preamble differ.
+%
+% Build: tectonic paper/tmlr/main.tex
+% Style: tmlr.sty, tmlr.bst and fancyhdr.sty, downloaded on 2026-10-21 from
+% https://github.com/JmlrOrg/tmlr-style-file at the commit 7bf90efe3a0debbba703c05c43f3ff7e4d4a2992.
+%
+% The option of the style sets the version of the paper:
+%   (none)      the anonymous submission (used now)
+%   preprint    the version with the author shown and without mentions of TMLR
+%   accepted    the camera-ready version
+\documentclass[10pt]{article}
+\usepackage{tmlr}
+
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{placeins}
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\graphicspath{{../}}
+
+% The tables are sized for the ACL column of 7.7 cm. In the TMLR column of 16.5 cm, a table stretched to the column
+% width by \resizebox would grow larger than the text, and one set in \footnotesize would be small. Here a table only
+% shrinks to fit the column, and every table is set in \small. A table* spans both ACL columns, about the TMLR
+% width, and gets narrower space between columns to fit at that size.
+\usepackage{adjustbox}
+\usepackage{etoolbox}
+\renewcommand{\resizebox}[3]{\adjustbox{max width=#1}{#3}}
+\AtBeginEnvironment{table}{\small\let\footnotesize\small\let\scriptsize\small}
+\AtBeginEnvironment{table*}{\small\let\footnotesize\small\let\scriptsize\small\setlength{\tabcolsep}{4pt}}
+
+\title{When Multiple Choices Are Correct:\\Asymmetric Probability Allocation in Decision Models}
+
+\author{\name Rushab Munot \\
+      \addr Independent Researcher}
+
+\def\month{MM}
+\def\year{YYYY}
+\def\openreview{\url{https://openreview.net/forum?id=XXXX}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\input{sections/introduction}
+
+\input{sections/setup}
+
+\input{sections/results}
+
+\input{sections/conclusion}
+
+\input{sections/limitations}
+
+\bibliographystyle{tmlr}
+\bibliography{../references}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\appendix
+
+\input{sections/appendix}
+
+\input{sections/availability}
+
+\end{document}

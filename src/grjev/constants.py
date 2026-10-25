@@ -44,7 +44,11 @@ JEV_CACHE_DIR = DATA_DIR / "cache" / "jev"
 # 30 calls that send 10 copied lists per dataset with random IDs as names, with 53,247 calls saved. Rushab: "send it".
 # Raised to 58,386 the same day for the 5,109 new calls of every copied list of MetaTool, HotpotQA and ECtHR with random
 # IDs as names, with 53,277 calls saved. Rushab: "run it now. increase eve limit as requeires".
-JEV_CALL_LIMIT = 58386
+# Raised to 68,386 on 2026-10-21 for ChaosNLI, with 58,386 calls saved. Rushab: "Rais ejev limit by 10k".
+# Raised to 78,386 the same day for the 4,645 calls of the "own" runs on every ChaosNLI example, with 58,486 calls
+# saved. Rushab: "just go. increase jev budget by 10000".
+# Raised by 100,000 on 2026-10-22, by Rushab, for the "mixed" experiment.
+JEV_CALL_LIMIT = 178386
 # Requests sent to Jev at the same time. TypeSafe allows 80 requests per second.
 JEV_WORKERS = 8
 
@@ -170,6 +174,19 @@ ECTHR_BASE_URL = f"{HUGGINGFACE_URL}/datasets/coastalcph/lex_glue/resolve/{ECTHR
 ECTHR_RAW_DIR = DATA_DIR / "ecthr" / "raw"
 ECTHR_RAW_FILE = "ecthr_a/test-00000-of-00001.parquet"
 ECTHR_SHA256 = {ECTHR_RAW_FILE: "e306383d3ffd3baec21ba7419c03a9d2273f1c0946cf2d5512cf98c81d1a3f8b"}
+
+# ChaosNLI (Nie, Zhou and Bansal, 2020), 100 new labels for each of 1,514 SNLI, 1,599 MNLI matched and 1,532 alphaNLI
+# development examples, from the Hugging Face dataset earino/chaosnli at this revision. That dataset is a copy of the
+# files of the ChaosNLI repository, whose Dropbox link returned a web page instead of the file on 2026-10-21.
+CHAOSNLI_REVISION = "bf8d66a1d3434ac8b90ffc392b1b5e44bdf7e439"
+CHAOSNLI_BASE_URL = f"{HUGGINGFACE_URL}/datasets/earino/chaosnli/resolve/{CHAOSNLI_REVISION}/"
+CHAOSNLI_RAW_DIR = DATA_DIR / "chaosnli" / "raw"
+CHAOSNLI_ALPHA_RAW_FILE = "raw/chaosNLI_alphanli.jsonl"
+CHAOSNLI_SHA256 = {
+    "raw/chaosNLI_snli.jsonl": "99f9015ddda7d85f66a087452bc30d53974314fe27e7d589e2f41ad44bd509c1",
+    "raw/chaosNLI_mnli_m.jsonl": "8eb49b589488e7b1a9ec95fb8a864bd50f0509b4f808eed0aed3f8167617664d",
+    CHAOSNLI_ALPHA_RAW_FILE: "f55817ecc11a02ba3030cd7d2c567d23843456809020723abad53f4fde024c9e",
+}
 
 BFCL_COMMIT = "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8"
 BFCL_BASE_URL = (
@@ -313,6 +330,19 @@ SECOND_TEAM_PROBABILITY = 0.25
 # remainder is within a few rounding steps of 0.01.
 RENORMALISED_REST = 0.1
 
+CHAOSNLI_PROCESSED_DIR = DATA_DIR / "chaosnli" / "processed"
+CHAOSNLI_ALPHA_PROCESSED_DIR = DATA_DIR / "chaosnli_alpha" / "processed"
+# The processed SNLI and MNLI files of ChaosNLI, by the raw file of each.
+CHAOSNLI_NLI_FILES = {"snli": "raw/chaosNLI_snli.jsonl", "mnli_m": "raw/chaosNLI_mnli_m.jsonl"}
+CHAOSNLI_ALPHA_FILE = "alphanli"
+# The 3 labels of SNLI and MNLI: the code of ChaosNLI, the name sent to the model, and a description in the words of
+# the MNLI prompt to the annotators who wrote the hypotheses (Williams et al., 2018, Figure 1).
+CHAOSNLI_LABELS = (
+    ("e", "entailment", "The hypothesis is definitely correct about the situation or event in the premise."),
+    ("n", "neutral", "The hypothesis might be correct about the situation or event in the premise."),
+    ("c", "contradiction", "The hypothesis is definitely incorrect about the situation or event in the premise."),
+)
+
 ECTHR_PROCESSED_DIR = DATA_DIR / "ecthr" / "processed"
 # The processed file with every test case, and the one with the cases that have a violated article.
 ECTHR_TEST_FILE = "test"
@@ -431,7 +461,13 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "mmlu": (MMLU_STANDALONE_FILE,),
         "hotpotqa": (HOTPOTQA_TEN_FILE,),
     },
-    "own": {"mmlu": (MMLU_STANDALONE_FILE,), "ecthr": (ECTHR_TEST_FILE,)},
+    "own": {
+        "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEST_FILE,),
+        "ecthr": (ECTHR_TEST_FILE,),
+        "chaosnli": tuple(CHAOSNLI_NLI_FILES),
+        "chaosnli_alpha": (CHAOSNLI_ALPHA_FILE,),
+    },
     # "distractors" lists options of the example that are not correct, with no correct option and no "None".
     "distractors": {"metatool": ("similar_tools",), "mmlu": (MMLU_STANDALONE_FILE,)},
     # "removal" sends the list of the example, the list without each correct option, and the list without all of them.
@@ -441,6 +477,8 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
         "ecthr": (ECTHR_VIOLATED_FILE,),
         "tickets": TICKETS_TEST_FILES,
     },
+    # "mixed" sends the list of the example with its two correct options at the places of MIXED_PLACES.
+    "mixed": {"metatool": ("multi_tool",)},
     # "with_none" sends the list of the example with the "None" candidate added.
     "with_none": {"ecthr": (ECTHR_TEST_FILE,)},
     # "yes_no" asks one yes/no question about each option of the example, and no list.
@@ -455,6 +493,8 @@ NONE_TEST_FILES: dict[str, tuple[str, ...]] = {
     "hotpotqa": (),
     "ecthr": (),
     "tickets": (),
+    "chaosnli": (),
+    "chaosnli_alpha": (),
 }
 NONE_NAME = "None"
 NONE_DESCRIPTION = "No tool in the list is applicable to the user's query."
@@ -472,6 +512,11 @@ DATASET_INSTRUCTIONS = {
     "mmlu_na": "Choose the correct answer to the question.",
     "hotpotqa": "Choose every passage in the list that supports the answer to the question.",
     "ecthr": "Choose every article in the list that the European Court of Human Rights found violated in this case.",
+    # The question of the NLI annotation in the words of the MNLI prompt (Williams et al., 2018, Figure 1), and the
+    # alphaNLI task in the words of Bhagavatula et al. (2020), who asked people to "choose the more plausible
+    # hypothesis".
+    "chaosnli": "Choose how the hypothesis relates to the situation or event in the premise.",
+    "chaosnli_alpha": "Choose the more plausible hypothesis of what happened between the two observations.",
     # The instruction of the team question of TypeSafe's example, unchanged.
     "tickets": "Which team should handle this?",
 }
@@ -496,6 +541,15 @@ YES_NO_EXPERIMENT = "yes_no"
 FULL_LIST = "full"
 WITHOUT_LIST = "without"
 WITHOUT_ALL_LIST = "without_all"
+# The name of a list of the "mixed" experiment, followed by its number in MIXED_PLACES.
+MIXED_LIST = "mixed"
+# The places of the two correct options in each list of the "mixed" experiment, counted from 1. The first five put
+# them next to each other at five places, and the last five put them 5 apart at five places. Together they vary the
+# place of the pair as rotation does (Zheng et al., 2024) and its separation as Baker et al. (2024) do. Place 7 and 8
+# is the released order of the MetaTool multi_tool lists, whose two correct tools are always there.
+MIXED_PLACES = ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10), (1, 6), (2, 7), (3, 8), (4, 9), (5, 10))
+# The number of correct options that a list of the "mixed" experiment places.
+MIXED_CORRECT = 2
 # Dataset -> test files whose queries can have several correct tools. Jev's answer to a query with k correct tools is
 # its k highest-probability tools.
 SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
@@ -506,6 +560,8 @@ SEVERAL_TOOL_TEST_FILES: dict[str, tuple[str, ...]] = {
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,
+    "chaosnli": (),
+    "chaosnli_alpha": (),
 }
 ONE_TOOL_INSTRUCTIONS = (
     "Choose the tool that is applicable to the user's query. If no tool in the list is applicable, choose None."
@@ -667,11 +723,54 @@ PAPER_FIGURES_DIR = REPO_ROOT / "paper" / "figures"
 # The runs of the lists with several correct options in paper_runs.json, by dataset: the label of the row, and the
 # list of the run with the options in the released order. scripts/report/below_uniform.py reads them.
 UNIFORM_DEFINITION = "paper_runs"
-UNIFORM_RUNS = {
-    "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
-    "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
-    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", f"{ROTATED_LIST}_0"),
+# The ChaosNLI runs compared with the shares of the 100 annotators of each example, by dataset and model, as results
+# folders under RESULTS_DIR. Each sends the labels of every example in every cyclic order.
+ANNOTATOR_RUNS = {
+    "chaosnli": {
+        JEV_MODEL: "chaosnli_own/2026-10-21_01",
+        D1_MODEL: "chaosnli_own_d1/2026-10-21_01",
+        LUNA_MODEL: "chaosnli_own_gpt-6-luna-decisions/2026-10-21_01",
+    },
+    "chaosnli_alpha": {
+        JEV_MODEL: "chaosnli_alpha_own/2026-10-21_01",
+        D1_MODEL: "chaosnli_alpha_own_d1/2026-10-21_01",
+        LUNA_MODEL: "chaosnli_alpha_own_gpt-6-luna-decisions/2026-10-21_01",
+    },
 }
+# The edges of the ten equal-width bins of the ChaosNLI charts.
+ANNOTATOR_BIN_EDGES = tuple(step / 10 for step in range(11))
+# A probability of 0 gives an infinite Kullback-Leibler divergence, so it is read as this value instead. The evaluation
+# code of Nie et al. (2020) uses the same value.
+ANNOTATOR_SMALLEST_PROBABILITY = 1e-15
+# The figures of Table 5 of Nie et al. (2020) on the same examples, by test file: the Jensen-Shannon distance and the
+# accuracy on the original label and on the label with the most votes, for the chance baseline and for RoBERTa-large.
+ANNOTATOR_BASELINES = {
+    "snli": {"Chance": (0.3830, 0.4472, 0.5370), "RoBERTa-large": (0.2210, 0.7490, 0.7867)},
+    "mnli_m": {"Chance": (0.3023, 0.4509, 0.4634), "RoBERTa-large": (0.3112, 0.6742, 0.6354)},
+    "alphanli": {"Chance": (0.3205, 0.5098, 0.5052), "RoBERTa-large": (0.2128, 0.8531, 0.8368)},
+}
+# The title of each ChaosNLI test file in a chart.
+ANNOTATOR_TITLES = {"snli": "SNLI", "mnli_m": "MNLI", "alphanli": r"$\alpha$NLI"}
+# The size of the ChaosNLI charts: the width, and the height of each row.
+ANNOTATOR_PAGE_SIZE = (13.0, (4.0, 2.4))
+ANNOTATOR_PAPER_SIZE = (6.3, (2.0, 1.2))
+# The size of the ChaosNLI gap chart, which has one row: the width and the height of the row.
+ANNOTATOR_GAP_PAGE_SIZE = (13.0, 4.0)
+ANNOTATOR_GAP_PAPER_SIZE = (6.3, 2.0)
+# The run of each dataset whose lists the allocation table of the paper counts, by the label of its row in
+# paper_runs.json, with the names of the lists it counts. MetaTool counts the 10 placements of the "mixed"
+# experiment, so its cells are means over them. HotpotQA and ECtHR count every rotation of the "own" experiment,
+# named by None, because a list of n choices has n rotations and 60 HotpotQA lists have fewer than 10 passages.
+ALLOCATION_RUNS: dict[str, tuple[str, tuple[str, ...] | None]] = {
+    "MetaTool": (
+        "MetaTool: two correct tools, 10 placements of the pair",
+        tuple(f"{MIXED_LIST}_{number}" for number in range(len(MIXED_PLACES))),
+    ),
+    "HotpotQA": ('HotpotQA: the passages of the question in every cyclic permutation, "supports"', None),
+    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", None),
+}
+# The threshold analysis and the counts below 1/n read the same lists as the allocation table.
+UNIFORM_RUNS = ALLOCATION_RUNS
 # The datasets whose rows are also counted by the number of labels of the example.
 UNIFORM_BY_LABELS = ("ECtHR",)
 # The yes/no run of each dataset of UNIFORM_RUNS in paper_runs.json, by the label of its row. scripts/report/
@@ -691,6 +790,45 @@ COPIES_RUNS = {
 # The table of the appendix made by scripts/paper/paper_intervals.py: the 95% bootstrap intervals of the main figures
 # of the paper, as a LaTeX file in PAPER_TABLES_DIR.
 INTERVALS_PAPER_TABLE = "intervals"
+# The three models of the paper, in the order of its tables.
+EXAMPLE_TABLE_MODELS = (JEV_MODEL, D1_MODEL, LUNA_MODEL)
+# The short name of each model in the header of that table, which is too narrow for the full names.
+EXAMPLE_MODEL_HEADERS = {JEV_MODEL: "Jev", D1_MODEL: "d1", LUNA_MODEL: "Luna"}
+# One example from each dataset and test file, for the table of the appendix: the dataset, the test file, the results
+# folder of Jev and the list in it. The folders of the other models add the model's name from RESULTS_MODEL_NAMES.
+EXAMPLE_TABLE_ROWS = (
+    ("metatool", "similar_tools", "metatool_position/2026-10-11_01", "released"),
+    ("metatool", "scenario", "metatool_position/2026-10-11_01", "released"),
+    ("metatool", "multi_tool", "metatool_removal/2026-10-11_01", "full"),
+    ("metatool", "reliability", "metatool_position/2026-10-11_01", "released"),
+    ("hotpotqa", "validation", "hotpotqa_removal/2026-10-11_01", "full"),
+    ("ecthr", "test", "ecthr_own/2026-10-11_01", "rotated_0"),
+    ("chaosnli", "snli", "chaosnli_own/2026-10-21_01", "rotated_0"),
+    ("chaosnli", "mnli_m", "chaosnli_own/2026-10-21_01", "rotated_0"),
+    ("chaosnli_alpha", "alphanli", "chaosnli_alpha_own/2026-10-21_01", "rotated_0"),
+)
+# The name of each test file in that table.
+EXAMPLE_TITLES = {
+    "similar_tools": "MetaTool, one correct tool among tools with similar descriptions",
+    "scenario": "MetaTool, one correct tool among the tools of a scenario",
+    "multi_tool": "MetaTool, two correct tools",
+    "reliability": "MetaTool, no correct tool",
+    "validation": "HotpotQA, two passages support the answer",
+    "test": "ECtHR, the articles a case violates",
+    "snli": "ChaosNLI SNLI, the votes of 100 annotators",
+    "mnli_m": "ChaosNLI MNLI, the votes of 100 annotators",
+    "alphanli": "ChaosNLI $\\alpha$NLI, the votes of 100 annotators",
+}
+# A query or a choice longer than this many characters is cut at a space and followed by an ellipsis.
+EXAMPLE_QUERY_CHARACTERS = 420
+EXAMPLE_CHOICE_CHARACTERS = 170
+# The table of those examples, as a LaTeX file in PAPER_TABLES_DIR.
+EXAMPLES_PAPER_TABLE = "examples"
+# The ChaosNLI table and figure of the paper, written by scripts/paper/paper_annotators.py.
+ANNOTATORS_PAPER_TABLE = "chaosnli"
+ANNOTATORS_PAPER_FIGURE = "annotator_gap"
+# The ECE of the probabilities against the annotators' shares, a LaTeX file in PAPER_TABLES_DIR.
+ANNOTATORS_ECE_PAPER_TABLE = "chaosnli_calibration"
 # The thresholds of the charts, from 0 to 1 in steps of 0.01, and those of the table under them.
 THRESHOLD_STEPS = 100
 THRESHOLDS_TABLED = (0.1, 0.25, 0.5)
@@ -754,6 +892,8 @@ DOWNLOADS = {
     "mmlu_na": (MMLU_BASE_URL, MMLU_SHA256, MMLU_RAW_DIR),
     "hotpotqa": (HOTPOTQA_BASE_URL, HOTPOTQA_SHA256, HOTPOTQA_RAW_DIR),
     "ecthr": (ECTHR_BASE_URL, ECTHR_SHA256, ECTHR_RAW_DIR),
+    "chaosnli": (CHAOSNLI_BASE_URL, CHAOSNLI_SHA256, CHAOSNLI_RAW_DIR),
+    "chaosnli_alpha": (CHAOSNLI_BASE_URL, CHAOSNLI_SHA256, CHAOSNLI_RAW_DIR),
 }
 
 # Dataset name -> where its files in the common format are written.
@@ -766,6 +906,8 @@ PROCESSED_DIRS = {
     "hotpotqa": HOTPOTQA_PROCESSED_DIR,
     "ecthr": ECTHR_PROCESSED_DIR,
     "tickets": TICKETS_PROCESSED_DIR,
+    "chaosnli": CHAOSNLI_PROCESSED_DIR,
+    "chaosnli_alpha": CHAOSNLI_ALPHA_PROCESSED_DIR,
 }
 # Dataset name -> its test files, in the order they are shown.
 TEST_FILES = {
@@ -777,4 +919,6 @@ TEST_FILES = {
     "hotpotqa": HOTPOTQA_TEST_FILES,
     "ecthr": ECTHR_TEST_FILES,
     "tickets": TICKETS_TEST_FILES,
+    "chaosnli": tuple(CHAOSNLI_NLI_FILES),
+    "chaosnli_alpha": (CHAOSNLI_ALPHA_FILE,),
 }

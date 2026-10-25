@@ -2,13 +2,16 @@
 
 import random
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from fractions import Fraction
 from math import ceil
 
 from grjev.constants import (
     COPY_ID_CHARACTERS,
     COPY_ID_LENGTH,
+    MIXED_CORRECT,
+    MIXED_LIST,
+    MIXED_PLACES,
     OWN_LIST,
     PLACEMENT_MAX_CORRECT,
     PLACEMENT_MIN_TOOLS,
@@ -141,6 +144,24 @@ def outside_tools(example: Example, tools: list[Option], size: int, seed: int) -
 def rotated_orders(tools: list[Option]) -> dict[str, list[Option]]:
     """Return the tools in every rotation of their order, by name. Each tool is at each place of one rotation."""
     return {f"{ROTATED_LIST}_{moved}": tools[moved:] + tools[:moved] for moved in range(len(tools))}
+
+
+def mixed_orders(tools: list[Option], labels: Sequence[str]) -> dict[str, list[Option]]:
+    """Return the tools with the two correct ones at the places of each entry of MIXED_PLACES, by name.
+
+    The other tools keep their order among themselves and fill the remaining places. A list whose places fall
+    outside the tools is left out, so a list shorter than the highest place of MIXED_PLACES gives fewer lists.
+    """
+    correct = [tool for tool in tools if tool.name in labels]
+    if len(correct) != MIXED_CORRECT:
+        raise ValueError(f"the list holds {len(correct)} of the correct tools {list(labels)}, not {MIXED_CORRECT}")
+    others = [tool for tool in tools if tool.name not in labels]
+    out = {}
+    for number, places in enumerate(MIXED_PLACES):
+        if max(places) > len(tools):
+            continue
+        out[f"{MIXED_LIST}_{number}"] = place(list(others), dict(zip(places, correct, strict=True)))
+    return out
 
 
 def grown_orders(

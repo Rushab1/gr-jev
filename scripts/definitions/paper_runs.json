@@ -1,36 +1,35 @@
 {
  "title": "Runs on every example: figures by run and model",
- "intro": "These runs follow `docs/paper_plan.md`. They were made on 2026-10-11 with three decision models: Jev, Liquid d1 and GPT-6 Luna Decisions. The conclusions come first. Each finding then has a page with a chart, evidence, one example and a table for the paper. The terms follow, then one table per run with the models as rows. `python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds this document from the results folders and `scripts/definitions/paper_runs.json`. Claude Code read the figures on 2026-10-11 and wrote the conclusions and their strength. Rushab set the claim and the strength of finding 2 on 2026-10-11. Rushab has not reviewed the others.",
+ "intro": "These runs follow `docs/paper_plan.md`. Most were made on 2026-10-11 with three decision models: Jev, Liquid d1 and GPT-6 Luna Decisions. Four yes/no runs are from 2026-10-14 and 2026-10-18. The copies are from 2026-10-19 and 2026-10-20. The MetaTool placements are from 2026-10-22, and the HotpotQA cyclic permutations from 2026-10-24. The conclusions come first. Each finding then has a page with a chart, evidence, one example and a table for the paper. The terms follow, then one table per run with the models as rows. `python scripts/report/runs_report.py paper_runs --out docs/paper_runs.html` rebuilds this document from the results folders and `scripts/definitions/paper_runs.json`. Claude Code read the figures on 2026-10-11 and wrote the conclusions and their strength. Rushab set the claim and the strength of finding 2 on 2026-10-11. Rushab has not reviewed the others.",
  "conclusions": [
   "The claim. A decision model gives each option in a list a probability. That probability does not reliably say whether the option is correct. It is close to the accuracy when exactly one option in the list is correct. It is not close in the three other cases.",
-  "Several correct options (finding 2, the main finding). When 2 to 4 options in a list are correct, one of them has a mean probability of 0.66 to 0.85. The correct option with the lowest probability has 0.11 to 0.19. This happens on three datasets and three models. TypeSafe's example code notifies a second team when its probability is above 0.25. Every correct option is above 0.25 in 15% to 35% of the answers. Strong.",
+  "Several correct options (finding 2, the main finding). When 2 to 4 options in a list are correct, one of them has a mean probability of 0.71 to 0.83. The correct option with the lowest probability has 0.12 to 0.19. This happens on three datasets and three models. TypeSafe's example code notifies a second team when its probability is above 0.25. Every correct option is above 0.25 in 17% to 35% of the answers. Strong.",
   "TypeSafe's example (finding 6). TypeSafe's example ticket has two issues. Jev gives their two teams 0.65 and 0.31. The documentation shows 0.61 and 0.35. On 24 tickets written the same way, both teams are above 0.25 in 11 tickets on Jev, 12 on Liquid d1 and 3 on GPT-6 Luna Decisions. When an issue is sent alone, the models give its team 0.99 to 1.00. Moderate: 24 tickets.",
   "Why the second correct option is low (finding 5). Remove the correct option with the highest probability from the list. The second correct option then rises from between 0.11 and 0.19 to between 0.53 and 0.71. Sharing out the removed probability in proportion predicts this rise. Liquid d1 returns full-precision probabilities: the prediction is 0.64, 0.80 and 0.70 on the three datasets, and the model gives 0.61, 0.70 and 0.67. Jev and GPT-6 Luna Decisions return 2 decimals, and their values agree within 0.13 on the examples where 0.10 or more is left. This supports finding 2. It is not a finding of its own.",
-  "Identical options (finding 1). In a list of 5 copies of one correct option, every copy is equally correct, and equal probabilities are 0.20. Jev gives its highest copy 0.29 to 0.34 and its lowest copy 0.10 to 0.12. Liquid d1 gives them 0.50 to 0.81 and 0.03 to 0.08. GPT-6 Luna Decisions gives them 0.67 to 0.79 and 0.01 to 0.02. Liquid d1 and GPT-6 Luna Decisions pick the first copy in 86% to 100% of their answers. Strong.",
+  "Identical options (finding 1). In a list of 5 copies of one correct option, every copy is equally correct, and equal probabilities are 0.20. Jev gives its highest copy 0.30 to 0.37 and its lowest copy 0.10 to 0.13. Liquid d1 gives them 0.46 to 0.80 and 0.03 to 0.09. GPT-6 Luna Decisions gives them 0.54 to 0.81 and 0.01 to 0.03. Liquid d1 and GPT-6 Luna Decisions pick the first copy in 76% to 98% of their answers. Strong.",
   "No correct option (finding 3). When no option in a list is correct, Jev and Liquid d1 answer every list. Their mean confidence is 0.49 to 0.87. GPT-6 Luna Decisions refuses 58% to 98% of the lists with random options. It refuses 1% to 27% of the lists with the example's distractors. Strong for random options.",
-  "One correct option (finding 4). The mean confidence is within 0.14 of the accuracy. The probability works in this case. When several options are correct, the mean confidence is 0.08 to 0.23 below the accuracy.",
-  "For the paper. Finding 2 carries the paper. Finding 6 tests it on TypeSafe's own example. Findings 1 and 3 show two more cases where the probability does not say whether an option is correct. Each request was sent once. No figure has a margin of error yet."
+  "One correct option (finding 4). The mean confidence is within 0.14 of the accuracy. The probability works in this case. When several options are correct, the mean confidence is 0.12 to 0.23 below the accuracy.",
+  "For the paper. Finding 2 carries the paper. Finding 6 tests it on TypeSafe's own example. Findings 1 and 3 show two more cases where the probability does not say whether an option is correct."
  ],
  "findings": [
   {
    "title": "1. Identical options: the copies do not get equal probabilities, and the position decides which copy gets the most",
-   "conclusion": "A list of 5 copies of one correct option has no better option, and equal probabilities are 0.20 each. No model gives equal probabilities. Jev gives its highest copy 0.29 to 0.34 and its lowest copy 0.10 to 0.12. Liquid d1 gives them 0.50 to 0.81 and 0.03 to 0.08, and GPT-6 Luna Decisions 0.67 to 0.79 and 0.01 to 0.02. The position decides which copy is highest.",
-   "strength": "strong for the three models. Identical options get different probabilities: the highest copy is ahead of the lowest copy by 0.17 to 0.23 on Jev, 0.42 to 0.78 on Liquid d1 and 0.65 to 0.78 on GPT-6 Luna Decisions. Liquid d1 and GPT-6 Luna Decisions put the highest copy first. Jev's preferred position changes with the dataset.",
+   "conclusion": "A list of 5 copies of one correct option has no better option, and equal probabilities are 0.20 each. No model gives equal probabilities. Jev gives its highest copy 0.30 to 0.37 and its lowest copy 0.10 to 0.13. Liquid d1 gives them 0.46 to 0.80 and 0.03 to 0.09, and GPT-6 Luna Decisions 0.54 to 0.81 and 0.01 to 0.03. The position decides which copy is highest.",
+   "strength": "strong for the three models. Identical options get different probabilities: the highest copy is ahead of the lowest copy by 0.17 to 0.26 on Jev, 0.37 to 0.77 on Liquid d1 and 0.51 to 0.79 on GPT-6 Luna Decisions. Liquid d1 and GPT-6 Luna Decisions put the highest copy first. Jev's preferred position changes with the dataset.",
    "evidence": [
-    "Jev gives the highest copy a mean of 0.32, 0.33, 0.34 and 0.29 on MetaTool, MMLU, HotpotQA and ECtHR, and the lowest copy 0.11, 0.10, 0.11 and 0.12. The highest copy gets 2.4 to 3.3 times the probability of the lowest copy.",
-    "Liquid d1 gives the highest copy 0.81, 0.50, 0.73 and 0.55, and the lowest copy 0.03, 0.08, 0.04 and 0.07. GPT-6 Luna Decisions gives the highest copy 0.78, 0.74, 0.79 and 0.67, and the lowest copy 0.02, 0.01, 0.01 and 0.02.",
-    "The highest copy is ahead of the second-highest copy by 0.06 to 0.11 on Jev, 0.31 to 0.73 on Liquid d1 and 0.45 to 0.68 on GPT-6 Luna Decisions.",
-    "The mean entropy is 1.03 to 1.85 bits on Liquid d1, 1.00 to 1.35 bits on GPT-6 Luna Decisions and 2.18 to 2.24 bits on Jev. Equal probabilities give 2.32 bits.",
-    "Liquid d1 picks position 1 in 99.9%, 85.7%, 99.5% and 99.6% of answers on MetaTool, MMLU, HotpotQA and ECtHR, respectively. GPT-6 Luna Decisions picks it in 98.6%, 87.8%, 99.4% and 98.9% of answers, respectively. An equal share is 20%.",
-    "Jev picks the last position in 73.9% of answers on MMLU, 59.3% on ECtHR, 35.5% on MetaTool and 29.5% on HotpotQA.",
+    "Jev gives the highest copy a mean of 0.31, 0.33, 0.37 and 0.30 on MetaTool, MMLU, HotpotQA and ECtHR, and the lowest copy 0.13, 0.10, 0.11 and 0.13. The highest copy gets 2.3 to 3.3 times the probability of the lowest copy.",
+    "Liquid d1 gives the highest copy 0.80, 0.50, 0.73 and 0.46, and the lowest copy 0.03, 0.08, 0.04 and 0.09. GPT-6 Luna Decisions gives the highest copy 0.81, 0.74, 0.76 and 0.54, and the lowest copy 0.02, 0.01, 0.02 and 0.03.",
+    "The highest copy is ahead of the second-highest copy by 0.08 to 0.16 on Jev, 0.27 to 0.72 on Liquid d1 and 0.23 to 0.72 on GPT-6 Luna Decisions.",
+    "The mean entropy is 1.09 to 2.00 bits on Liquid d1, 1.01 to 1.59 bits on GPT-6 Luna Decisions and 2.14 to 2.25 bits on Jev. Equal probabilities give 2.32 bits.",
+    "Liquid d1 picks position 1 in 97.7%, 85.7%, 97.6% and 96.9% of answers on MetaTool, MMLU, HotpotQA and ECtHR, respectively. GPT-6 Luna Decisions picks it in 97.7%, 87.8%, 97.7% and 76.2% of answers, respectively. An equal share is 20%.",
+    "Jev picks the last position in 73.9% of answers on MMLU and 56.4% on ECtHR. It picks the first position in 35.8% of answers on MetaTool and 65.7% on HotpotQA.",
     "With 5 paraphrases of one MetaTool tool, Liquid d1 picks position 1 in 74% of answers. GPT-6 Luna Decisions picks it in 87% of answers, and Jev in 26%.",
     "With one correct tool among distractors, GPT-6 Luna Decisions has an accuracy of 0.80 when the tool is first and 0.67 when it is last. Jev's accuracy goes from 0.78 to 0.80, and Liquid d1's from 0.69 to 0.74.",
     "Each model received 30,695 lists across four datasets. Each list appeared in its 5 cyclic permutations."
    ],
    "limits": [
     "The copies are named by random IDs. The API needs different names to tell them apart.",
-    "A user does not send a list of identical options. The run with one correct tool among distractors connects this test to real lists. There, the effect is 0.13 for one model and 0.05 or less for the two others.",
-    "Each request was sent once. Jev does not always give the same answer to the same request."
+    "A user does not send a list of identical options. The run with one correct tool among distractors connects this test to real lists. There, the effect is 0.13 for one model and 0.05 or less for the two others."
    ],
    "chart": {
     "kind": "positions",
@@ -133,14 +132,14 @@
   },
   {
    "title": "2. Allocation: the model gives most of the probability to one of several correct options",
-   "conclusion": "When a list has 2 to 4 correct options, the models give most of the probability to one of them: a mean of 0.66 to 0.85. The lowest correct option gets 0.11 to 0.19. The highest distractor gets 0.04 to 0.17, and the two ranges overlap. Asking for both options does not change this. On Jev, \"Choose both.\" gives the lowest correct MetaTool tool 0.15, and \"Choose one of them.\" gives it 0.14.",
-   "strength": "strong, and the paper's main finding. TypeSafe's documentation reads 0.61 and 0.35 as a ticket for two teams. Its example code notifies a second team above 0.25. Across three datasets and three models, every correct option is above 0.25 in 15% to 35% of answers. Someone who follows that rule misses a correct option in 65% to 85% of these lists.",
+   "conclusion": "When a list has 2 to 4 correct options, the models give most of the probability to one of them: a mean of 0.71 to 0.83. The lowest correct option gets 0.12 to 0.19. The highest distractor gets 0.05 to 0.13, and the two ranges overlap. Asking for both options does not change this. On Jev, \"Choose both.\" gives the lowest correct MetaTool tool 0.15, and \"Choose one of them.\" gives it 0.14.",
+   "strength": "strong, and the paper's main finding. TypeSafe's documentation reads 0.61 and 0.35 as a ticket for two teams. Its example code notifies a second team above 0.25. Across three datasets and three models, every correct option is above 0.25 in 17% to 35% of answers. Someone who follows that rule misses a correct option in 65% to 83% of these lists.",
    "evidence": [
-    "On MetaTool, the mean probabilities for the highest and lowest correct options are 0.85 and 0.11 for Jev, 0.71 and 0.16 for Liquid d1, and 0.66 and 0.11 for GPT-6 Luna Decisions. On HotpotQA, the same models give 0.77 and 0.17, 0.74 and 0.19, and 0.72 and 0.15. On ECtHR, they give 0.72 and 0.15, 0.72 and 0.16, and 0.73 and 0.13.",
-    "On MetaTool, every correct option is above 0.25 in 15% of Jev's answers, 27% of Liquid d1's answers, and 16% of GPT-6 Luna Decisions' answers. In the same model order, this happens in 30%, 35% and 26% of HotpotQA answers, and in 23%, 25% and 17% of ECtHR answers.",
-    "TypeSafe's primer says outcomes with a probability of `0.2` should happen about 20% of the time. The models give the lowest correct option a mean probability of 0.11 to 0.19. The dataset labels it correct in every one of these lists.",
-    "On average, the lowest correct option is 0.05 to 0.14 above the highest distractor. For GPT-6 Luna Decisions on MetaTool, it is 0.06 below. A probability threshold does not separate the second correct option from the distractors.",
-    "The models usually rank the options correctly. The prediction is a correct option in 0.82 to 0.98 of answers. The 2 highest options are the 2 correct ones in 0.52 to 0.85 of answers.",
+    "On MetaTool, the mean probabilities for the highest and lowest correct options are 0.83 and 0.12 for Jev, 0.71 and 0.16 for Liquid d1, and 0.71 and 0.12 for GPT-6 Luna Decisions. On HotpotQA, the same models give 0.77 and 0.17, 0.74 and 0.19, and 0.72 and 0.15. On ECtHR, they give 0.72 and 0.15, 0.72 and 0.16, and 0.73 and 0.13.",
+    "On MetaTool, every correct option is above 0.25 in 17% of Jev's answers, 26% of Liquid d1's answers, and 19% of GPT-6 Luna Decisions' answers. In the same model order, this happens in 30%, 35% and 26% of HotpotQA answers, and in 23%, 25% and 17% of ECtHR answers.",
+    "TypeSafe's primer says outcomes with a probability of `0.2` should happen about 20% of the time. The models give the lowest correct option a mean probability of 0.12 to 0.19. The dataset labels it correct in every one of these lists.",
+    "On average, the lowest correct option is 0.04 to 0.14 above the highest distractor. For GPT-6 Luna Decisions on MetaTool, the difference is 0.00. A probability threshold does not separate the second correct option from the distractors.",
+    "The models usually rank the options correctly. The prediction is a correct option in 0.88 to 0.97 of answers. The 2 highest options are the 2 correct ones in 0.59 to 0.85 of answers.",
     "With Jev on MetaTool, \"Choose one of them.\" gives the lowest correct tool 0.14, and \"Choose both.\" gives it 0.15. On HotpotQA, \"may support\", \"supports\" and \"definitely supports\" give the lowest supporting passage 0.18, 0.17 and 0.17.",
     "Finding 5 explains the cause. Finding 6 tests TypeSafe's example. When an issue is sent alone, the model gives its team 0.99 to 1.00. When the ticket has a second issue, the team with the lower probability gets 0.12 to 0.28 on average.",
     "The results cover 7,405 HotpotQA questions, 497 MetaTool queries and 192 ECtHR cases."
@@ -155,7 +154,7 @@
     "title": "Mean probability for the lowest and highest correct options",
     "runs": [
      [
-      "MetaTool: two correct tools, every needed tool is asked for",
+      "MetaTool: two correct tools, 10 placements of the pair",
       "MetaTool, 2 correct tools"
      ],
      [
@@ -184,7 +183,7 @@
      "caption": "For lists with several correct options: the mean probability of the highest correct option minus that of the lowest, in percentage points; the share of lists with every correct option above every distractor; and, among those lists, the share with a correct option below 1/n for a list of n options. The two shares use the released order of the ECtHR lists and leave out the lists with no distractor.",
      "parts": [
       {
-       "run": "MetaTool: two correct tools, every needed tool is asked for",
+       "run": "MetaTool: two correct tools, 10 placements of the pair",
        "name": "MetaTool, 2 correct tools",
        "columns": [
         "Highest correct minus lowest correct, in points",
@@ -194,7 +193,7 @@
        "short": "MetaTool, 2 correct"
       },
       {
-       "run": "HotpotQA: the passages of the question, \"supports\"",
+       "run": "HotpotQA: the passages of the question in every cyclic permutation, \"supports\"",
        "name": "HotpotQA, 2 supporting passages",
        "columns": [
         "Highest correct minus lowest correct, in points",
@@ -378,11 +377,11 @@
   },
   {
    "title": "4. Calibration: confidence is close to accuracy with one correct option, but the result does not carry over",
-   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.08 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another. With several correct options, a yes/no question per option gives each option a probability. On MetaTool, the tools given 0.9 to 1.0 for yes are correct in 80% to 89% of the answers, and those given 0.2 to 0.3 in 24% to 40%.",
+   "conclusion": "On lists with one correct option, the three models' confidence is close to their accuracy. With several correct options, their confidence is 0.12 to 0.23 below their accuracy. With none, their confidence is 0.49 to 0.87. A confidence threshold set on one kind of list does not hold on another. With several correct options, a yes/no question per option gives each option a probability. On MetaTool, the tools given 0.9 to 1.0 for yes are correct in 80% to 89% of the answers, and those given 0.2 to 0.3 in 24% to 40%.",
    "strength": "the case in which the probability works, not a finding on its own. The figures are sound. The gaps on the other lists follow from findings 2 and 3. A shared probability lowers confidence, and a list with no correct option has accuracy 0.",
    "evidence": [
     "With one correct option, mean confidence minus accuracy is +0.08, +0.09 and +0.14 on MetaTool for Jev, Liquid d1 and GPT-6 Luna Decisions. It is +0.02, +0.05 and +0.04 on MMLU, and -0.03, -0.01 and 0.00 on ECtHR.",
-    "With several correct options, mean confidence minus accuracy is -0.12, -0.16 and -0.08 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
+    "With several correct options, mean confidence minus accuracy is -0.13, -0.16 and -0.12 on MetaTool. It is -0.19, -0.21 and -0.20 on HotpotQA, and -0.21, -0.23 and -0.21 on ECtHR.",
     "With one correct option, ECE with 10 bins ranges from 0.01 to 0.15.",
     "With a yes/no question per option, the answers from 0.9 to 1.0 for yes, at mean probabilities of yes of 0.93 to 0.99, are about a correct option in 80% to 100% of the cases. The answers from 0.2 to 0.3, at mean probabilities of 0.25 to 0.26, are about a correct option in 39% to 48% on HotpotQA, 24% to 40% on MetaTool and 6% to 35% on ECtHR.",
     "On the 796 HotpotQA bridge questions, the passages given 0.2 to 0.3 for yes, at a mean probability of 0.25, are supporting passages in 40% to 45% of the answers, and the passages given 0.9 to 1.0, at 0.95 to 0.98, in 83% to 88%.",
@@ -412,7 +411,7 @@
       "ECtHR, 1 violated article"
      ],
      [
-      "MetaTool: two correct tools, every needed tool is asked for",
+      "MetaTool: two correct tools, 10 placements of the pair",
       "MetaTool, 2 correct tools"
      ],
      [
@@ -664,7 +663,7 @@
    "limits": [
     "Claude Opus 5.5 wrote the 24 issues on 2026-10-11. No second reader checked that each issue concerns only one team.",
     "The two issues in a ticket may not matter equally. No reference gives the right split.",
-    "Each request was sent once. When the team question from TypeSafe's ticket was sent again during the ticket run, Jev gave 0.58 and 0.37.",
+    "When the team question from TypeSafe's ticket was sent again during the ticket run, Jev gave 0.58 and 0.37.",
     "This test uses one vendor's example and three teams. The four datasets in findings 1 to 5 support the general claim."
    ],
    "chart": {
@@ -798,7 +797,7 @@
   "A table leaves out a column when no model has that figure. A list with no correct option has no accuracy. A list with only correct options has no distractor.",
   "The three differences and the probabilities are calculated for each answer, then averaged across answers. Differences involving a distractor use answers to lists with a correct option and a distractor. When a run also has lists with only correct options, the column \"Lists with a correct option and a distractor\" shows how many lists have both.",
   "The MMLU runs use a seeded sample of 1,000 of the 13,096 questions whose choices can be moved. The HotpotQA runs with 5 cyclic permutations and the HotpotQA run with 4 distractors and NOTA use a seeded sample of 1,000 of the 7,345 questions with 10 passages. The other runs use every example.",
-  "MetaTool repeats queries across its test files. The run with paraphrases has 1,767 examples and 1,047 different requests. The run with duplicates has 3,292 examples and 3,275 different requests. An answer to a repeated request counts once per example.",
+  "MetaTool repeats queries across its test files. The run with paraphrases has 1,767 examples and 1,047 different requests. The run with duplicates has 3,292 examples and 3,292 different requests. An answer to a repeated request counts once per example.",
   "ECtHR labels name the articles that the Court found violated in a case. A case with no label means the Court found no violation of the 10 articles.",
   "The test sends a yes/no question about each tool of the 497 MetaTool multi-tool queries, run on 2026-10-14. It sends a yes/no question about each HotpotQA passage for the 1,000 questions of the run with copies, run on 2026-10-18, and about each ECtHR article for the 1,000 test cases.",
   "The file `src/grjev/stimuli/tickets.json` has the tickets, TypeSafe's example request, and its documented answer. `python scripts/run/typesafe_example.py` sends that request."
@@ -927,6 +926,14 @@
    "instruction": "Choose every tool in the list that is needed to solve the user's query."
   },
   {
+   "label": "MetaTool: two correct tools, 10 placements of the pair",
+   "folder": "results/metatool_mixed/2026-10-22_01",
+   "lists_text": "every list",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "The example's tool list has two correct tools. We send it in 10 orders: the two correct tools next to each other at 5 places, and 5 apart at 5 places. The other tools keep their order among themselves.",
+   "instruction": "Choose every tool in the list that is needed to solve the user's query."
+  },
+  {
    "label": "HotpotQA: the passages of the question, \"supports\"",
    "folder": "results/hotpotqa_removal/2026-10-11_01",
    "lists_text": "list `full`",
@@ -935,6 +942,14 @@
    "lists": [
     "full"
    ],
+   "instruction": "Choose every passage in the list that supports the answer to the question."
+  },
+  {
+   "label": "HotpotQA: the passages of the question in every cyclic permutation, \"supports\"",
+   "folder": "results/hotpotqa_own/2026-10-24_01",
+   "lists_text": "every list",
+   "group": "2. Allocation: lists with several correct options",
+   "about": "We send each question with every cyclic permutation of its passages. Each passage appears at each position once. Two passages have a supporting fact.",
    "instruction": "Choose every passage in the list that supports the answer to the question."
   },
   {

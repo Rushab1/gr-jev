@@ -46,7 +46,7 @@ def test_the_counts_keep_lists_with_two_labels_and_a_distractor_and_count_refusa
         row(["a"], {"full": answer({"a": 0.9, "b": 0.05, "c": 0.05})}),
         row(["a", "b"], {}, refused=["full"]),
     ]
-    found = counted(rows, "full")
+    found = counted(rows, ("full",))
     assert (found.lists, found.refused, found.correct, found.below, found.lists_below) == (2, 1, 4, 1, 1)
     assert (found.ranked, found.ranked_below) == (2, 1)
 
@@ -59,7 +59,20 @@ def test_a_list_is_ranked_correctly_when_every_label_is_strictly_above_every_dis
 
 def test_a_list_with_no_answer_and_no_refusal_raises() -> None:
     with pytest.raises(ValueError, match="no answer"):
-        counted([row(["a", "b"], {})], "full")
+        counted([row(["a", "b"], {})], ("full",))
+
+
+def test_without_names_every_list_of_a_row_counts_and_rows_may_hold_different_lists() -> None:
+    rows = [
+        row(["a", "b"], {"r0": answer({"a": 0.9, "b": 0.06, "c": 0.04}), "r1": answer({"a": 0.4, "b": 0.4, "c": 0.2})}),
+        row(["a", "b"], {"r0": answer({"a": 0.5, "b": 0.1, "c": 0.4})}, refused=["r1"]),
+        # A list of the two labels has one rotation fewer and no distractor.
+        row(["a", "b"], {"r0": answer({"a": 0.9, "b": 0.1})}),
+    ]
+    found = counted(rows, None)
+    assert (found.lists, found.refused, found.lists_below, found.ranked, found.ranked_below) == (3, 1, 2, 2, 1)
+    with pytest.raises(ValueError, match="no answer"):
+        counted(rows, ("r0", "r1"))
 
 
 def test_the_rows_are_grouped_by_their_number_of_labels() -> None:

@@ -1,6 +1,6 @@
 """Tests for grjev.intervals."""
 
-from grjev.intervals import exact_pairs, gap_pairs, ranked_pairs, ratio, ratio_interval
+from grjev.intervals import below_pairs, exact_pairs, gap_pairs, ranked_pairs, ratio, ratio_interval
 from grjev.runs import ListAnswer, Row
 from grjev.thresholds import exact, top
 from grjev.uniform import counted
@@ -51,17 +51,51 @@ def test_the_ranked_shares_are_those_of_the_counts_below_one_over_n() -> None:
         row(2, ["a", "b"], {"full": answer({"a": 0.5, "b": 0.1, "c": 0.4})}),
         row(3, ["a", "b"], {"full": answer({"a": 0.9, "b": 0.1})}),
     ]
-    good, low = ranked_pairs(rows, "full")
-    found = counted(rows, "full")
+    good, low = ranked_pairs(rows, ("full",))
+    found = counted(rows, ("full",))
     assert ratio(good) == found.ranked / found.lists
     assert ratio(low) == found.ranked_below / found.ranked
 
 
-def test_the_exact_sets_use_the_best_threshold_of_all_the_examples() -> None:
+def test_the_lists_below_one_over_n_are_summed_per_example_as_in_the_counts() -> None:
+    rows = [
+        row(
+            0,
+            ["a", "b"],
+            {"r0": answer({"a": 0.9, "b": 0.06, "c": 0.04}), "r1": answer({"a": 0.4, "b": 0.4, "c": 0.2})},
+        ),
+        row(1, ["a", "b"], {"r0": answer({"a": 0.9, "b": 0.1}), "r1": answer({"a": 0.5, "b": 0.1, "c": 0.4})}),
+    ]
+    # The second example's first list has no distractor, so it counts one list.
+    found = below_pairs(rows, ("r0", "r1"))
+    assert found == [(1.0, 2.0), (1.0, 1.0)]
+    counts = counted(rows, ("r0", "r1"))
+    assert ratio(found) == counts.lists_below / counts.lists
+
+
+def test_without_names_the_pairs_count_every_list_of_a_row_as_the_counts_do() -> None:
+    rows = [
+        row(
+            0,
+            ["a", "b"],
+            {"r0": answer({"a": 0.9, "b": 0.06, "c": 0.04}), "r1": answer({"a": 0.4, "b": 0.4, "c": 0.2})},
+        ),
+        row(1, ["a", "b"], {"r0": answer({"a": 0.5, "b": 0.1, "c": 0.4})}),
+    ]
+    good, low = ranked_pairs(rows, None)
+    counts = counted(rows, None)
+    assert ratio(below_pairs(rows, None)) == counts.lists_below / counts.lists
+    assert (ratio(good), ratio(low)) == (counts.ranked / counts.lists, counts.ranked_below / counts.ranked)
+
+
+def test_the_exact_sets_use_the_best_threshold_of_all_the_lists_and_keep_the_lists_of_an_example_together() -> None:
     found = [
         [(0.6, True), (0.3, True), (0.1, False)],
         [(0.8, True), (0.15, True), (0.05, False)],
         [(0.5, True), (0.5, False)],
     ]
+    # The first two lists are two orders of one example.
+    groups = [found[:2], found[2:]]
     t, best = top(found, exact)
-    assert ratio(exact_pairs(found)) == best == exact(found, t)
+    assert exact_pairs(groups) == [(2.0, 2), (0.0, 1)]
+    assert ratio(exact_pairs(groups)) == best == exact(found, t)

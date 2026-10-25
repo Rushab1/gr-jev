@@ -66,26 +66,35 @@ def ranked_correctly(labels: Sequence[str], answer: ListAnswer) -> bool:
     return min(probabilities[label] for label in labels) > max(distractors)
 
 
-def counted(rows: Sequence[Row], name: str) -> BelowUniform:
-    """Return the counts of the list of that name over the examples with two or more labels.
+def listed(row: Row, names: Sequence[str] | None) -> Sequence[str]:
+    """Return the names of the lists of a row to count: the given names, or every list it answered or refused."""
+    return [*row.answers, *row.refused] if names is None else names
+
+
+def counted(rows: Sequence[Row], names: Sequence[str] | None) -> BelowUniform:
+    """Return the counts of the lists of those names over the examples with two or more labels.
 
     An answered list counts when it holds a distractor. A refused list counts on its labels alone, because a row does
-    not save the options of a list that the model refused. A list that is neither answered nor refused raises.
+    not save the options of a list that the model refused. A list that is neither answered nor refused raises. With
+    several names every list counts once, so each count is a total over the lists of an example. Without names every
+    list of a row counts, as for the rotations of a list, whose number is the number of its options.
     """
     several = [row for row in rows if len(row.labels) > 1]
-    lost = [row.id for row in several if name not in row.answers and name not in row.refused]
-    if lost:
-        raise ValueError(f"{len(lost)} examples have no answer and no refusal for {name}, such as {lost[0]}")
+    for name in names or ():
+        lost = [row.id for row in several if name not in row.answers and name not in row.refused]
+        if lost:
+            raise ValueError(f"{len(lost)} examples have no answer and no refusal for {name}, such as {lost[0]}")
     answered = [
         (row.labels, row.answers[name])
         for row in several
+        for name in listed(row, names)
         if name in row.answers and len(row.answers[name].candidates) > len(row.labels)
     ]
     below = [correct_below(labels, answer) for labels, answer in answered]
     ranked = [ranked_correctly(labels, answer) for labels, answer in answered]
     return BelowUniform(
         lists=len(answered),
-        refused=sum(name in row.refused for row in several),
+        refused=sum(name in row.refused for row in several for name in listed(row, names)),
         correct=sum(len(labels) for labels, _ in answered),
         below=sum(len(found) for found in below),
         lists_below=sum(bool(found) for found in below),
@@ -127,24 +136,28 @@ def table(first: list[str], body: list[list[str]]) -> list[str]:
     return [f"| {' | '.join(line)} |" for line in (header, align, *body)]
 
 
-def document(runs: dict[str, tuple[str, str]], by_label: Sequence[str], root: Path = REPO_ROOT) -> str:
+def document(
+    runs: dict[str, tuple[str, tuple[str, ...] | None]], by_label: Sequence[str], root: Path = REPO_ROOT
+) -> str:
     """Return the counts of each run and model as a Markdown document, with the results folders that it reads.
 
-    `runs` maps a dataset to the label of its row in the definition UNIFORM_DEFINITION and the list that it uses. A
-    dataset in `by_label` gets a second table by the number of labels of the example.
+    `runs` maps a dataset to the label of its row in the definition UNIFORM_DEFINITION and the names of the lists
+    that it uses, or None for every list. A dataset in `by_label` gets a second table by the number of labels of the
+    example.
     """
     spec = read_spec(TABLES_DIR / f"{UNIFORM_DEFINITION}.json")
     rows = {row.label: row for row in spec.rows}
     totals, folders = [], []
     groups: dict[str, list[list[str]]] = {dataset: [] for dataset in by_label}
-    for dataset, (label, name) in runs.items():
+    for dataset, (label, names) in runs.items():
+        described = "every list" if names is None else "lists " + ", ".join(f"`{name}`" for name in names)
         for model in spec.models:
             folder = model_folder(rows[label].folder, model, root)
             found = [row for row in read_jsonl(root / folder / "rows.jsonl", Row) if keeps(rows[label], row)]
-            folders.append(f"- {dataset}, {MODEL_TITLES[model]}: `{folder}`, list `{name}`")
-            totals.append([dataset, MODEL_TITLES[model], *cells(counted(found, name))])
+            folders.append(f"- {dataset}, {MODEL_TITLES[model]}: `{folder}`, {described}")
+            totals.append([dataset, MODEL_TITLES[model], *cells(counted(found, names))])
             for number, own in by_labels(found).items() if dataset in by_label else ():
-                groups[dataset].append([str(number), MODEL_TITLES[model], *cells(counted(own, name))])
+                groups[dataset].append([str(number), MODEL_TITLES[model], *cells(counted(own, names))])
     lines = ["# Correct options below 1/n", "", *table(["Dataset", "Model"], totals)]
     for dataset, body in groups.items():
         lines += ["", f"## {dataset} by the number of correct options", ""]

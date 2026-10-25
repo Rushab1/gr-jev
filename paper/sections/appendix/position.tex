@@ -1,21 +1,11 @@
 \section{Position of the correct tool}
 \label{app:position}
-% The numbers are from results/metatool_position*/2026-10-11_01/rows.jsonl, lists first and last of the test files
-% similar_tools and scenario. The change is computed before rounding.
-For 2,795 MetaTool queries with one correct tool, from the test files \texttt{similar\_tools} and \texttt{scenario}, we placed the correct tool first or tenth in a list of 10 tools that ends with the choice ``None''. The other nine tools keep their order. GPT-6 Luna Decisions refused 2 of the lists.
+For 2,795 MetaTool queries with one correct tool in the \texttt{similar\_tools} and \texttt{scenario} test files, we place the correct tool first or last among 5, 10, or 15 tools. We add the choice ``None'' after the tools. The other tools keep their order. For 2 of the 2,795 queries, GPT-6 Luna Decisions refuses every list.
 
 \begin{table}[H]
-\caption{Accuracy with the correct tool first and tenth, and the change in percentage points.}
+\caption{Accuracy with the correct tool first and last, and the change in percentage points.}
 \label{tab:position}
 \centering
 \small
-\begin{tabular}{lrrr}
-\toprule
-Model & First & Tenth & Change \\
-\midrule
-Jev & 0.78 & 0.80 & +2 \\
-Liquid d1 & 0.69 & 0.74 & +4 \\
-GPT-6 Luna Decisions & 0.80 & 0.67 & $-13$ \\
-\bottomrule
-\end{tabular}
+\input{tables/position_accuracy}
 \end{table}

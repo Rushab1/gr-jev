@@ -16,25 +16,34 @@ from grjev.constants import (
 from grjev.tables import Selected, TableSpec
 from grjev.thresholds import read_pairs
 
+Marked = list[tuple[float, bool]]
+
+
+def marked(values: dict[str, float], labels: Sequence[str]) -> Marked:
+    """Round each probability and say whether its choice is a label."""
+    return [(round(value, PROBABILITY_DECIMALS), key in labels) for key, value in values.items()]
+
 
 def independently_paired(
-    listed: Selected, name: str, asked: Selected
-) -> tuple[list[list[tuple[float, bool]]], list[list[tuple[float, bool]]]]:
-    """Join the list and yes/no responses by example ID and keep complete multi-label examples."""
+    listed: Selected, names: tuple[str, ...] | None, asked: Selected
+) -> tuple[list[list[Marked]], list[list[Marked]]]:
+    """Join the lists and yes/no responses by example ID and keep complete multi-label examples, with every answered
+    list of an example together."""
     yes = {row.id: row for row in asked.rows}
-    pairs: list[tuple[list[tuple[float, bool]], list[tuple[float, bool]]]] = []
+    sent: list[list[Marked]] = []
+    questioned: list[list[Marked]] = []
     for row in listed.rows:
-        answer = row.answers.get(name)
         other = yes.get(row.id)
-        if answer is None or other is None or len(row.labels) < 2 or len(answer.candidates) <= len(row.labels):
+        keys = list(row.answers) if names is None else names
+        answers = [row.answers[key] for key in keys if key in row.answers]
+        answers = [answer for answer in answers if len(answer.candidates) > len(row.labels)]
+        if other is None or other.refused or len(row.labels) < 2 or not answers:
             continue
-        if other.refused or set(other.yes) != set(answer.candidates):
+        if any(set(other.yes) != set(answer.candidates) for answer in answers):
             continue
-        forms = []
-        for values in (answer.probabilities, other.yes):
-            forms.append([(round(value, PROBABILITY_DECIMALS), key in row.labels) for key, value in values.items()])
-        pairs.append((forms[0], forms[1]))
-    return [one for one, _ in pairs], [two for _, two in pairs]
+        sent.append([marked(answer.probabilities, row.labels) for answer in answers])
+        questioned.append([marked(other.yes, row.labels)])
+    return sent, questioned
 
 
 def best_exact(examples: Sequence[Sequence[tuple[float, bool]]]) -> str:
@@ -64,11 +73,11 @@ def test_threshold_table_uses_matched_examples_and_independently_best_exact_sets
     pairs = read_pairs(UNIFORM_RUNS, THRESHOLD_YES_NO_RUNS)
     for model in spec.models:
         expected: list[str] = []
-        for dataset, (label, name) in UNIFORM_RUNS.items():
-            forms = independently_paired(chosen(label, model), name, chosen(THRESHOLD_YES_NO_RUNS[dataset], model))
+        for dataset, (label, names) in UNIFORM_RUNS.items():
+            forms = independently_paired(chosen(label, model), names, chosen(THRESHOLD_YES_NO_RUNS[dataset], model))
             assert forms == pairs[(dataset, model)], (dataset, model)
             assert len(forms[0]) == len(forms[1]) > 0
-            expected.extend(best_exact(form) for form in forms)
+            expected.extend(best_exact([lists for group in form for lists in group]) for form in forms)
         assert latex_model_cells(published, model) == expected, model
 
 

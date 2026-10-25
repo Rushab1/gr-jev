@@ -1,8 +1,9 @@
 """The choices that a probability threshold selects, on examples with two or more correct choices.
 
-A threshold t selects the choices whose probability is at or above t. The list form takes the probabilities of one
-list of choices, which sum to 1. The yes/no form takes the probability of yes of a separate question per choice.
-Both forms are read on the same examples.
+A threshold t selects the choices whose probability is at or above t. The list form takes the probabilities of each
+list of choices of an example, such as each of its permutations, which sum to 1. The yes/no form takes the
+probability of yes of a separate question per choice. Both forms are read on the same examples, and the measures
+pool every list of every example.
 """
 
 from collections.abc import Callable, Sequence
@@ -30,9 +31,12 @@ from grjev.constants import (
 )
 from grjev.runs import Row
 from grjev.tables import read_spec, selected
+from grjev.uniform import listed
 
-# The probability and whether the choice is correct, for each choice of one example.
+# The probability and whether the choice is correct, for each choice of one list.
 Choices = list[tuple[float, bool]]
+# The choices of each list of one example, for each example.
+Groups = list[list[Choices]]
 FORMS = (("list", "-"), ("yes/no", "--"))
 # The measures whose best value over the thresholds the table gives. Precision and recall reach 1 at an end.
 BEST_SHOWN = ("Exact set accuracy", "F1")
@@ -48,26 +52,31 @@ def choices(probabilities: dict[str, float], labels: Sequence[str]) -> Choices:
     return [(round(value, PROBABILITY_DECIMALS), name in labels) for name, value in probabilities.items()]
 
 
-def paired(lists: Sequence[Row], name: str, asked: Sequence[Row]) -> tuple[list[Choices], list[Choices]]:
-    """Return the choices of the list of that name and of the yes/no questions, for the same examples.
+def paired(lists: Sequence[Row], names: Sequence[str] | None, asked: Sequence[Row]) -> tuple[Groups, Groups]:
+    """Return the choices of the lists of those names, or of every list without names, and of the yes/no questions,
+    for the same examples.
 
-    An example counts when it has two or more labels, its list was answered and holds a distractor, and every one
-    of its yes/no questions was answered. The yes/no questions must be about the options of the list.
+    An example counts when it has two or more labels, one of its lists was answered and holds a distractor, and every
+    one of its yes/no questions was answered. A refused list is left out. The yes/no questions must be about the
+    options of the lists.
     """
     yes = {row.id: row for row in asked if len(row.labels) > 1 and not row.refused}
-    kept = [
-        row
-        for row in lists
-        if len(row.labels) > 1
-        and name in row.answers
-        and len(row.answers[name].candidates) > len(row.labels)
-        and row.id in yes
-    ]
-    for row in kept:
-        if set(yes[row.id].yes) != set(row.answers[name].candidates):
-            raise ValueError(f"the yes/no questions of {row.id} are not about the options of its list")
-    listed = [choices(row.answers[name].probabilities, row.labels) for row in kept]
-    return listed, [choices(yes[row.id].yes, row.labels) for row in kept]
+    sent, questioned = [], []
+    for row in lists:
+        answers = [row.answers[name] for name in listed(row, names) if name in row.answers]
+        answers = [answer for answer in answers if len(answer.candidates) > len(row.labels)]
+        if len(row.labels) < 2 or row.id not in yes or not answers:
+            continue
+        if any(set(yes[row.id].yes) != set(answer.candidates) for answer in answers):
+            raise ValueError(f"the yes/no questions of {row.id} are not about the options of its lists")
+        sent.append([choices(answer.probabilities, row.labels) for answer in answers])
+        questioned.append([choices(yes[row.id].yes, row.labels)])
+    return sent, questioned
+
+
+def flat(groups: Sequence[list[Choices]]) -> list[Choices]:
+    """Return the choices of every list of every example."""
+    return [found for group in groups for found in group]
 
 
 def exact(found: Sequence[Choices], t: float) -> float:
@@ -129,25 +138,25 @@ def thresholds() -> list[float]:
 
 
 def read_pairs(
-    runs: dict[str, tuple[str, str]], yes_runs: dict[str, str], root: Path = REPO_ROOT
-) -> dict[tuple[str, str], tuple[list[Choices], list[Choices]]]:
-    """Return the choices of the list and of the yes/no questions for each dataset and model.
+    runs: dict[str, tuple[str, tuple[str, ...] | None]], yes_runs: dict[str, str], root: Path = REPO_ROOT
+) -> dict[tuple[str, str], tuple[Groups, Groups]]:
+    """Return the choices of the lists and of the yes/no questions for each dataset and model.
 
-    `runs` maps a dataset to the label of its list run in the definition UNIFORM_DEFINITION and the name of the list,
-    and `yes_runs` to the label of its yes/no run.
+    `runs` maps a dataset to the label of its list run in the definition UNIFORM_DEFINITION and the names of the
+    lists, or None for every list, and `yes_runs` to the label of its yes/no run.
     """
     spec = read_spec(TABLES_DIR / f"{UNIFORM_DEFINITION}.json")
     rows = {row.label: row for row in spec.rows}
     found = {}
-    for dataset, (label, name) in runs.items():
+    for dataset, (label, names) in runs.items():
         for model in spec.models:
             lists = selected(rows[label], model, root).rows
-            found[(dataset, model)] = paired(lists, name, selected(rows[yes_runs[dataset]], model, root).rows)
+            found[(dataset, model)] = paired(lists, names, selected(rows[yes_runs[dataset]], model, root).rows)
     return found
 
 
 def chart(
-    found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]],
+    found: dict[tuple[str, str], tuple[Groups, Groups]],
     path: Path,
     names: Sequence[str] = tuple(MEASURES),
     paper: bool = False,
@@ -165,7 +174,8 @@ def chart(
         figure = Figure(figsize=(width, height * len(names) + (0.5 if paper else 0)))
         axes = figure.subplots(len(names), len(datasets), sharex=True, sharey=True, squeeze=False)
         for (dataset, model), pairs in found.items():
-            for (form, style), forms in zip(FORMS, pairs, strict=True):
+            for (form, style), groups in zip(FORMS, pairs, strict=True):
+                forms = flat(groups)
                 line = {"color": MODEL_COLORS[model], "linestyle": style, "linewidth": 1.2 if paper else 1.6}
                 for row, name in enumerate(names):
                     axis = axes[row][datasets.index(dataset)]
@@ -229,7 +239,7 @@ def best(found: Sequence[Choices], measure: Callable[[Sequence[Choices], float],
     return f"{value:.2f} ({t:.2f})"
 
 
-def paper_table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]]) -> str:
+def paper_table(found: dict[tuple[str, str], tuple[Groups, Groups]]) -> str:
     """Return a LaTeX `tabular` of the best exact set accuracy over the thresholds, with the models as rows and a list
     and a yes/no column for each dataset."""
     datasets = list(dict.fromkeys(dataset for dataset, _ in found))
@@ -240,7 +250,9 @@ def paper_table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]
     lines += ["Model" + " & List & Yes/no" * len(datasets) + r" \\", r"\midrule"]
     for model in models:
         values = [
-            max(exact(forms, t) for t in thresholds()) for dataset in datasets for forms in found[(dataset, model)]
+            max(exact(flat(groups), t) for t in thresholds())
+            for dataset in datasets
+            for groups in found[(dataset, model)]
         ]
         lines.append(MODEL_TITLES[model] + "".join(f" & {value:.2f}" for value in values) + r" \\")
     return "\n".join([*lines, r"\bottomrule", r"\end{tabular}"]) + "\n"
@@ -273,13 +285,13 @@ def embolden(rows: Sequence[list[str]]) -> None:
                 cells[column] = rf"\textbf{{{cells[column]}}}"
 
 
-def paper_detail_table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]]) -> str:
+def paper_detail_table(found: dict[tuple[str, str], tuple[Groups, Groups]]) -> str:
     """Return a LaTeX `tabular` of the cells of `detail_cells`, with a row for each dataset, model and form. The
     highest and the lowest value of each form in the columns of DETAIL_BOLD are in bold."""
     cells = {
-        (key, form): detail_cells(forms)
+        (key, form): detail_cells(flat(groups))
         for key, pairs in found.items()
-        for (form, _), forms in zip(FORMS, pairs, strict=True)
+        for (form, _), groups in zip(FORMS, pairs, strict=True)
     }
     for form, _ in FORMS:
         embolden([row for (_, own), row in cells.items() if own == form])
@@ -294,18 +306,19 @@ def paper_detail_table(found: dict[tuple[str, str], tuple[list[Choices], list[Ch
     return "\n".join([*lines, r"\bottomrule", r"\end{tabular}"]) + "\n"
 
 
-def table(found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]]) -> str:
+def table(found: dict[tuple[str, str], tuple[Groups, Groups]]) -> str:
     """Return a Markdown table of each measure at the thresholds of THRESHOLDS_TABLED, and the best value of the
     measures of BEST_SHOWN."""
     header = ["Dataset", "Model", "Form", "Examples", "Measure"]
     header += [f"t = {t:g}" for t in THRESHOLDS_TABLED] + ["Best value (t)"]
     lines = [f"| {' | '.join(header)} |", "|" + "---|" * 5 + "---:|" * (len(THRESHOLDS_TABLED) + 1)]
     for (dataset, model), pairs in found.items():
-        for (form, _), forms in zip(FORMS, pairs, strict=True):
+        for (form, _), groups in zip(FORMS, pairs, strict=True):
+            forms = flat(groups)
             for name, (_, measure) in MEASURES.items():
                 cells = [f"{measure(forms, t):.2f}" for t in THRESHOLDS_TABLED]
                 cells.append(best(forms, measure) if name in BEST_SHOWN else "")
                 lines.append(
-                    f"| {dataset} | {MODEL_TITLES[model]} | {form} | {len(forms):,} | {name} | {' | '.join(cells)} |"
+                    f"| {dataset} | {MODEL_TITLES[model]} | {form} | {len(groups):,} | {name} | {' | '.join(cells)} |"
                 )
     return "\n".join(lines) + "\n"

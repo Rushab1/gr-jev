@@ -1,6 +1,6 @@
 # Paper plan: the probability distribution of decision models
 
-Last updated 2026-10-10. Rushab, 2026-10-10: "the whole reason this paper is important is because we want to study the probability distribution of decision models". The paper is not about tool selection. This file holds the five properties of the distribution that the paper tests, the datasets, the results so far, the runs on every example with their cost, and what is not built or not decided. The history of the runs is in `docs/plan.md`. The figures of every run and model are in `docs/all_runs.md`.
+Last updated 2026-10-24. Rushab, 2026-10-10: "the whole reason this paper is important is because we want to study the probability distribution of decision models". The paper is not about tool selection. This file holds the five properties of the distribution that the paper tests, the datasets, the results so far, the runs on every example with their cost, and what is not built or not decided. The history of the runs is in `docs/plan.md`. The figures of the runs on every example are in `docs/paper_runs.html`. `docs/all_runs.md` has the figures of the subset runs of 2026-10-05 to 2026-10-09.
 
 ## Terms
 
@@ -210,6 +210,23 @@ Rushab, 2026-10-18: the HotpotQA yes/no row is replaced by the 1,000 questions o
 - HotpotQA questions of type `bridge` (5,918) and of type `comparison` (1,487) are reported separately. A comparison question needs both supporting passages.
 - MMLU has no list with several correct options, and HotpotQA none with one correct option.
 - A refusal of GPT-6 Luna Decisions is counted and reported for every run, apart from its answers.
+
+### ChaosNLI, the split of 100 annotators
+
+Rushab, 2026-10-21: run on every example of ChaosNLI on the three models, as a separate experiment, not in the paper yet. The method, the requests and the tables are in `docs/chaosnli.md`. The paper now reports ChaosNLI in the results and in the calibration appendix.
+
+- On the 1,487 examples where two labels each have at least 30% of 100 annotators, the annotators' gap between the two labels is 0.17 to 0.21 and the models' gap is 0.62 to 0.80.
+- In 37% to 51% of those answers the larger probability goes to the label fewer annotators chose.
+- The runs made 4,645 Jev calls. `JEV_CALL_LIMIT` was then 78,386. It is 178,386 since 2026-10-22.
+
+### HotpotQA, cyclic permutations of the passages
+
+Rushab, 2026-10-24: the allocation table sends each HotpotQA list in its cyclic permutations, as for ECtHR. The `own` run sends each of the 7,405 questions in all of its cyclic permutations, 73,700 lists per model. A list of n passages has n of them. The first permutation is the released order.
+
+- Jev made 7,423 calls, because 18 questions needed 2 requests. Its 114,764,890 input tokens cost $4.82. Saved Jev calls are 71,051.
+- Liquid d1 read 97,534,413 input tokens. At the gateway's listed price of $0.02 per million tokens that is $1.95, not checked against the bill.
+- GPT-6 Luna Decisions read 104,514,118 input tokens, $10.45, and refused 96 lists.
+- Three cells of the allocation table change by 1 percentage point. Jev's ranked share goes from 82% to 81%. GPT-6 Luna Decisions' ranked share goes from 70% to 69%, and its share below 1/n from 29% to 28%.
 
 ### List length
 

@@ -1,14 +1,14 @@
 \section{Lists with no correct choice}
 \label{app:abstention}
-We build the lists with no correct choice from examples with any number of correct choices and leave out every correct choice. A list holds either random choices from the dataset that are not in the example's list, or the example's own distractors. We send each list without and with a ``none of the above'' choice. Without it, we report the confidence of the prediction. With it, ``none of the above'' is the only correct answer, and we report the share of predictions that select it.
+We construct lists with no correct choice in two ways. We remove the correct choices from an example's list. We also sample choices from the dataset that are absent from the example's list. We send lists without a ``none of the above'' choice and lists with one in separate runs. Table~\ref{tab:runs} gives the number of lists of each kind. Without it, we report the confidence of the prediction. With it, ``none of the above'' is the only correct choice, and we report the share of predictions that select it.
 
-Without a ``none of the above'' choice, the mean confidence is 0.49 to 0.71 on HotpotQA and 0.74 to 0.87 on MetaTool and ECtHR (Table~\ref{tab:abstention}). With it, the models select it in 93\% to 100\% of the lists of random choices and in 79\% to 88\% of the HotpotQA lists of the example's own distractors, and in 7\% to 37\% of the ECtHR lists (Table~\ref{tab:nota}).
+Without a ``none of the above'' choice, the mean confidence is 0.49 to 0.87, and it is lowest on HotpotQA for each model (Table~\ref{tab:abstention}). With it, the models select ``none of the above'' in 93\% to 100\% of the lists of random choices. On lists of the example's own distractors, they select it in 79\% to 88\% of the HotpotQA lists and in 7\% to 37\% of the ECtHR lists (Table~\ref{tab:nota}).
 
 % Figure~\ref{fig:exact-set} belongs to Appendix~\ref{app:thresholds}. It is set here to print on the page of that appendix.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/exact_set}
-\caption{Exact set accuracy, the share of examples in which every correct choice is at or above the threshold $t$ and every distractor is below it. Above 0.50 the list curves are 0 by construction.}
+\caption{Exact set accuracy, the share of lists in which every correct choice is at or above the threshold $t$ and every distractor is below it. The lists are the permutations of Table~\ref{tab:allocation}. The yes/no questions of an example count as one list. Above 0.50 the list curves are 0 by construction.}
 \label{fig:exact-set}
 \end{figure*}
 

@@ -1,27 +1,11 @@
 \section{Runs}
 \label{app:runs}
-Each model received 30,457 requests. The lists of identical copies took 5,139 requests per model, and the yes/no questions 497 on MetaTool, 1,000 on HotpotQA and 1,000 on ECtHR.
+Each model receives 43,022 requests. Lists of identical copies account for 5,139 requests. Yes/no questions account for 497 MetaTool requests, 1,000 HotpotQA requests, and 1,000 ECtHR requests. ChaosNLI lists account for 4,645 requests. HotpotQA lists in their cyclic permutations account for 7,423 requests. Table~\ref{tab:runs} gives the number of examples and lists of each kind.
 
-\begin{table}[H]
+\begin{table*}[t]
 \caption{Examples by dataset and list type, with the number of lists or yes/no questions per model in parentheses where it differs. GPT-6 Luna Decisions refused some of them (Appendix~\ref{app:refusals}).}
 \label{tab:runs}
 \centering
 \small
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrrr}
-\toprule
-List & MetaTool & HotpotQA & ECtHR \\
-\midrule
-Several correct choices & 497 & 7,405 & 192 (1,920) \\
-Five identical copies & 3,292 (16,460) & 1,000 (5,000) & 847 (4,235) \\
-One correct choice & 2,795 (16,770) & -- & 655 (6,550) \\
-No correct choice, random choices & 3,292 (16,460) & 1,000 (5,000) & -- \\
-No correct choice, the example's own & 995 (3,980) & 7,377 & 153 (1,530) \\
-Random choices and ``none of the above'' & 995 (4,975) & 1,000 (5,000) & -- \\
-The example's own and ``none of the above'' & -- & 1,000 (5,000) & 153 \\
-Highest correct choice removed & 497 & 7,384 & 192 \\
-Yes/no question per choice & 497 (4,970) & 1,000 (10,000) & 1,000 (10,000) \\
-Selecting by a threshold & 497 & 1,000 & 192 \\
-\bottomrule
-\end{tabular}}
-\end{table}
+\input{tables/runs}
+\end{table*}

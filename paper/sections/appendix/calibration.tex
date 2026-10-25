@@ -1,6 +1,6 @@
 \section{Calibration}
 \label{app:calibration}
-On lists with one correct choice, the ECE of the confidence is 8 to 14 percentage points on MetaTool and 1 to 3 on ECtHR (Table~\ref{tab:calibration-one}). Without the bin from 0 to 0.1, the ECE of the yes/no questions is highest for GPT-6 Luna Decisions on MetaTool, 18 percentage points, and lowest for Liquid d1 and GPT-6 Luna Decisions on ECtHR, 8 (Table~\ref{tab:calibration}).
+On lists with one correct choice, the ECE of the confidence is higher on MetaTool than on ECtHR for each model (Table~\ref{tab:calibration-one}). Without the bin from 0 to 0.1, the ECE of the yes/no questions is 8 to 18 percentage points (Table~\ref{tab:calibration}).
 
 \begin{table}[H]
 \caption{ECE in percentage points of the confidence on lists with one correct choice.}
@@ -15,4 +15,13 @@ On lists with one correct choice, the ECE of the confidence is 8 to 14 percentag
 \label{tab:calibration}
 \centering
 \resizebox{\linewidth}{!}{\input{tables/calibration}}
+\end{table}
+
+% Written by scripts/paper/paper_annotators.py from the bins of src/grjev/annotators.py.
+\begin{table}[H]
+\caption{ECE in percentage points of the probabilities on ChaosNLI against the shares of the 100 annotators, over bins of width 0.1 of the probability of a label.}
+\label{tab:calibration-annotators}
+\centering
+\footnotesize
+\input{tables/chaosnli_calibration}
 \end{table}
