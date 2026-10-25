@@ -18,7 +18,7 @@ Multiple valid alternatives can differ in relevance and need not get equal proba
 
 \addlinespace
 TypeSafe and OpenAI describe a Choice question as selecting one option. Using its probabilities to select several choices goes beyond that use.
-& The providers suggest a threshold on these probabilities. TypeSafe's documentation sends a ticket to a second team when that team's probability is above 0.25, in an example with three choices and two correct ones (Section~\ref{sec:setup}).
+& The providers suggest a threshold on these probabilities. TypeSafe's documentation sends a ticket to a second team when that team's probability is above 0.25, in an example with three choices (Section~\ref{sec:setup}).
 \\
 
 \addlinespace
@@ -49,7 +49,7 @@ The ECE without the first bin is a conditional calibration error over the other 
 
 \addlinespace
 GPT-6 Luna Decisions refuses some requests.
-& A refused list returns no probabilities, and we leave it out. On the lists with several correct choices in Table~\ref{tab:allocation}, GPT-6 Luna Decisions refuses 9 of 14,295. On the lists of identical copies it refuses 5\%. Most of its refusals are on lists with no correct choice. These lists appear only in Appendix~\ref{app:abstention} and are not central to the main findings of this work (Appendix~\ref{app:refusals}).
+& A refused list returns no probabilities, and we leave it out. The refusals do not change the findings. On the lists with several correct choices in Table~\ref{tab:allocation}, GPT-6 Luna Decisions refuses 96 of 80,590. Jev and Liquid d1 refuse none and show the same uneven allocation (Appendix~\ref{app:refusals}).
 \\
 
 \bottomrule
