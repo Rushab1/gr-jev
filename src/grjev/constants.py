@@ -736,13 +736,26 @@ ANNOTATOR_RUNS = {
         LUNA_MODEL: "chaosnli_alpha_own_gpt-6-luna-decisions/2026-10-21_01",
     },
 }
-# An example is split when two of its labels each have at least this share of the annotators. Claude Code chose the
-# value on 2026-10-21. It is not taken from ChaosNLI.
-ANNOTATOR_SPLIT_SHARE = 0.3
-# A probability below the first value or above the second is at an end. A label in the middle has a share of the
-# annotators between these two values. Both pairs were chosen by Claude Code on 2026-10-21.
-ANNOTATOR_EDGES = (0.1, 0.9)
-ANNOTATOR_MIDDLE = (0.3, 0.7)
+# The edges of the ten equal-width bins of the ChaosNLI charts.
+ANNOTATOR_BIN_EDGES = tuple(step / 10 for step in range(11))
+# A probability of 0 gives an infinite Kullback-Leibler divergence, so it is read as this value instead. The evaluation
+# code of Nie et al. (2020) uses the same value.
+ANNOTATOR_SMALLEST_PROBABILITY = 1e-15
+# The figures of Table 5 of Nie et al. (2020) on the same examples, by test file: the Jensen-Shannon distance and the
+# accuracy on the original label and on the label with the most votes, for the chance baseline and for RoBERTa-large.
+ANNOTATOR_BASELINES = {
+    "snli": {"Chance": (0.3830, 0.4472, 0.5370), "RoBERTa-large": (0.2210, 0.7490, 0.7867)},
+    "mnli_m": {"Chance": (0.3023, 0.4509, 0.4634), "RoBERTa-large": (0.3112, 0.6742, 0.6354)},
+    "alphanli": {"Chance": (0.3205, 0.5098, 0.5052), "RoBERTa-large": (0.2128, 0.8531, 0.8368)},
+}
+# The title of each ChaosNLI test file in a chart.
+ANNOTATOR_TITLES = {"snli": "SNLI", "mnli_m": "MNLI", "alphanli": r"$\alpha$NLI"}
+# The size of the ChaosNLI charts: the width, and the height of each row.
+ANNOTATOR_PAGE_SIZE = (13.0, (4.0, 2.4))
+ANNOTATOR_PAPER_SIZE = (6.3, (2.0, 1.2))
+# The size of the ChaosNLI gap chart, which has one row: the width and the height of the row.
+ANNOTATOR_GAP_PAGE_SIZE = (13.0, 4.0)
+ANNOTATOR_GAP_PAPER_SIZE = (6.3, 2.0)
 UNIFORM_RUNS = {
     "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
     "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
@@ -767,6 +780,11 @@ COPIES_RUNS = {
 # The table of the appendix made by scripts/paper/paper_intervals.py: the 95% bootstrap intervals of the main figures
 # of the paper, as a LaTeX file in PAPER_TABLES_DIR.
 INTERVALS_PAPER_TABLE = "intervals"
+# The ChaosNLI table and figure of the paper, written by scripts/paper/paper_annotators.py.
+ANNOTATORS_PAPER_TABLE = "chaosnli"
+ANNOTATORS_PAPER_FIGURE = "annotator_gap"
+# The ECE of the probabilities against the annotators' shares, a LaTeX file in PAPER_TABLES_DIR.
+ANNOTATORS_ECE_PAPER_TABLE = "chaosnli_calibration"
 # The thresholds of the charts, from 0 to 1 in steps of 0.01, and those of the table under them.
 THRESHOLD_STEPS = 100
 THRESHOLDS_TABLED = (0.1, 0.25, 0.5)

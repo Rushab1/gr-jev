@@ -10,10 +10,10 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import matplotlib
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.ticker import NullLocator, PercentFormatter
+from matplotlib.ticker import PercentFormatter
 
+from grjev.bin_charts import bin_ticks, draw_shares, share_axis
 from grjev.constants import (
     FIGURE_DPI,
     MODEL_COLORS,
@@ -64,32 +64,6 @@ def ece_table(found: dict[tuple[str, str], list[YesBin | None]]) -> str:
     return "\n".join(lines)
 
 
-def share_axis(axis: Axes, ticked: bool, labelled: bool) -> Axes:
-    """Return an axis behind `axis` for the share of the answers in each bin, on a log scale from 0.1% to 100%."""
-    behind = axis.twinx()
-    behind.set_yscale("log")
-    behind.set_ylim(0.001, 1)
-    behind.set_yticks([0.001, 0.01, 0.1, 1], ["0.1%", "1%", "10%", "100%"])
-    behind.yaxis.set_minor_locator(NullLocator())
-    behind.tick_params(labelright=ticked, colors="grey")
-    if labelled:
-        behind.set_ylabel("Percentage of answers in the bin\n(log scale)", color="grey")
-    for edge in YES_BIN_EDGES[1:-1]:
-        behind.axvline(edge, color="black", linestyle=":", linewidth=0.6, zorder=3)
-    axis.set_zorder(behind.get_zorder() + 1)
-    axis.patch.set_visible(False)
-    return behind
-
-
-def draw_shares(axis: Axes, held: list[YesBin], model: str, place: tuple[int, int]) -> None:
-    """Draw a bar per bin with the share of the model's answers in it, the `place[0]`th of `place[1]` bars in a bin."""
-    total = sum(part.answers for part in held)
-    width = (held[0].high - held[0].low) / place[1]
-    lefts = [part.low + place[0] * width for part in held]
-    shares = [part.answers / total for part in held]
-    axis.bar(lefts, shares, width, align="edge", color=MODEL_COLORS[model], alpha=0.25, linewidth=0)
-
-
 def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: bool = False) -> None:
     """Draw one column per dataset: the reliability diagram above and its distance from the diagonal below it, each
     over the share of the answers in each bin."""
@@ -101,7 +75,7 @@ def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: 
         axes = figure.subplots(
             2, len(datasets), sharex=True, sharey="row", squeeze=False, gridspec_kw={"height_ratios": heights}
         )
-        behind = {axis: share_axis(axis, axis in axes[:, -1], axis is axes[0][-1]) for axis in axes.flat}
+        behind = {axis: share_axis(axis, YES_BIN_EDGES, axis in axes[:, -1], axis is axes[0][-1]) for axis in axes.flat}
         for (dataset, model), bins in found.items():
             top, bottom = axes[0][datasets.index(dataset)], axes[1][datasets.index(dataset)]
             held = [part for part in bins if part]
@@ -109,7 +83,9 @@ def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: 
             top.plot([p.mean for p in held], [p.correct for p in held], "o-", label=MODEL_TITLES[model], **style)
             bottom.plot([p.mean for p in held], [100 * (p.correct - p.mean) for p in held], "o-", **style)
             for axis in (top, bottom):
-                draw_shares(behind[axis], held, model, (models.index(model), len(models)))
+                spans = [(part.low, part.high) for part in held]
+                counts = [part.answers for part in held]
+                draw_shares(behind[axis], spans, counts, MODEL_COLORS[model], (models.index(model), len(models)))
         for column, dataset in enumerate(datasets):
             axes[0][column].plot((0, 1), (0, 1), color="grey", linestyle=":", linewidth=1)
             axes[0][column].set_title(dataset)
@@ -125,9 +101,7 @@ def chart(found: dict[tuple[str, str], list[YesBin | None]], path: Path, paper: 
         for axis in axes.flat:
             axis.grid(alpha=0.3, axis="y")
             axis.set_xlim(0, 1)
-            axis.set_xticks(
-                YES_BIN_EDGES, [f"{edge:.1f}" if step % 2 == 0 else "" for step, edge in enumerate(YES_BIN_EDGES)]
-            )
+            bin_ticks(axis, YES_BIN_EDGES)
         if paper:
             figure.legend(*axes[0][0].get_legend_handles_labels(), loc="lower center", ncol=3, frameon=False)
             figure.tight_layout(rect=(0, 0.08, 1, 1))
