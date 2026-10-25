@@ -1,0 +1,20 @@
+{
+ "source": "The question and passages of john_jane.json, shortened to 5 of its 10 passages in their order: the first 3 passages about tournaments and the passages of John and Jane, which give their birth dates.",
+ "written": "Claude Code cut the list of john_jane.json to 5 passages on 2026-10-25, on Rushab's instruction, for the README. The passages are unchanged. The list is the 5 passages.",
+ "request": {
+  "state": "who is older, Jane or John?",
+  "questions": {
+   "full": {
+    "type": "choice",
+    "instructions": "Choose every passage in the list that supports the answer to the question.",
+    "criteria": {
+     "1998 Harlow Classic – Doubles": "John and Petra Lindqvist were the defending champions but did not compete that year.",
+     "1998 Varden Indoor Open": "The 1998 Varden Indoor Open was a tennis tournament played on indoor hard courts at the Kestrel Arena in Varden in Switzerland that was part of Tier III of the 1998 Meridian Tour. The tournament was held from March 2 through March 8, 1998. John won the singles title.",
+     "1998 Corvale Open – Doubles": "John and Ilse Marquart were the defending champions, but competed this year with different partners. John teamed up with Petra Lindqvist and were eliminated in third round, while Marquart teamed up with Dana Ferreira and lost in semifinals.",
+     "John": "John (born December 12, 1976) is an Italian tennis player. Winning eight Meridian Tour singles titles, he reached his highest ranking at World No. 5 on May 11, 1997, after reaching semifinals at the 1997 Corvale Open. John is also former World No. 7 in doubles, winning the Corvale Open in 1997 partnering with Ilse Marquart.",
+     "Jane": "Jane (born January 13, 1990) is an Australian professional tennis player. A United States resident since 1996, Jane has competed on the Meridian Tour since 2005. She has been ranked world No. 1 in singles by the tour on four separate occasions, for a total of 17 weeks. She is one of nine players, and the only Australian, to hold the career Grand Slam. She is also a medalist of the Continental Games, having earned silver for Australia in singles at the 2014 Continental Games in Port Selwyn."
+    }
+   }
+  }
+ }
+}
