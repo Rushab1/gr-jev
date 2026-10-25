@@ -1,6 +1,6 @@
-# ChaosNLI: probabilities against the split of 100 annotators
+# ChaosNLI: model probabilities against the shares of 100 annotators
 
-Runs of 2026-10-21 on every example of ChaosNLI, on Jev, Liquid d1 and GPT-6 Luna Decisions. Not in the paper yet.
+Runs of 2026-10-21 on every example of ChaosNLI, on Jev, Liquid d1 and GPT-6 Luna Decisions. The paper reports them in the results (`tab:chaosnli`, `fig:annotator-gap`) and in the calibration appendix (`tab:calibration-annotators`).
 
 ## Question
 
@@ -27,94 +27,58 @@ The `own` experiment sends the labels of every example in every cyclic order, al
 
 The runs made 4,645 Jev calls and 4,645 calls to each gateway model. No model refused or rejected a list. The input tokens cost $0.35 for the three models. The results folders are `results/chaosnli_own*/2026-10-21_01` and `results/chaosnli_alpha_own*/2026-10-21_01`.
 
-Before these runs, a script outside the repository sent 100 MNLI examples in one order with other descriptions of the labels. On those 100 examples the models' gap on split examples differs from the figures below by at most 0.06, and the shares by at most 7 percentage points.
+Before these runs, a script outside the repository sent 100 MNLI examples in one order with other descriptions of the labels.
 
 ## Measures
 
-- An example is split when two labels each have at least 30% of the annotators, and clear otherwise. Claude Code chose the 30%, and the edges of 0.1 and 0.9 below.
-- The gap of an example is the share or probability of the label most annotators chose minus that of the second label. For the model, the size of the gap is reported, and the share of answers in which it is negative, where the model favours the label fewer annotators chose.
-- The distance is the total variation distance from the annotators' shares: half the sum of the absolute differences over the labels. It is 0 for the same split and 1 for no overlap.
-- Each answer to one order counts once.
+- The Jensen-Shannon distance of Nie et al. (2020) between the annotators' shares and the probabilities of an answer, with the natural logarithm. A uniform distribution over the labels gives the reference.
+- The share of answers whose highest probability is on the label with the most votes, and on the label of the source dataset.
+- The entropy of the probabilities and of the shares, in bits, and their highest value.
+- The annotator gap is the share of the label with the most votes minus that of the second label. The model gap is the absolute difference between the probabilities of the same two labels. The gap chart puts the examples in ten bins of width 0.1 by annotator gap.
+- The ECE against the shares puts every label in one of ten bins of width 0.1 by its probability. It averages the distance between the mean probability and the mean share of each bin, weighted by the number of labels in the bin.
+- Each answer to one order of the labels counts once.
 
 ## Results
 
-On the 1,487 split examples, the annotators split the two labels 55% to 61% against 38% to 39% on average. The models put a gap of 0.62 to 0.80 between the same two labels, against 0.17 to 0.21 for the annotators. In 37% to 51% of the answers the larger probability goes to the label fewer annotators chose. On these examples, the models are further from the annotators than 1/n on each label in 8 of the 9 pairs of model and test file. Jev on SNLI is at 0.30 against 0.31.
+For every model and test file, the entropy of the probabilities is below that of the shares. Where the annotator gap is below 0.1, the mean annotator gap is 0.04 to 0.05 and the mean model gap is 0.58 to 0.77. The ECE against the shares is 9 to 22 percentage points. The highest probability is on the label with the most votes in 57% to 86% of the answers.
 
-On the clear examples, the models are as far from the annotators as a model that puts all the probability on the majority label, within 0.07.
+![The model gap against the annotator gap](annotator_gap.png)
 
-A change in the order of the labels moves the probability of a label by 0.02 to 0.11 on average.
-
-`python scripts/report/annotator_split.py` prints the tables below from the results folders. The code is in `src/grjev/annotators.py`, and the runs are `ANNOTATOR_RUNS` in `src/grjev/constants.py`.
+`python scripts/report/annotator_figures.py` prints the tables below from the results folders. `python scripts/report/annotator_charts.py --gap docs/annotator_gap.png --reliability docs/annotator_reliability.png` draws the two charts. The code is in `src/grjev/annotators.py` and `src/grjev/annotator_charts.py`, and the runs are `ANNOTATOR_RUNS` in `src/grjev/constants.py`.
 
 ### snli
 
-| Measure | Jev | Liquid d1 | GPT-6 Luna Decisions |
-|---|---:|---:|---:|
-| Examples | 1,514 | 1,514 | 1,514 |
-| Answers, one per order of the labels | 4,542 | 4,542 | 4,542 |
-| Labels below 0.1 or above 0.9, annotators | 45% | 45% | 45% |
-| Labels below 0.1, model | 53% | 53% | 58% |
-| Labels above 0.9, model | 20% | 20% | 25% |
-| Labels that 30% to 70% of annotators chose, once per order | 3,177 | 3,177 | 3,177 |
-| Of those, below 0.1 or above 0.9, model | 37% | 46% | 68% |
-| Split examples, two labels with at least 30% each | 477 | 477 | 477 |
-| Split examples, annotators' gap between the two labels | 0.19 | 0.19 | 0.19 |
-| Split examples, model's gap between the two labels | 0.62 | 0.68 | 0.80 |
-| Split examples, answers that favour the label fewer annotators chose | 37% | 40% | 42% |
-| Split examples, distance of the model from the annotators | 0.30 | 0.34 | 0.40 |
-| Split examples, distance of 1/n on each label | 0.31 | 0.31 | 0.31 |
-| Split examples, distance of all on the majority label | 0.42 | 0.42 | 0.42 |
-| Clear examples, distance of the model | 0.15 | 0.16 | 0.22 |
-| Clear examples, distance of all on the majority label | 0.16 | 0.16 | 0.16 |
-| Mean change of a label's probability over the orders | 0.02 | 0.04 | 0.07 |
+| Model | Examples | Answers, one per order of the labels | Jensen-Shannon distance from the annotators | Answers on the label with the most votes | Answers on the label of the source dataset | Entropy of the probabilities (bits) | Entropy of the shares (bits) | Highest probability | Highest share |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chance (Nie et al., 2020) | -- | -- | 0.38 | 0.54 | 0.45 | -- | -- | -- | -- |
+| RoBERTa-large (Nie et al., 2020) | -- | -- | 0.22 | 0.79 | 0.75 | -- | -- | -- | -- |
+| Jev | 1,514 | 4,542 | 0.21 | 0.83 | 0.71 | 0.42 | 0.80 | 0.87 | 0.75 |
+| Liquid d1 | 1,514 | 4,542 | 0.21 | 0.79 | 0.73 | 0.46 | 0.80 | 0.87 | 0.75 |
+| GPT-6 Luna Decisions | 1,514 | 4,542 | 0.28 | 0.76 | 0.62 | 0.27 | 0.80 | 0.92 | 0.75 |
 
 ### mnli_m
 
-| Measure | Jev | Liquid d1 | GPT-6 Luna Decisions |
-|---|---:|---:|---:|
-| Examples | 1,599 | 1,599 | 1,599 |
-| Answers, one per order of the labels | 4,797 | 4,797 | 4,797 |
-| Labels below 0.1 or above 0.9, annotators | 28% | 28% | 28% |
-| Labels below 0.1, model | 46% | 44% | 50% |
-| Labels above 0.9, model | 13% | 12% | 17% |
-| Labels that 30% to 70% of annotators chose, once per order | 5,562 | 5,562 | 5,562 |
-| Of those, below 0.1 or above 0.9, model | 43% | 42% | 56% |
-| Split examples, two labels with at least 30% each | 795 | 795 | 795 |
-| Split examples, annotators' gap between the two labels | 0.17 | 0.17 | 0.17 |
-| Split examples, model's gap between the two labels | 0.64 | 0.63 | 0.72 |
-| Split examples, answers that favour the label fewer annotators chose | 51% | 49% | 48% |
-| Split examples, distance of the model from the annotators | 0.36 | 0.37 | 0.40 |
-| Split examples, distance of 1/n on each label | 0.27 | 0.27 | 0.27 |
-| Split examples, distance of all on the majority label | 0.45 | 0.45 | 0.45 |
-| Clear examples, distance of the model | 0.27 | 0.29 | 0.32 |
-| Clear examples, distance of all on the majority label | 0.25 | 0.25 | 0.25 |
-| Mean change of a label's probability over the orders | 0.03 | 0.07 | 0.11 |
+| Model | Examples | Answers, one per order of the labels | Jensen-Shannon distance from the annotators | Answers on the label with the most votes | Answers on the label of the source dataset | Entropy of the probabilities (bits) | Entropy of the shares (bits) | Highest probability | Highest share |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chance (Nie et al., 2020) | -- | -- | 0.30 | 0.46 | 0.45 | -- | -- | -- | -- |
+| RoBERTa-large (Nie et al., 2020) | -- | -- | 0.31 | 0.64 | 0.67 | -- | -- | -- | -- |
+| Jev | 1,599 | 4,797 | 0.29 | 0.61 | 0.65 | 0.60 | 1.07 | 0.81 | 0.65 |
+| Liquid d1 | 1,599 | 4,797 | 0.28 | 0.57 | 0.65 | 0.72 | 1.07 | 0.79 | 0.65 |
+| GPT-6 Luna Decisions | 1,599 | 4,797 | 0.32 | 0.59 | 0.60 | 0.53 | 1.07 | 0.85 | 0.65 |
 
 ### alphanli
 
-| Measure | Jev | Liquid d1 | GPT-6 Luna Decisions |
-|---|---:|---:|---:|
-| Examples | 1,532 | 1,532 | 1,532 |
-| Answers, one per order of the labels | 3,064 | 3,064 | 3,064 |
-| Labels below 0.1 or above 0.9, annotators | 60% | 60% | 60% |
-| Labels below 0.1, model | 34% | 35% | 36% |
-| Labels above 0.9, model | 34% | 35% | 36% |
-| Labels that 30% to 70% of annotators chose, once per order | 860 | 860 | 860 |
-| Of those, below 0.1 or above 0.9, model | 37% | 39% | 46% |
-| Split examples, two labels with at least 30% each | 215 | 215 | 215 |
-| Split examples, annotators' gap between the two labels | 0.21 | 0.21 | 0.21 |
-| Split examples, model's gap between the two labels | 0.63 | 0.64 | 0.68 |
-| Split examples, answers that favour the label fewer annotators chose | 43% | 44% | 42% |
-| Split examples, distance of the model from the annotators | 0.30 | 0.31 | 0.33 |
-| Split examples, distance of 1/n on each label | 0.11 | 0.11 | 0.11 |
-| Split examples, distance of all on the majority label | 0.39 | 0.39 | 0.39 |
-| Clear examples, distance of the model | 0.11 | 0.12 | 0.13 |
-| Clear examples, distance of all on the majority label | 0.07 | 0.07 | 0.07 |
-| Mean change of a label's probability over the orders | 0.04 | 0.07 | 0.11 |
+| Model | Examples | Answers, one per order of the labels | Jensen-Shannon distance from the annotators | Answers on the label with the most votes | Answers on the label of the source dataset | Entropy of the probabilities (bits) | Entropy of the shares (bits) | Highest probability | Highest share |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chance (Nie et al., 2020) | -- | -- | 0.32 | 0.51 | 0.51 | -- | -- | -- | -- |
+| RoBERTa-large (Nie et al., 2020) | -- | -- | 0.21 | 0.84 | 0.85 | -- | -- | -- | -- |
+| Jev | 1,532 | 3,064 | 0.15 | 0.86 | 0.84 | 0.32 | 0.41 | 0.90 | 0.88 |
+| Liquid d1 | 1,532 | 3,064 | 0.15 | 0.86 | 0.85 | 0.31 | 0.41 | 0.91 | 0.88 |
+| GPT-6 Luna Decisions | 1,532 | 3,064 | 0.17 | 0.86 | 0.85 | 0.29 | 0.41 | 0.91 | 0.88 |
 
 ## Limits
 
 - The share of the annotators is not the probability that a label is correct. A reviewer can say that a model asked for one label has no duty to reproduce the disagreement. The providers describe the outputs as probabilities, and the paper's introduction states that.
 - SNLI, MNLI and alphaNLI are public since 2015, 2018 and 2020, and ChaosNLI since 2020. They may be in the training data of the three models.
-- Every SNLI and MNLI example of ChaosNLI has the source `agree_3`: 3 of its 5 original annotators chose the majority label. Split examples are therefore more frequent than in SNLI or MNLI as a whole.
+- Every SNLI and MNLI example of ChaosNLI has the source `agree_3`: 3 of its 5 original annotators chose the majority label. Examples on which the annotators disagree are therefore more frequent than in SNLI or MNLI as a whole.
 - One wording of the labels per dataset, and one request per example.

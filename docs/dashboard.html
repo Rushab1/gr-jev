@@ -162,7 +162,7 @@
 <div class="page">
   <header>
     <h1>Jev study</h1>
-    <p class="updated">Updated 2026-10-18</p>
+    <p class="updated">Updated 2026-10-24</p>
   </header>
 
   <nav class="tabs" role="tablist" id="tabs">
@@ -2105,7 +2105,7 @@
         <li><span class="txt">The runs with copies, with random options and with "None" are repeated on MMLU, a dataset of multiple-choice questions with no tool. Rushab chose it on 2026-10-08 from the benchmarks of Tam et al. (2025).</span></li>
         <li><span class="txt">The results are stated as two: Jev gives most of its probability to one entry, and the place of an entry changes Jev's probabilities.</span></li>
         <li><span class="txt">MetaTool is not tested with lists longer than its 199 tools.</span></li>
-        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 5,000 since 2026-10-09.</span></li>
+        <li><span class="txt">Jev calls are limited until Rushab raises the limit. The limit is 178,386 since 2026-10-22.</span></li>
         <li><span class="txt">No model is hosted by us. Liquid d1, GPT-6 Luna Decisions and Laya are asked through Vercel AI Gateway, which takes no model version. OpenJev has no hosted API and is left out. Rushab decided this on 2026-10-08.</span></li>
         <li><span class="txt">Laya is left out of the runs on every example. It rejected 2,784 of 7,667 lists as too long, and its accuracy on MMLU with 4 choices is 0.24.</span></li>
         <li><span class="txt">HotpotQA in the distractor setting is the dataset with several correct options in a list: 2 supporting passages among 10. Rushab chose it on 2026-10-09 over MultiRC.</span></li>
@@ -2116,6 +2116,7 @@
         <li><span class="txt">The datasets of the runs on every example are four, from different domains: MetaTool for tool selection, HotpotQA for passage selection, MMLU for knowledge questions and ECtHR for legal classification. ECtHR gives the facts of a case and the articles of the Convention that the Court found violated, among 10: 655 test cases have 1, 192 have 2 to 4, and 153 have none. Rushab, 2026-10-10.</span></li>
         <li><span class="txt">List length is decided later, possibly as a short section at the end of the paper on the 50 examples already run. Rushab, 2026-10-09.</span></li>
         <li><span class="txt">The HotpotQA yes/no questions are asked on the same 1,000 questions as the run with copies, in place of a separate sample of 500. Rushab, 2026-10-18. 79 of the 1,000 were in the sample of 500.</span></li>
+        <li><span class="txt">The allocation table sends each HotpotQA list in all of its cyclic permutations, as for ECtHR. Rushab, 2026-10-24. Three cells of the table change by 1 percentage point.</span></li>
         <li><span class="txt">Calibration with several correct options uses only the yes/no questions, in 10 bins of the probability of yes of width 0.1, as for ECE. Calibration of a list is not defined when several options are correct, and "top" is not defined either. Rushab, 2026-10-14; 10 bins in place of 5, Rushab, 2026-10-15.</span></li>
         <li><span class="txt"><code>check_jev.py</code> and <code>check_frontier.py</code> are health checks on the models and make a new call on every run. One run of <code>check_jev.py</code> uses 1 Jev call of the limit.</span></li>
         <li><span class="txt">The frontier LLMs are Claude Sonnet 5 and Claude Opus 5, called through the Claude Code CLI with thinking and tools switched off and with <code>--effort low</code>. Codex is left out: with tools switched off it still sends the model one tool definition.</span></li>
