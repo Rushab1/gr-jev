@@ -67,20 +67,28 @@ def test_an_example_counts_with_two_labels_a_distractor_and_every_yes_no_questio
     probabilities = {"a": 0.9, "b": 0.07, "c": 0.03}
     yes = {"a": 0.95, "b": 0.6, "c": 0.1}
     lists = [row(["a", "b"], {"full": answer(probabilities)}, {}, [])]
-    listed, asked = paired(lists, "full", [row(["a", "b"], {}, yes, [])])
-    assert listed == [[(0.9, True), (0.07, True), (0.03, False)]] and asked == [
-        [(0.95, True), (0.6, True), (0.1, False)]
+    listed, asked = paired(lists, ("full",), [row(["a", "b"], {}, yes, [])])
+    assert listed == [[[(0.9, True), (0.07, True), (0.03, False)]]] and asked == [
+        [[(0.95, True), (0.6, True), (0.1, False)]]
     ]
-    assert paired(lists, "full", [row(["a", "b"], {}, yes, ["c"])]) == ([], [])
+    assert paired(lists, ("full",), [row(["a", "b"], {}, yes, ["c"])]) == ([], [])
     one = [row(["a"], {"full": answer(probabilities)}, {}, [])]
-    assert paired(one, "full", [row(["a"], {}, yes, [])]) == ([], [])
-    with pytest.raises(ValueError, match="options of its list"):
-        paired(lists, "full", [row(["a", "b"], {}, {"a": 0.9, "z": 0.1}, [])])
+    assert paired(one, ("full",), [row(["a"], {}, yes, [])]) == ([], [])
+    with pytest.raises(ValueError, match="options of its lists"):
+        paired(lists, ("full",), [row(["a", "b"], {}, {"a": 0.9, "z": 0.1}, [])])
+
+
+def test_without_names_every_answered_list_of_an_example_is_kept_together_and_its_yes_no_questions_once() -> None:
+    orders = {"r0": answer({"a": 0.9, "b": 0.07, "c": 0.03}), "r1": answer({"c": 0.2, "a": 0.5, "b": 0.3})}
+    lists = [row(["a", "b"], orders, {}, ["r2"])]
+    listed, asked = paired(lists, None, [row(["a", "b"], {}, {"a": 0.95, "b": 0.6, "c": 0.1}, [])])
+    assert listed == [[[(0.9, True), (0.07, True), (0.03, False)], [(0.2, False), (0.5, True), (0.3, True)]]]
+    assert asked == [[[(0.95, True), (0.6, True), (0.1, False)]]]
 
 
 def test_the_table_of_the_paper_gives_the_best_exact_set_accuracy_of_the_list_and_of_the_yes_no_questions() -> None:
     # Only the first example of FOUND can have every correct choice selected and its distractor rejected.
-    lines = paper_table({("Set", JEV_MODEL): (FOUND, FOUND[:1])}).splitlines()
+    lines = paper_table({("Set", JEV_MODEL): ([FOUND], [FOUND[:1]])}).splitlines()
     assert lines[2:5] == [r" & \multicolumn{2}{c}{Set} \\", r"\cmidrule(lr){2-3}", r"Model & List & Yes/no \\"]
     assert lines[6] == r"Jev & 0.50 & 1.00 \\"
 

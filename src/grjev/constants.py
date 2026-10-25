@@ -463,6 +463,7 @@ EXPERIMENT_TEST_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     },
     "own": {
         "mmlu": (MMLU_STANDALONE_FILE,),
+        "hotpotqa": (HOTPOTQA_TEST_FILE,),
         "ecthr": (ECTHR_TEST_FILE,),
         "chaosnli": tuple(CHAOSNLI_NLI_FILES),
         "chaosnli_alpha": (CHAOSNLI_ALPHA_FILE,),
@@ -756,11 +757,20 @@ ANNOTATOR_PAPER_SIZE = (6.3, (2.0, 1.2))
 # The size of the ChaosNLI gap chart, which has one row: the width and the height of the row.
 ANNOTATOR_GAP_PAGE_SIZE = (13.0, 4.0)
 ANNOTATOR_GAP_PAPER_SIZE = (6.3, 2.0)
-UNIFORM_RUNS = {
-    "MetaTool": ("MetaTool: two correct tools, every needed tool is asked for", FULL_LIST),
-    "HotpotQA": ('HotpotQA: the passages of the question, "supports"', FULL_LIST),
-    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", f"{ROTATED_LIST}_0"),
+# The run of each dataset whose lists the allocation table of the paper counts, by the label of its row in
+# paper_runs.json, with the names of the lists it counts. MetaTool counts the 10 placements of the "mixed"
+# experiment, so its cells are means over them. HotpotQA and ECtHR count every rotation of the "own" experiment,
+# named by None, because a list of n choices has n rotations and 60 HotpotQA lists have fewer than 10 passages.
+ALLOCATION_RUNS: dict[str, tuple[str, tuple[str, ...] | None]] = {
+    "MetaTool": (
+        "MetaTool: two correct tools, 10 placements of the pair",
+        tuple(f"{MIXED_LIST}_{number}" for number in range(len(MIXED_PLACES))),
+    ),
+    "HotpotQA": ('HotpotQA: the passages of the question in every cyclic permutation, "supports"', None),
+    "ECtHR": ("ECtHR: cases with 2 to 4 violated articles", None),
 }
+# The threshold analysis and the counts below 1/n read the same lists as the allocation table.
+UNIFORM_RUNS = ALLOCATION_RUNS
 # The datasets whose rows are also counted by the number of labels of the example.
 UNIFORM_BY_LABELS = ("ECtHR",)
 # The yes/no run of each dataset of UNIFORM_RUNS in paper_runs.json, by the label of its row. scripts/report/

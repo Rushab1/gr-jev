@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from grjev.constants import D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR, TOOLS_FILE_NAME, UNIFORM_RUNS
+from grjev.constants import ALLOCATION_RUNS, D1_MODEL, JEV_MODEL, LUNA_MODEL, TABLES_DIR, TOOLS_FILE_NAME
 from grjev.examples import Example, Option, write_jsonl
 from grjev.report import (
     ENTROPY_HEADER,
@@ -263,14 +263,22 @@ def test_the_page_puts_the_conclusions_and_the_findings_before_the_terms_and_the
     )
 
 
-def test_the_definition_of_the_runs_on_every_example_names_51_tables_for_three_models() -> None:
+def test_the_definition_of_the_runs_on_every_example_names_53_tables_for_three_models() -> None:
     definition = read_spec(TABLES_DIR / "paper_runs.json")
-    assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 51
-    assert len({row.label for row in definition.rows}) == 51 and len({row.group for row in definition.rows}) == 6
+    assert definition.models == (JEV_MODEL, D1_MODEL, LUNA_MODEL) and len(definition.rows) == 53
+    assert len({row.label for row in definition.rows}) == 53 and len({row.group for row in definition.rows}) == 6
     assert all(row.instruction for row in definition.rows if row.figures != "second_correct")
-    # The MetaTool yes/no run was added on 2026-10-14, the copies with random IDs as names on 2026-10-19, and the MMLU
-    # copies with spaces, rebuilt from the saved responses of 2026-10-11, on 2026-10-20.
-    dated = ("/2026-10-11_", "yes_no", "_copied/2026-10-19_", "_copied_spaced/2026-10-20_")
+    # The MetaTool yes/no run was added on 2026-10-14, the copies with random IDs as names on 2026-10-19, the MMLU
+    # copies with spaces, rebuilt from the saved responses of 2026-10-11, on 2026-10-20, the MetaTool placements on
+    # 2026-10-22, and the HotpotQA cyclic permutations on 2026-10-24.
+    dated = (
+        "/2026-10-11_",
+        "yes_no",
+        "_copied/2026-10-19_",
+        "_copied_spaced/2026-10-20_",
+        "_mixed/2026-10-22_",
+        "_own/2026-10-24_",
+    )
     assert all(row.about and any(part in row.folder for part in dated) for row in definition.rows)
     labels = {row.label for row in definition.rows}
     assert len(definition.findings) == 6 and len(definition.conclusions) == 8
@@ -306,9 +314,10 @@ def test_the_latex_table_of_a_finding_groups_its_parts_and_escapes_the_percent_s
 def test_the_latex_table_gives_gaps_in_points_the_lists_ranked_correctly_and_the_headers_of_a_part(
     tmp_path: Path,
 ) -> None:
-    # The label of the MetaTool run of UNIFORM_RUNS, whose list is `full`. In the full list a gets 0.7 and b 0.1,
-    # below the distractor c at 0.2, so the list is not ranked correctly and no list is left for the share below 1/n.
-    own = spec(label=UNIFORM_RUNS["MetaTool"][0], lists=("full",), positions=True)
+    # The label of the HotpotQA run of ALLOCATION_RUNS, which counts every list of a row. Only the full list holds a
+    # distractor. In it a gets 0.7 and b 0.1, below the distractor c at 0.2, so the list is not ranked correctly and
+    # no list is left for the share below 1/n.
+    own = spec(label=ALLOCATION_RUNS["HotpotQA"][0], lists=("full",), positions=True)
     runs = {"Set": chosen(results(tmp_path), own)}
     columns = [
         "Highest correct minus lowest correct, in points",

@@ -11,13 +11,13 @@ from pathlib import Path
 
 from grjev.charts import bars_chart, positions_chart, spans_chart
 from grjev.constants import (
+    ALLOCATION_RUNS,
     MODEL_TITLES,
     POSITIONS_SHOWN_BELOW,
     PROCESSED_DIRS,
     RENORMALISED_REST,
     REPO_ROOT,
     SECOND_TEAM_PROBABILITY,
-    UNIFORM_RUNS,
     YES_ECE_SKIPPED_BINS,
 )
 from grjev.distribution import (
@@ -344,14 +344,14 @@ def points(value: float | None) -> str | None:
 
 
 def below_uniform(own: Selected) -> BelowUniform | None:
-    """Return the counts below 1/n of the list of UNIFORM_RUNS in a run, or None for a run that UNIFORM_RUNS lacks."""
-    names = dict(UNIFORM_RUNS.values())
+    """Return the counts below 1/n of the lists of ALLOCATION_RUNS in a run, or None for a run it lacks."""
+    names = dict(ALLOCATION_RUNS.values())
     return counted(own.rows, names[own.spec.label]) if own.spec.label in names else None
 
 
 def ranked_share(own: Selected, below: bool) -> str | None:
     """Return the share of the lists ranked correctly, or with `below` the share of those with a correct option
-    below 1/n. It is None for a run that UNIFORM_RUNS lacks and when no list is counted."""
+    below 1/n. It is None for a run that ALLOCATION_RUNS lacks and when no list is counted."""
     found = below_uniform(own)
     if found is None:
         return None

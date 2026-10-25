@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from grjev.constants import (
+    ALLOCATION_RUNS,
     BOOTSTRAP_RESAMPLES,
     BOOTSTRAP_SEED,
     COPIES_RUNS,
@@ -23,14 +24,15 @@ from grjev.constants import (
 from grjev.distribution import parted
 from grjev.runs import ListAnswer, Row
 from grjev.tables import RowSpec, answers_of, read_spec, selected
-from grjev.thresholds import Choices, exact, read_pairs, top
-from grjev.uniform import correct_below, ranked_correctly
+from grjev.thresholds import Choices, Groups, exact, flat, read_pairs, top
+from grjev.uniform import correct_below, listed, ranked_correctly
 
 # What one example adds to the sum above the line of a figure and to the sum below it.
 Pair = tuple[float, float]
 # The rows of the table for each dataset: the figure, its scale and its number of decimals.
 FIGURES = (
     ("Gap", 100, 0),
+    (r"Below $1/n$, all lists", 100, 0),
     ("Ranked", 100, 0),
     (r"Below $1/n$", 100, 0),
     ("Gap of the copies", 100, 0),
@@ -65,24 +67,46 @@ def gap_pairs(answers: Sequence[tuple[Row, ListAnswer]]) -> list[Pair]:
     return list(sums.values())
 
 
-def ranked_pairs(rows: Sequence[Row], name: str) -> tuple[list[Pair], list[Pair]]:
-    """Return two pairs for each example that `uniform.counted` counts: whether its list of that name ranks every
-    label above every distractor, over 1, and whether that list also has a label below 1/n, over whether it ranks."""
-    answered = [
-        (row.labels, row.answers[name])
-        for row in rows
-        if len(row.labels) > 1 and name in row.answers and len(row.answers[name].candidates) > len(row.labels)
-    ]
-    good = [ranked_correctly(labels, answer) for labels, answer in answered]
-    low = [bool(correct_below(labels, answer)) for labels, answer in answered]
-    return [(float(g), 1.0) for g in good], [(float(g and b), float(g)) for g, b in zip(good, low, strict=True)]
+def ranked_pairs(rows: Sequence[Row], names: Sequence[str] | None) -> tuple[list[Pair], list[Pair]]:
+    """Return two pairs for each example that `uniform.counted` counts: its lists of those names that rank every
+    label above every distractor, over its counted lists, and those of them with a label below 1/n, over the ones
+    that rank. The sums are per example, so a resample keeps every list of an example together."""
+    ranks: dict[str, Pair] = {}
+    lows: dict[str, Pair] = {}
+    for row in rows:
+        for name in listed(row, names):
+            answer = row.answers.get(name)
+            if len(row.labels) < 2 or answer is None or len(answer.candidates) <= len(row.labels):
+                continue
+            good = ranked_correctly(row.labels, answer)
+            below = bool(correct_below(row.labels, answer))
+            above, total = ranks.get(row.id, (0.0, 0.0))
+            ranks[row.id] = (above + good, total + 1)
+            above, total = lows.get(row.id, (0.0, 0.0))
+            lows[row.id] = (above + (good and below), total + good)
+    return list(ranks.values()), list(lows.values())
 
 
-def exact_pairs(found: Sequence[Choices]) -> list[Pair]:
-    """Return, for each example, whether its set is exact at the threshold with the highest exact set accuracy over
-    all the examples. The threshold stays fixed, so the interval leaves out the choice of the threshold."""
-    t, _ = top(found, exact)
-    return [(exact([example], t), 1.0) for example in found]
+def below_pairs(rows: Sequence[Row], names: Sequence[str] | None) -> list[Pair]:
+    """Return a pair for each example that `uniform.counted` counts: its lists of those names with a label below 1/n,
+    over its counted lists. The sums are per example, as in `ranked_pairs`."""
+    sums: dict[str, Pair] = {}
+    for row in rows:
+        for name in listed(row, names):
+            answer = row.answers.get(name)
+            if len(row.labels) < 2 or answer is None or len(answer.candidates) <= len(row.labels):
+                continue
+            below, total = sums.get(row.id, (0.0, 0.0))
+            sums[row.id] = (below + bool(correct_below(row.labels, answer)), total + 1)
+    return list(sums.values())
+
+
+def exact_pairs(found: Sequence[list[Choices]]) -> list[Pair]:
+    """Return, for each example, its lists whose set is exact at the threshold with the highest exact set accuracy
+    over all the lists, and its number of lists. The threshold stays fixed, so the interval leaves out the choice of
+    the threshold."""
+    t, _ = top(flat(found), exact)
+    return [(sum(exact([choices], t) for choices in group), len(group)) for group in found]
 
 
 def cell(pairs: Sequence[Pair], scale: int, decimals: int) -> str:
@@ -96,15 +120,15 @@ def figure_cells(
     dataset: str,
     model: str,
     rows: dict[str, RowSpec],
-    found: dict[tuple[str, str], tuple[list[Choices], list[Choices]]],
+    found: dict[tuple[str, str], tuple[Groups, Groups]],
 ) -> list[str]:
     """Return the cells of FIGURES for one dataset and model."""
-    label, name = UNIFORM_RUNS[dataset]
+    label, names = ALLOCATION_RUNS[dataset]
     lists = selected(rows[label], model)
-    good, low = ranked_pairs(lists.rows, name)
+    good, low = ranked_pairs(lists.rows, names)
     copies = list(answers_of(selected(rows[COPIES_RUNS[dataset]], model)).values())
     listed, asked = found[(dataset, model)]
-    pairs = [gap_pairs(list(answers_of(lists).values())), good, low, gap_pairs(copies)]
+    pairs = [gap_pairs(list(answers_of(lists).values())), below_pairs(lists.rows, names), good, low, gap_pairs(copies)]
     pairs += [exact_pairs(listed), exact_pairs(asked)]
     return [cell(own, scale, decimals) for own, (_, scale, decimals) in zip(pairs, FIGURES, strict=True)]
 
